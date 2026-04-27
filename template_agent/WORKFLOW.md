@@ -390,24 +390,39 @@ MD final đã sẵn sàng. Chọn brand template để render binary:
 (c) Chỉ MD, không render binary
 
 Lưu ý: chỉ có 2 brand sẵn. Brand khác phải build template mới (ngoài scope session này).
+Note: nếu pick (a) hoặc (b), bạn cần attach file pptx template tương ứng (`TEMPLATE_VBSE.pptx` hoặc `TEMPLATE_FINEXT.pptx`) vào chat — file pptx không nằm trong project knowledge.
 ```
 
-## 11. CP3 — Brand confirm
+## 11. CP3 — Brand confirm + pptx upload check
 
 User pick (a), (b), hoặc (c).
 
 | User chọn | Action |
 |---|---|
-| (a) VBSE | Activate `TEMPLATE_VBSE`, Stage 7 render |
-| (b) Finext | Activate `TEMPLATE_FINEXT`, Stage 7 render |
+| (a) VBSE | Check session có `TEMPLATE_VBSE.pptx` chưa → có: Stage 7 render. Chưa: request upload (xem dưới) |
+| (b) Finext | Check session có `TEMPLATE_FINEXT.pptx` chưa → có: Stage 7 render. Chưa: request upload |
 | (c) Skip | Present MD final, kết thúc workflow |
 | Brand khác | Reject theo system_prompt mục 5.4, hỏi lại |
 
+**Pptx upload request flow** (khi user pick brand nhưng chưa attach pptx):
+
+```
+Để render binary brand [VBSE/Finext], tôi cần file `TEMPLATE_[BRAND].pptx` (binary template, không nằm trong project knowledge).
+
+(a) Upload file pptx → tôi tiếp tục Stage 7 render
+(b) Tôi xuất MD final làm output cuối, bạn dùng tool render bên ngoài tự apply template
+(c) Quay lại Stage 6 chọn lại brand khác
+```
+
+User upload pptx → agent verify filename match brand đã pick, nếu OK → Stage 7. Nếu mismatch (vd pick VBSE attach FINEXT.pptx), agent flag yêu cầu confirm. Chi tiết rule ở `system_prompt.md` mục 5.7.
+
 ## 12. Stage 7 — Render binary
+
+**Prerequisite:** user phải đã attach `TEMPLATE_VBSE.pptx` hoặc `TEMPLATE_FINEXT.pptx` trong session (verified ở CP3, xem mục 11). Nếu chưa có pptx, không vào Stage 7.
 
 TEMPLATE pack runtime:
 
-1. Đọc MD final + file pack `TEMPLATE_X.md` + binary `TEMPLATE_X.pptx`
+1. Đọc MD final + file pack `TEMPLATE_X.md` (project knowledge) + binary `TEMPLATE_X.pptx` (session attachment)
 2. Scan section heading + chart annotation block trong MD
 3. Match semantic với layout có sẵn trong TEMPLATE pack
 4. Clone slide layout → fill placeholder từ MD content

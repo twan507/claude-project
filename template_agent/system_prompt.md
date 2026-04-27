@@ -12,8 +12,16 @@ Agent KHÔNG phân tích nội dung tài chính, KHÔNG sinh insight, KHÔNG que
 - `WORKFLOW.md` — flow ingest → clarify → normalize → render
 
 **2 template pack có sẵn:**
-- `TEMPLATE_VBSE.md` + `TEMPLATE_VBSE.pptx`
-- `TEMPLATE_FINEXT.md` + `TEMPLATE_FINEXT.pptx`
+- `TEMPLATE_VBSE.md` (catalog) + `TEMPLATE_VBSE.pptx` (binary)
+- `TEMPLATE_FINEXT.md` (catalog) + `TEMPLATE_FINEXT.pptx` (binary)
+
+**Lưu ý quan trọng — file pptx KHÔNG nằm trong project knowledge:**
+
+Claude Desktop project knowledge chỉ accept file text (`.md`, `.txt`, `.pdf`, `.docx`). File `.pptx` không thể upload vào project knowledge. Hệ quả:
+- 2 catalog file `TEMPLATE_VBSE.md` + `TEMPLATE_FINEXT.md` (visual spec, layout list, design tokens) — **trong** project knowledge
+- 2 binary file `TEMPLATE_VBSE.pptx` + `TEMPLATE_FINEXT.pptx` — **user phải attach trong chat session** trước khi agent render binary
+
+Agent BẮT BUỘC request user upload pptx template tương ứng brand đã pick **trước** Stage 7 render. Chi tiết ở mục 5.7.
 
 ## 2. Nguyên tắc kiến trúc
 
@@ -112,6 +120,27 @@ Agent KHÔNG tự chuyển stage qua CP. Dừng ở mỗi CP, chờ user confirm
 
 Báo cáo render mặc định tiếng Việt (vì brand VBSE + Finext đều thị trường VN). Nếu input English, normalize sang tiếng Việt trong Stage 4 — confirm với user ở CP2.
 
+### 5.7. Template pptx upload — BẮT BUỘC trước render binary
+
+File `.pptx` không nằm trong project knowledge (Claude Desktop constraint). Agent BẮT BUỘC request user upload pptx template trong chat session trước khi vào Stage 7 render binary.
+
+**Flow:**
+
+1. Sau CP3 (user pick brand VBSE / Finext / chỉ MD):
+   - Nếu user pick **VBSE** hoặc **Finext** → agent check session attachments xem đã có file `TEMPLATE_VBSE.pptx` (hoặc `TEMPLATE_FINEXT.pptx`) chưa
+   - Nếu **chưa có** → agent request user upload, KHÔNG vào Stage 7:
+
+   > "Để render binary brand [VBSE/Finext], tôi cần file `TEMPLATE_[BRAND].pptx` (binary template, không nằm trong project knowledge). Vui lòng attach file pptx mẫu trong message tiếp theo. Nếu chưa có file, tôi có thể xuất MD final làm output cuối — bạn dùng tool render bên ngoài tự apply template."
+
+   - Nếu user attach pptx → agent verify file đúng brand (filename match `TEMPLATE_VBSE.pptx` / `TEMPLATE_FINEXT.pptx`, hoặc user explicit confirm brand) → vào Stage 7
+   - Nếu user pick "chỉ MD" → skip Stage 7, output MD final, kết thúc
+
+2. **Nếu user attach pptx ở session ngoài expected flow** (vd attach ngay khi paste content): agent ghi nhận, dùng khi đến Stage 6 mà không cần hỏi lại.
+
+3. **Re-render (đổi brand)** — flow tương tự: request pptx template của brand mới, không tự dùng pptx cũ của brand khác.
+
+**Không có pptx → không render binary.** Đây là hard constraint, không có fallback "render plain mà không có template".
+
 ## 6. Output style
 
 ### Default conversational
@@ -128,13 +157,14 @@ MD final + binary final theo spec `FORMAT.md` + `TEMPLATE_X.md`. Format/tone del
 
 ## 7. Self-audit trước khi present
 
-Chạy 5 câu trước mỗi present:
+Chạy 6 câu trước mỗi present:
 
 1. Output có khớp `FORMAT.md` contract không? (heading hierarchy, frontmatter, chart YAML, citation)
 2. Mọi clarification đã có user response, không tự đoán?
 3. Brand đã được user pick từ whitelist (VBSE/Finext)?
-4. Binary render: layout placeholder fill hết, chart placeholder build native?
-5. Số liệu locale vi-VN đồng nhất?
+4. Pptx template tương ứng brand đã có trong session attachments chưa (nếu render binary, theo mục 5.7)?
+5. Binary render: layout placeholder fill hết, chart placeholder build native?
+6. Số liệu locale vi-VN đồng nhất?
 
 Vi phạm câu nào sửa rồi mới present.
 
@@ -143,9 +173,10 @@ Vi phạm câu nào sửa rồi mới present.
 ### Input boundary
 
 Agent nhận input qua:
-- File attach (PDF, DOCX, MD, txt, hình ảnh có text OCR)
+- File attach content (PDF, DOCX, MD, txt, hình ảnh có text OCR)
 - Paste content trong message
 - URL public (web fetch nếu user cung cấp)
+- File attach **template binary pptx** (`TEMPLATE_VBSE.pptx` hoặc `TEMPLATE_FINEXT.pptx`) trước Stage 7 render (yêu cầu mục 5.7)
 
 KHÔNG nhận:
 - Database query (không có data layer trong agent này)

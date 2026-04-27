@@ -11,16 +11,18 @@ File index của template_agent. Đọc đầu session để biết file nào av
 
 ## Manifest file
 
-| File | Vai trò |
-|---|---|
-| `system_prompt.md` | Meta-rules vận hành agent (load qua project setting) |
-| `INDEX.md` | File này — manifest + workflow overview |
-| `FORMAT.md` | Spec MD chuẩn hóa — input/output contract |
-| `WORKFLOW.md` | Flow ingest → clarify → normalize → render (7 stage + 3 checkpoint) |
-| `TEMPLATE_VBSE.md` | Catalog 27 layout pptx brand VBSE — visual style navy + đỏ + tam giác |
-| `TEMPLATE_VBSE.pptx` | Binary template VBSE 27 layout |
-| `TEMPLATE_FINEXT.md` | Catalog 27 layout pptx brand Finext — visual style dark + violet + chevron |
-| `TEMPLATE_FINEXT.pptx` | Binary template Finext 27 layout |
+| File | Vai trò | Trong project knowledge? |
+|---|---|---|
+| `system_prompt.md` | Meta-rules vận hành agent (load qua project setting) | Custom Instructions (paste) |
+| `INDEX.md` | File này — manifest + workflow overview | ✅ |
+| `FORMAT.md` | Spec MD chuẩn hóa — input/output contract | ✅ |
+| `WORKFLOW.md` | Flow ingest → clarify → normalize → render (7 stage + 3 checkpoint) | ✅ |
+| `TEMPLATE_VBSE.md` | Catalog 27 layout pptx brand VBSE — visual style navy + đỏ + tam giác | ✅ |
+| `TEMPLATE_VBSE.pptx` | Binary template VBSE 27 layout | ❌ User attach trong chat (Claude Desktop không upload pptx vào project knowledge) |
+| `TEMPLATE_FINEXT.md` | Catalog 27 layout pptx brand Finext — visual style dark + violet + chevron | ✅ |
+| `TEMPLATE_FINEXT.pptx` | Binary template Finext 27 layout | ❌ User attach trong chat |
+
+**Pre-flight render binary:** Trước Stage 7, agent BẮT BUỘC request user upload pptx template tương ứng brand đã pick (xem `system_prompt.md` mục 5.7 + `WORKFLOW.md` Stage 6).
 
 ## Workflow tổng quan
 

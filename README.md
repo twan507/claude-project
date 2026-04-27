@@ -40,7 +40,7 @@ Tạo 3 project riêng trong Claude Desktop app:
 | Project name (đề xuất) | Source folder | Custom Instructions | Knowledge files |
 |---|---|---|---|
 | `Analysis Agent` | `analysis_agent/` | Paste nội dung `analysis_agent/system_prompt.md` | Upload toàn bộ file `.md` còn lại trong folder (28 file) |
-| `Template Agent` | `template_agent/` | Paste nội dung `template_agent/system_prompt.md` | Upload `INDEX.md`, `FORMAT.md`, `WORKFLOW.md`, 2 `TEMPLATE_*.md`, 2 `TEMPLATE_*.pptx` (7 file) |
+| `Template Agent` | `template_agent/` | Paste nội dung `template_agent/system_prompt.md` | Upload `INDEX.md`, `FORMAT.md`, `WORKFLOW.md`, 2 `TEMPLATE_*.md` (5 file `.md`). **2 file `.pptx` KHÔNG upload được vào project knowledge** — user attach trong chat session khi cần render binary (xem mục 4.4 dưới) |
 | `DB Agent` | `db_agent/` | Paste nội dung `db_agent/system_prompt.md` | Upload `agent_db_00` đến `agent_db_05` (6 file) |
 
 ### 2.2. Khi cần update file
@@ -213,11 +213,17 @@ Stage 4   Normalize (LLM produce MD theo FORMAT contract)
 CP2       MD draft review (user confirm/edit/fix)
 Stage 5   Finalize MD
 Stage 6   Brand pre-flight (VBSE / Finext / chỉ MD)
-CP3       Brand confirm
+CP3       Brand confirm + pptx upload check
 Stage 7   Render binary
 ```
 
 **Brand whitelist strict:** chỉ VBSE và Finext. Brand khác → reject, không fallback render plain branded. Nếu cần brand mới → build TEMPLATE pack mới (xem mục 9 Hướng mở rộng).
+
+**Pptx template upload runtime:** File `.pptx` không upload được vào Claude Desktop project knowledge (chỉ accept text-based file). Hệ quả:
+- Catalog `.md` (`TEMPLATE_VBSE.md`, `TEMPLATE_FINEXT.md`) — trong project knowledge
+- Binary `.pptx` (`TEMPLATE_VBSE.pptx`, `TEMPLATE_FINEXT.pptx`) — user **attach trong chat session** trước Stage 7 render
+
+Workflow: agent ở CP3 sau khi user pick brand sẽ check session attachments. Nếu chưa có pptx tương ứng → agent request user upload, không vào Stage 7. Nếu user pick "(c) chỉ MD" → skip Stage 7, output MD final, không cần pptx. Chi tiết rule ở `template_agent/system_prompt.md` mục 5.7.
 
 ### 4.5. Custom quiz (FORMAT mục 3.9 + WORKFLOW mục 5.4-5.5)
 
