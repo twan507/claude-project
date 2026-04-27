@@ -1,12 +1,12 @@
-# P_recommendation_memo_00 — Master Workflow
+# P_stock_pitch_00 — Master Workflow
 
-Pack `P_recommendation_memo` build báo cáo khuyến nghị mã đơn lẻ phục vụ gửi khách hàng. Chỉ khuyến nghị MUA (long only). Báo cáo dạng deliverable MD source, render pptx khi user yêu cầu. Pack độc lập với `P_invest_memo` — user gọi lúc nào cũng được, có hoặc không có memo cycle hiện tại.
+Pack `P_stock_pitch` build báo cáo khuyến nghị mua mã đơn lẻ phục vụ gửi khách hàng (stock pitch). Chỉ khuyến nghị MUA (long only). Báo cáo dạng deliverable MD source, render pptx khi user yêu cầu. Pack độc lập với `P_invest_memo` — user gọi lúc nào cũng được, có hoặc không có memo cycle hiện tại.
 
-Pack 1 file. Toàn bộ workflow + methodology nằm trong file này. Render spec ở `O_recommendation_memo_00`.
+Pack 1 file. Toàn bộ workflow + methodology nằm trong file này. Render spec ở `O_stock_pitch_00`.
 
 ## 1. Mục đích & scope
 
-**Mục đích:** sinh báo cáo khuyến nghị mua mã cổ phiếu Việt Nam niêm yết, dùng gửi trực tiếp cho khách hàng. Báo cáo có cấu trúc 15 mục theo template VBSE-like (cover → tóm tắt → foundation → 4-7 luận điểm → execution → bear case → kịch bản → disclaimer).
+**Mục đích:** sinh báo cáo khuyến nghị mua mã cổ phiếu Việt Nam niêm yết, dùng gửi trực tiếp cho khách hàng (stock pitch). Báo cáo có cấu trúc **13-16 mục** flex theo số luận điểm (cover → tóm tắt → foundation → 4-7 luận điểm → execution → bear case → kịch bản → disclaimer). Convention "15 mục" trong file này dùng default 6 luận điểm; báo cáo thực tế: 4 luận điểm = 13 mục, 5 = 14, 6 = 15, 7 = 16.
 
 **Mục tiêu cao nhất:** thuyết phục được KH có conviction để hành động, đồng thời bảo vệ được pháp lý và uy tín của broker khi recommendation không như kỳ vọng. Báo cáo phải:
 - Có data hard, mỗi claim truy được nguồn
@@ -16,12 +16,12 @@ Pack 1 file. Toàn bộ workflow + methodology nằm trong file này. Render spe
 - Có execution chi tiết nhưng kèm disclaimer "tham khảo, không bắt buộc"
 
 **Input kỳ vọng:**
-- Trigger từ user: "viết khuyến nghị [ticker]", "recommendation [ticker]", "báo cáo MUA [ticker]"
+- Trigger từ user: "viết khuyến nghị [ticker]", "recommendation [ticker]", "báo cáo MUA [ticker]", "stock pitch [ticker]"
 - Mã ticker cụ thể
 - (Optional) memo P_invest_memo tier 5C của mã đó nếu user đã build trước đó
 - (Optional) branding info — logo, tên công ty, hotline, website, phòng ban biên soạn
 
-**Output kỳ vọng:** file MD theo structure rigid 15 mục `O_recommendation_memo_00` quy định. Render pptx khi user yêu cầu.
+**Output kỳ vọng:** file MD theo structure rigid 15 mục `O_stock_pitch_00` quy định. Render pptx khi user yêu cầu.
 
 **Negative scope:**
 - Không khuyến nghị BÁN (rủi ro pháp lý — KH có thể đang nắm giữ, bị xem là gây hoang mang)
@@ -35,7 +35,7 @@ Pack 1 file. Toàn bộ workflow + methodology nằm trong file này. Render spe
 
 ## 2. Naming convention & lưu trữ
 
-**Naming file output:** `recommendation_<TICKER>_<YYYYMMDD>.md` — ngày là ngày phát hành báo cáo.
+**Naming file output:** `stock_pitch_<TICKER>_<YYYYMMDD>.md` — ngày là ngày phát hành báo cáo.
 
 **Lưu trữ:** agent KHÔNG lưu file qua các session. User tự archive.
 
@@ -79,8 +79,8 @@ Workflow 5 stage, 2 checkpoint:
   Mục 15  Disclaimer (theo branding info)
 
 ─── Render & deliver ────────────────────────────────
-  Compile MD theo O_recommendation_memo_00 structure
-  Save file recommendation_<TICKER>_<YYYYMMDD>.md
+  Compile MD theo O_stock_pitch_00 structure
+  Save file stock_pitch_<TICKER>_<YYYYMMDD>.md
   Hỏi user có cần render pptx không
   Present file qua present_files tool
 ```
@@ -229,11 +229,17 @@ Mỗi mức kèm cột "+/- so giá hiện tại" để KH thấy rõ khoảng c
 
 > Consensus sell-side hiện đọc GEL theo P/E 54x — kết luận "quá đắt". Retail cũng nhìn P/E và bỏ qua. **Thesis này khác:** GEL là doanh nghiệp hạ tầng thâm dụng tài sản với tổng tài sản 46.925 tỷ — phải đọc theo P/B (1,37x) hoặc EV/EBITDA (9,94x) chứ không phải P/E. P/E 54x phản ánh chi phí lãi vay từ khoản hợp vốn 200 triệu USD và chi phí chuẩn bị niêm yết — tạm thời, không phải yếu kém kinh doanh.
 
-**Variant perception yếu = thesis yếu.** Nếu không tìm được điểm khác consensus rõ ràng (mã đang được consensus đánh giá đúng) → recommend rủi ro cao vì không có thị trường mismatch để khai thác. Trong trường hợp này, agent ghi note vào checkpoint 1 để user quyết có nên tiếp tục.
+**Variant perception yếu = thesis yếu.** Nếu không tìm được điểm khác consensus rõ ràng (mã đang được consensus đánh giá đúng) → recommend rủi ro cao vì không có thị trường mismatch để khai thác. Trong trường hợp này, agent flag CAUTION + downgrade self-conviction theo 4 dấu hiệu ở mục 7.1, user quyết tại checkpoint 1 (consistent triết lý flex+user-quyết, không auto-reject).
 
 ### 6.4. Output Stage 2
 
-Compose 4-7 mục (5, 6, 7, 8, 9, 10 — tuỳ chọn 4-7 trong số đó), mỗi mục theo format luận điểm. Variant perception lồng vào 1 luận điểm.
+Compose 4-7 mục (đánh số mục 5 đến mục `5+N-1` với N = số luận điểm). Cụ thể:
+- 4 luận điểm → mục 5, 6, 7, 8 (tổng báo cáo 13 mục)
+- 5 luận điểm → mục 5-9 (14 mục)
+- 6 luận điểm → mục 5-10 (15 mục, default)
+- 7 luận điểm → mục 5-11 (16 mục, các mục sau dịch lên 1: cấu trúc mua → mục 12, chốt lãi → 13...)
+
+Mỗi mục theo format luận điểm. Variant perception lồng vào 1 luận điểm. Numbering các mục sau (cấu trúc mua, chốt lãi, bear, kịch bản, disclaimer) shift theo số luận điểm — O pack render adjust số section tương ứng.
 
 Sau Stage 2, **không in ra báo cáo final**. Agent compose draft thesis + variant perception, xuất ra checkpoint 1.
 
@@ -259,8 +265,16 @@ Sau Stage 2, **không in ra báo cáo final**. Agent compose draft thesis + vari
 - Consensus retail: [1-2 dòng nếu khác]
 - Thesis khác consensus: [2-3 dòng insight chính]
 
-**Mức độ thuyết phục variant perception (self-assessment):**
-[Mạnh / Vừa / Yếu] — [1 dòng giải thích]
+**Self-assessment variant perception** (theo 4 dấu hiệu objective, consistent P_invest_memo_07 Gate 1):
+
+| Dấu hiệu | Action đề xuất |
+|---|---|
+| Có differentiation rõ + evidence cụ thể + catalyst + timing | **PASS**, conviction đầy đủ |
+| Differentiation về giá (undervalued) nhưng không có catalyst để re-rate | **CAUTION** — flag "value trap risk" + downgrade conviction 1 bậc |
+| Có differentiation nhưng evidence chỉ là wishful thinking, không data hard | **CAUTION** — flag "wishful thinking" + downgrade conviction 1 bậc |
+| Variant view ≈ consensus (không differentiation rõ) | **CAUTION** — flag "buy vào consensus, thiếu alpha" + downgrade conviction 1 bậc |
+
+Agent không tự reject — đưa thông tin đầy đủ, user quyết proceed (size nhỏ + audit log) hoặc loại mã.
 
 Confirm hay điều chỉnh trước khi build strategy execution?
 - (a) Confirm thesis như trên, tiếp Stage 3
@@ -327,14 +341,14 @@ N mốc chốt lời (flex 3-5 tuỳ mã):
 
 **Đánh giá R/R:**
 
-| R/R | Nhận xét |
-|---|---|
-| 1:1 hoặc thấp hơn | Không hấp dẫn, không nên recommend |
-| 1:1.5 đến 1:2 | Tạm chấp nhận |
-| 1:2 đến 1:3 | Hấp dẫn |
-| > 1:3 | Rất hấp dẫn (cẩn thận có thể kỳ vọng phi thực tế) |
+| R/R | Nhận xét | Action |
+|---|---|---|
+| 1:1 hoặc thấp hơn | Không hấp dẫn | Flag cảnh báo mạnh ở CP2 + downgrade self-conviction, user quyết định |
+| 1:1.5 đến 1:2 | Tạm chấp nhận | Flag note ở CP2, user xác nhận |
+| 1:2 đến 1:3 | Hấp dẫn | Pass |
+| > 1:3 | Rất hấp dẫn | Pass nhưng kiểm tra kỳ vọng phi thực tế (target overshoot?) |
 
-Nếu R/R < 1:1.5 → flag ở checkpoint 2 để user quyết.
+Agent không tự reject mã do R/R thấp — đưa thông tin đầy đủ ở checkpoint 2, user quyết. Triết lý flex+user-quyết consistent với P_invest_memo gate logic.
 
 ## 9. Stage 4 — Steelman Bear Case (mục 13)
 
@@ -524,18 +538,18 @@ MUA [TICKER] vùng [X] - [Y] đồng. Mua thăm dò [N1]% vị thế [thời đi
 
 **Output structured:**
 
-Render đầy đủ disclaimer theo branding info user cung cấp ở pre-flight. Nếu user không cung cấp (chọn 3b ở pre-flight), dùng template default theo `O_recommendation_memo_00`.
+Render đầy đủ disclaimer theo branding info user cung cấp ở pre-flight. Nếu user không cung cấp (chọn 3b ở pre-flight), dùng template default theo `O_stock_pitch_00`.
 
 ## 12. Render & deliver
 
-Sau khi có đủ 15 mục structured content, agent gọi `O_recommendation_memo_00` để render thành file MD final.
+Sau khi có đủ 15 mục structured content, agent gọi `O_stock_pitch_00` để render thành file MD final.
 
-File output: `recommendation_<TICKER>_<YYYYMMDD>.md`, save vào `/mnt/user-data/outputs/`, gọi `present_files`.
+File output: `stock_pitch_<TICKER>_<YYYYMMDD>.md`, save vào `/mnt/user-data/outputs/`, gọi `present_files`.
 
 Sau khi present MD, agent hỏi user:
-> "MD đã sẵn sàng. Có cần render thêm pptx (15 slide theo template VBSE-like) không?"
+> "MD đã sẵn sàng. Có cần render thêm pptx (15 slide branded) không?"
 
-Nếu có → render pptx theo `O_recommendation_memo_00` mục pptx.
+Nếu có → render pptx theo `O_stock_pitch_00` mục pptx (T pack runtime quyết theo brand audience).
 
 ## 13. Edge cases & xử lý
 
@@ -545,7 +559,7 @@ Sau Stage 2, nếu chỉ tìm được < 4 luận điểm có data hard, hoặc 
 
 ### 13.2. R/R không hấp dẫn
 
-Sau Stage 3, nếu R/R < 1:1.5 → flag rõ ở checkpoint 2 đề user quyết. Mã có R/R thấp thường không nên gửi KH dù conviction về fundamentals cao.
+Sau Stage 3, nếu R/R < 1:1.5 → flag rõ ở checkpoint 2 + downgrade self-conviction tổng thể, user quyết. Mã có R/R thấp thường không nên gửi KH dù conviction về fundamentals cao, nhưng quyết định cuối thuộc user (consistent triết lý flex). Audit log nếu user proceed.
 
 ### 13.3. Conviction sau bear case yếu
 
@@ -557,12 +571,24 @@ Pack chạy 1 mã/lần. Nếu user yêu cầu 3 mã, agent confirm: "Sẽ chạ
 
 ### 13.5. Memo P_invest_memo tier 5C có sẵn
 
-User cung cấp file tier 5C ở pre-flight 2(a) → agent đọc file, sử dụng:
-- Thesis 6 phần của memo làm nền cho mục 5-10
-- Vùng giá Bull/Base/Bear → tham chiếu cho mục 11, 12 (cấu trúc mua + chốt lời)
-- Risk map của memo → input cho Stage 4 bear case
+User cung cấp file tier 5C ở pre-flight 2(a) → agent đọc file và absorption nội dung theo mapping:
 
-Vẫn phải qua đủ 2 checkpoint. Memo tier 5C giảm thời gian compose nhưng không bypass review.
+| Memo tier 5C (P_invest_memo_07) | Stock pitch (pack này) | Lưu ý transform |
+|---|---|---|
+| Phần 1 Recommendation + Thesis | Mục 2 Tóm tắt khuyến nghị + tiêu đề thesis chính | Memo có Buy/Pass/Watch — stock pitch chỉ Buy. Nếu memo decision Pass/Watch → ABORT, không build pitch |
+| Phần 2 Variant Perception | Variant perception lồng vào mục 5 (luận điểm L1) | Memo 4 câu (consensus / khác / evidence / khi nào) → stock pitch 3 câu (consensus sell-side / retail / thesis khác). Gộp evidence + timing vào câu 3 |
+| Phần 3 Business Overview | Mục 3 Hồ sơ doanh nghiệp + thông tin định tính các luận điểm | Memo độ dài 0.5-1 trang → stock pitch ngắn hơn, focus mảng kinh doanh chính |
+| Phần 4 Financial + Valuation + Target Base/Bull/Bear | Mục 4 (technical) + L1 định giá + mục 11 + mục 12 | Target memo (Base/Bull/Bear) → mục 11 entry levels (margin of safety) + mục 12 chốt lời mốc + mục 14 kịch bản giá |
+| Phần 5 Catalysts | Luận điểm L4-L5-L7 (catalyst) trong mục 5-10 | Memo 2-4 catalyst với 3 đặc tính → stock pitch luận điểm catalyst với headline data point + sub-point |
+| Phần 6 Bear Case Steelmanned | Mục 13 Bear case + lo ngại còn yếu | **Format khác:** memo 3-5 arguments + probability-weighted target (audience analyst nội bộ) → stock pitch 5-7 lo ngại + phản biện + 1-2 còn yếu honest (audience KH). KHÔNG dùng probability-weighted target trong stock pitch (KH không hiểu methodology). Honest steelman 1-2 còn yếu lấy từ rebuttal yếu nhất của memo |
+| Phần 7 Monitoring + Exit Triggers | Mục 11 cắt lỗ + mục 12 chốt lãi + mục 14 trigger break-down | Hard trigger memo (price < Bear × 0.9, BCTC fail) → stock pitch trigger break-down kịch bản thận trọng. Soft trigger memo → mục 14 trigger duy trì kịch bản cơ sở |
+
+**Vẫn phải qua đủ 2 checkpoint.** Memo tier 5C giảm thời gian compose nhưng không bypass review — wording, audience, format khác (KH vs analyst nội bộ).
+
+**Constraint quan trọng:**
+- Stock pitch KHÔNG dùng probability-weighted bear target từ memo (audience KH).
+- Stock pitch KHÔNG dùng chỉ báo trend/zone code raw từ memo (K hygiene cho KH).
+- Memo decision Pass/Watch → stock pitch ABORT, agent thông báo "Memo tier 5C không recommend Buy, không build pitch".
 
 ### 13.6. Tin xấu mới về mã giữa workflow
 
@@ -587,13 +613,13 @@ Chạy 12 câu trước khi present file:
 9. Cả 2 checkpoint đã được user confirm trước khi compose tiếp?
 10. Mục 15 disclaimer đầy đủ theo branding info user cung cấp?
 11. **Đã không dùng bất kỳ chỉ báo trend nào** (`market_snapshot.trend`, `industry_snapshot.trend`, `*_recent.recent_trend`)?
-12. K hygiene: ký hiệu DB raw đã dịch hết, không còn `week_score: 18`, `vsi: 1.3`, `technical_zone.overall.w: AA` raw trong output?
+12. K hygiene: ký hiệu DB raw đã dịch hết theo bảng `K_agent_db_00` mục 5.2 (không lộ field name, score raw, zone code, period code, money_flow_score raw vào output)?
 
 Vi phạm câu nào sửa rồi mới render file final.
 
 ## 15. Output contract
 
-Pack sinh ra structured content cho `O_recommendation_memo_00` render. Ràng buộc:
+Pack sinh ra structured content cho `O_stock_pitch_00` render. Ràng buộc:
 
 - 15 mục đầy đủ theo thứ tự, không skip
 - Số liệu định lượng quy đổi đơn vị theo K_agent_db_00 mục 6
@@ -605,4 +631,4 @@ Pack sinh ra structured content cho `O_recommendation_memo_00` render. Ràng bu�
 - Mục 14 ba kịch bản if-then không có % xác suất
 - Mục 13 bear case có honest steelman 1-2 lo ngại còn yếu
 
-Pack KHÔNG tự quyết heading style / xưng hô / tone / template pptx — `O_recommendation_memo_00` quyết.
+Pack KHÔNG tự quyết heading style / xưng hô / tone / template pptx — `O_stock_pitch_00` quyết.

@@ -31,7 +31,7 @@ Mapping merge:
 | 7. Monitoring + Exit Triggers | 5C phần 7 | Từ 5B: level cụ thể base × 0.85 entry, bear × 0.9 stop, base/bull take profit — đảm bảo số khớp với tier 5B target |
 
 **Nếu thiếu state file:**
-- Thiếu 5C → không thể render, user phải hoàn thành CP cuối trước
+- Thiếu 5C → không thể render, user phải hoàn thành CP5C trước
 - Thiếu 5B → render được nhưng flag rõ "Thiếu modeling tier 5B, target giá lấy từ 5C mặc định"
 - Thiếu 5A → render được nhưng flag rõ "Thiếu forensic tier 5A, bear case chỉ dựa trên 5C, không có red flag bổ sung"
 

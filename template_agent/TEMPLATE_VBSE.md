@@ -1,44 +1,46 @@
-# T_vbse_00 — Master Index Pack T_vbse
+# TEMPLATE_VBSE — Catalog Layout Brand VBSE
 
-Pack cung cấp template visual VBSE cho render báo cáo pptx. Dùng khi user yêu cầu deliverable pptx và đã có MD source từ P pack + spec render từ O pack.
+Pack cung cấp template visual brand VBSE cho render báo cáo pptx. Activate ở Stage 7 của `WORKFLOW.md` khi user pick brand VBSE ở CP3.
 
-## Manifest pack T_vbse
+TEMPLATE_VBSE là layout catalog độc lập — chỉ đọc 2 nguồn: file pack của chính nó + MD final do WORKFLOW.md produce.
+
+## Manifest pack
 
 | File | Vai trò |
 |---|---|
-| `T_vbse_00.md` | Master index (file này) — danh sách layout, placeholder schema, chart strategy, cách AI dùng |
-| `T_vbse_01.pptx` | Artifact binary 27 layout |
+| `TEMPLATE_VBSE.md` | Master catalog (file này) — danh sách 27 layout, placeholder schema, chart strategy, design tokens, render rule |
+| `TEMPLATE_VBSE.pptx` | Artifact binary 27 layout |
 
-## Khi nào activate T_vbse
+## Khi nào activate TEMPLATE_VBSE
 
-Activate đồng thời với O pack tương ứng khi tất cả điều kiện sau đúng:
+Activate khi user pick "(a) VBSE" ở CP3 brand pre-flight (xem `WORKFLOW.md` mục 11). Điều kiện chung activate: user đã có MD final đúng `FORMAT.md` contract sau Stage 5.
 
-1. User yêu cầu deliverable pptx (không phải MD/docx)
-2. Audience là VBSE brand (gửi KH VBSE, họp nội bộ VBSE, branding VBSE)
-3. P pack workflow đã hoàn thành sinh MD source
-
-Không activate khi: user chỉ cần MD/docx, hoặc audience là brand khác (Finext, internal khác).
+Không activate khi: user pick Finext, hoặc skip render binary (chỉ MD).
 
 ## Pipeline render
 
-```
-P pack       → MD source (structured content + chart annotation YAML blocks)
-O pack       → spec render: section nào ở vị trí nào, format ra sao
-T_vbse pack  → 27 layout có sẵn với placeholder pattern {{NAME}}
+TEMPLATE_VBSE đứng cuối pipeline workflow, chỉ consume MD final đã đông kết:
 
-Agent flow:
-1. Đọc MD source + O pack spec → biết cần render section nào
-2. Đọc T_vbse_00 (file này) → biết layout nào fit cho mỗi section
-3. Mở T_vbse_01.pptx → clone slide layout cần dùng → fill placeholder từ MD
-4. Tại chart placeholder: build native PowerPoint chart từ YAML block trong MD
-5. Save thành báo cáo pptx cuối
 ```
+[Stage 1-5 của WORKFLOW.md đã chạy xong, output: MD final đúng FORMAT contract]
+       │
+       ▼
+TEMPLATE_VBSE runtime (Stage 7)
+1. Đọc MD final → scan section heading + chart annotation block
+2. Đọc TEMPLATE_VBSE.md (file này) → biết layout nào có sẵn + purpose
+3. Match semantic: section "Cover khuyến nghị MUA mã X" → COVER_A_RECOMMENDATION
+4. Mở TEMPLATE_VBSE.pptx → clone slide layout → fill placeholder từ MD content
+5. Tại chart placeholder: build native PowerPoint chart từ YAML block trong MD
+6. Save thành báo cáo pptx cuối
+```
+
+TEMPLATE_VBSE runtime CHỈ đọc 2 nguồn: file pack của chính nó + MD final. Không đọc FORMAT.md, không đọc WORKFLOW.md (đó là context của upstream stage). Mọi nội dung cần thiết (số liệu, luận điểm, chart data, citation) đã có trong MD final.
 
 ## Chart placeholder strategy
 
-T_vbse KHÔNG vẽ chart visual fake. Layout có chart đều dùng pattern **chart placeholder**: rectangle khung trống + label `{{CHART_PLACEHOLDER}}` mô tả loại chart.
+TEMPLATE_VBSE KHÔNG vẽ chart visual fake. Layout có chart đều dùng pattern **chart placeholder**: rectangle khung trống + label `{{CHART_PLACEHOLDER}}` mô tả loại chart.
 
-Lý do: O pack `O_invest_memo_00` mục 7 đã quy định chart annotation dạng YAML block trong MD:
+Pattern chart annotation chuẩn trong MD source dạng YAML block (T consume theo quy ước này — không reference pack nào quy định):
 
 ```
 ```chart
@@ -58,10 +60,10 @@ Khi AI render thực tế:
 
 Lợi ích:
 - Template không bị nhiễu visual fake
-- Phân tách rõ: T = visual layout, MD/O = chart data
+- Phân tách rõ: T = visual layout, MD = nội dung (content + chart data)
 - Chart cuối render là native PowerPoint chart → user/AI có thể edit data sau
 
-Loại chart support theo O packs:
+Loại chart support trong MD source:
 - `bar` (cột) — BCTC 5 năm, top dẫn dắt ngành
 - `line` (đường) — VNINDEX history, giá ticker, P/E history
 - `pie` / `donut` (cơ cấu) — cổ đông, doanh thu mảng
@@ -110,7 +112,7 @@ Các trường sau ghi cứng trong template, AI không cần fill:
 | Tiêu đề "BÁO CÁO THỊ TRƯỜNG TUẦN" trong COVER_C | Cố định |
 | Header "TUYÊN BỐ MIỄN TRỪ TRÁCH NHIỆM" | Cố định |
 
-Lưu ý: nếu VBSE đổi tên phòng ban hoặc đổi disclaimer, sửa trực tiếp trong template `T_vbse_01.pptx`.
+Lưu ý: nếu VBSE đổi tên phòng ban hoặc đổi disclaimer, sửa trực tiếp trong template `TEMPLATE_VBSE.pptx`.
 
 ## Layout pattern toàn cục
 
@@ -151,7 +153,7 @@ Mọi slide content (trừ cover/divider/disclaimer) tuân theo cấu trúc 3-ba
 
 ## Cách AI parse template
 
-Mỗi slide trong `T_vbse_01.pptx` có:
+Mỗi slide trong `TEMPLATE_VBSE.pptx` có:
 
 1. **Slide name** (XML attribute `cSld@name`) = LAYOUT_ID. AI dùng để identify layout khi clone.
 2. **Placeholder** dạng `{{NAME}}` trong text run. AI regex match `\{\{[A-Z_0-9]+\}\}` → biết shape nào cần fill.
@@ -165,8 +167,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 #### LAYOUT 01 — `COVER_A_RECOMMENDATION`
 **Slide #:** 1
-**Mục đích:** Cover khuyến nghị mã đơn lẻ gửi KH. Half-bleed navy + ticker XL + badge MUA + 2 stat (giá hiện tại + giá mục tiêu).
-**Dùng cho:** Recommendation memo (`P_recommendation_memo`).
+**Mục đích:** Cover khuyến nghị mua mã đơn lẻ. Half-bleed navy + ticker XL + badge MUA + 2 stat (giá hiện tại + giá mục tiêu) + thesis headline.
 
 **Placeholders:**
 - `{{TICKER}}` — Mã cổ phiếu, ≤ 5 ký tự (font 96pt)
@@ -179,8 +180,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 #### LAYOUT 02 — `COVER_B_DEEPDIVE`
 **Slide #:** 2
-**Mục đích:** Cover phân tích chuyên sâu. Tone trung tính, không có badge MUA. 4 stat callout: giá hiện tại / giá kỳ vọng cơ sở / mức cắt lỗ / tỷ lệ lời-lỗ.
-**Dùng cho:** Invest memo deep-dive (`P_invest_memo` tier 5C/5D).
+**Mục đích:** Cover phân tích chuyên sâu mã đơn lẻ. Tone trung tính, không có badge MUA. 4 stat callout: giá hiện tại / giá kỳ vọng cơ sở / mức cắt lỗ / tỷ lệ lời-lỗ.
 
 **Placeholders:**
 - `{{TICKER}}` (≤ 6 ký tự)
@@ -194,7 +194,6 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 #### LAYOUT 03 — `COVER_C_WEEKLY_MARKET`
 **Slide #:** 3
 **Mục đích:** Cover báo cáo thị trường tuần. Headline regime + 3 KPI VNINDEX.
-**Dùng cho:** Weekly market report (`P_weekly_market`).
 
 **Placeholders:**
 - `{{WEEK_LABEL}}` — vd "Tuần 17/2026"
@@ -245,7 +244,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
 #### LAYOUT 08 — `STAT_CALLOUT_GRID_4CELL`
-**Slide #:** 8. 4 stat callout + section band + 4 luận điểm 2x2. Dùng cho Recommendation memo "Tóm tắt khuyến nghị".
+**Slide #:** 8. 4 stat callout + section band + 4 luận điểm 2x2. Phù hợp cho slide tóm tắt khuyến nghị (4 mức giá target/stop + 4 luận điểm cốt lõi).
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{TARGET_SHORT}}`, `{{UPSIDE_SHORT}}`, `{{TARGET_MID}}`, `{{UPSIDE_MID}}`
 - `{{STOPLOSS}}`, `{{DOWNSIDE_STOP}}`, `{{RR_RATIO}}`, `{{RR_VERDICT}}`
@@ -253,7 +252,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
 #### LAYOUT 09 — `BIG_STAT_SUBPOINTS`
-**Slide #:** 9. 1 luận điểm chuyên sâu. Big stat panel navy trái + 3 sub-points + bảng KPI. Dùng cho Recommendation memo luận điểm.
+**Slide #:** 9. 1 luận điểm chuyên sâu. Big stat panel navy trái + 3 sub-points + bảng KPI.
 - `{{LUANDIEM_TITLE}}`, `{{LUANDIEM_SUB}}`
 - `{{KPI_LABEL}}`, `{{KPI_VALUE}}` (≤ 6 ký tự, 96pt), `{{KPI_NOTE}}`, `{{KPI_SUB}}`
 - `{{SUBPOINT_1_TITLE}}` ... `{{SUBPOINT_3_TITLE}}`
@@ -313,7 +312,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 - `{{REBUT_1}}` ... `{{REBUT_6}}`
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
-**Constraint:** CONCERN_5/6 BẮT BUỘC là lo ngại thực sự yếu, không "all win" (theo P_recommendation_memo_00 mục 4.4).
+**Constraint:** CONCERN_5/6 BẮT BUỘC là lo ngại thực sự yếu sau phản biện (honest steelman), không "all win" — đây là yêu cầu nội dung chung cho mọi báo cáo dùng layout này.
 
 #### LAYOUT 16 — `VARIANT_PERCEPTION`
 **Slide #:** 16. Insight box + 3 sub-section: đồng thuận thị trường / tâm lý NĐT cá nhân / góc nhìn khác đồng thuận.
@@ -389,8 +388,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
 #### LAYOUT 22 — `MINI_CHARTS_2X2`
-**Slide #:** 22. 4 chart placeholder 2×2. AI build native chart từ YAML block.
-**Dùng cho:** Invest memo financial section (Doanh thu / EBIT / Dòng tiền / Nợ ròng 5 năm).
+**Slide #:** 22. 4 chart placeholder 2×2. AI build native chart từ YAML block. Phù hợp cho block 4 chart chỉ số tài chính 5 năm hoặc 4 stat trend song song.
 
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{CHART_1_TITLE}}` ... `{{CHART_4_TITLE}}`
@@ -417,8 +415,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 #### LAYOUT 24 — `LINE_CHART_FULL`
 **Slide #:** 24
-**Mục đích:** Chart đường full width (2/3 trang) + 3 commentary cards phải.
-**Dùng cho:** VNINDEX history, giá ticker history, P/E ratio history, equity curve portfolio.
+**Mục đích:** Chart đường full width (2/3 trang) + 3 commentary cards phải. Phù hợp cho mọi chart trend theo thời gian (chỉ số, giá, ratio, equity curve).
 
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{CHART_TITLE}}`
@@ -433,8 +430,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 #### LAYOUT 25 — `SCATTER_PEER`
 **Slide #:** 25
-**Mục đích:** Scatter plot định vị peer 2 chiều (vd P/E vs ROE) + bảng peer rút gọn.
-**Dùng cho:** Recommendation memo định vị peer, sector deep-dive.
+**Mục đích:** Scatter plot định vị peer 2 chiều (vd P/E vs ROE) + bảng peer rút gọn. Phù hợp cho mọi block peer comparison 2D.
 
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{CHART_TITLE}}`, `{{Y_AXIS_LABEL}}`, `{{X_AXIS_LABEL}}`
@@ -449,8 +445,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 #### LAYOUT 26 — `DONUT_COMPOSITION`
 **Slide #:** 26
-**Mục đích:** 2 donut chart side-by-side + legend chi tiết.
-**Dùng cho:** Cơ cấu cổ đông + cơ cấu doanh thu mảng.
+**Mục đích:** 2 donut chart side-by-side + legend chi tiết. Phù hợp cho mọi block composition 2 chiều (cơ cấu cổ đông + cơ cấu doanh thu, allocation portfolio + sector composition, etc.).
 
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{DONUT_1_TITLE}}`, `{{DONUT_2_TITLE}}`
@@ -475,45 +470,21 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 ---
 
-## Mapping layout → loại báo cáo
+## Decoupling — TEMPLATE_VBSE hoàn toàn độc lập
 
-| Layout | Recommendation Memo | Weekly Market | Invest Memo Deep-dive |
-|---|---|---|---|
-| COVER_A_RECOMMENDATION | ✓ Slide 1 | — | — |
-| COVER_B_DEEPDIVE | — | — | ✓ Slide 1 |
-| COVER_C_WEEKLY_MARKET | — | ✓ Slide 1 | — |
-| COVER_D_MACRO_SECTOR | — | — | (future) |
-| COVER_E_GENERIC | — | — | (alternative) |
-| SECTION_DIVIDER | optional | optional | optional |
-| BULLET_LIST_SUMMARY | optional | ✓ Exec Summary | ✓ Exec Summary |
-| STAT_CALLOUT_GRID_4CELL | ✓ Slide 2 | — | ✓ Tier summary |
-| BIG_STAT_SUBPOINTS | ✓ Slide 5-7 luận điểm | — | ✓ Thesis section |
-| TWO_COLUMN_INFO_BUSINESS | ✓ Slide 3 | — | ✓ Business Overview |
-| COMPARISON_3CELL_SCENARIOS | ✓ Slide 14 | ✓ PTKT 3 kịch bản | ✓ Bear/Base/Bull |
-| STAT_TABLE_COMBO_SESSION | ✓ Slide 4 | ✓ VN market session | ✓ |
-| DATA_TABLE_FULL | optional | ✓ 24 ngành | ✓ BCTC 5 năm |
-| TIMELINE_NEWS | ✓ Slide 8 catalyst | ✓ Tin tức tuần | ✓ Catalyst |
-| RISK_GRID_STEELMAN | ✓ Slide 13 | ✓ Risk map | ✓ Risk |
-| VARIANT_PERCEPTION | ✓ | — | optional |
-| BUY_STRUCTURE_FLEX | ✓ Slide 11 | — | ✓ Execution |
-| TAKE_PROFIT_TARGETS | ✓ Slide 12 | — | ✓ Exit plan |
-| THESIS_B_PANEL_RIGHT | ✓ Variation | — | ✓ Alt thesis |
-| HEATMAP_INDUSTRY | — | ✓ Alt cho table | — |
-| PEER_COMPARE_TABLE | ✓ Định vị peer | optional | ✓ Peer comparison |
-| MINI_CHARTS_2X2 | optional | optional | ✓ Financial charts |
-| CALENDAR_WEEK | — | ✓ Lịch tuần | — |
-| LINE_CHART_FULL | optional | ✓ VNINDEX trend | ✓ Equity curve |
-| SCATTER_PEER | ✓ Định vị 2D | — | ✓ Peer positioning |
-| DONUT_COMPOSITION | ✓ Cơ cấu cổ đông | optional | ✓ Cơ cấu DT mảng |
-| DISCLAIMER | ✓ Slide 15 | ✓ Slide cuối | ✓ Slide cuối |
+TEMPLATE_VBSE là layout catalog đứng một mình. File này KHÔNG reference FORMAT.md, WORKFLOW.md, hay file pack khác trong template_agent — đó là backward dependency vi phạm rule architecture (xem `system_prompt.md` mục 2).
 
-## Quy tắc bắt buộc khi AI render báo cáo qua T_vbse
+TEMPLATE_VBSE chỉ đọc 2 nguồn khi runtime render: (a) file pack của chính nó (catalog `.md` + binary `.pptx`), (b) MD final do WORKFLOW Stage 5 produce làm input nội dung.
+
+Mỗi layout mô tả PURPOSE semantic của chính nó (cover khuyến nghị mã / scenario comparison 3-cell / heatmap 24 ngành / etc.) ở section "Danh sách 27 layout" trên. Agent runtime: scan MD final → match section heading + chart annotation với layout có sẵn theo semantic → clone layout → fill placeholder. Cùng 1 layout có thể fit nhiều loại MD content khác nhau, runtime tự match.
+
+## Quy tắc bắt buộc khi AI render báo cáo qua TEMPLATE_VBSE
 
 1. **Layout ID là duy nhất**. Slide name = LAYOUT_ID viết HOA_SNAKE (vd `COVER_A_RECOMMENDATION`). AI không được tự đổi tên slide khi clone — sẽ làm hỏng mapping.
 
 2. **Placeholder pattern**. Mọi placeholder phải dạng `{{NAME}}` với UPPER_SNAKE_CASE. AI regex `\{\{[A-Z_0-9]+\}\}` để parse. Không tự thêm placeholder mới ngoài bộ đã định nghĩa trong file này.
 
-3. **Reuse layout có sẵn**. T_vbse có 27 layout cover gần hết use case. AI KHÔNG tự tạo layout mới khi render báo cáo cụ thể — clone layout phù hợp nhất rồi fill placeholder. Nếu thực sự cần layout mới → flag để user quyết định, không tự ý thêm.
+3. **Reuse layout có sẵn**. TEMPLATE_VBSE có 27 layout cover gần hết use case. AI KHÔNG tự tạo layout mới khi render báo cáo cụ thể — clone layout phù hợp nhất rồi fill placeholder. Nếu thực sự cần layout mới → flag để user quyết định, không tự ý thêm.
 
 4. **Chart placeholder strategy**. Layout có chart đặt rectangle `{{CHART_X_PLACEHOLDER}}` trong template. AI khi render: tìm shape có text này → ghi nhận vị trí (left, top, width, height) → remove shape → đọc YAML block tương ứng từ MD → add native PowerPoint chart vào đúng vị trí. KHÔNG vẽ chart bằng shape (rectangle giả lập bar).
 
@@ -521,9 +492,9 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 6. **Format số locale vi-VN**. Tiền/giá: dấu phẩy ngăn nghìn (vd `33.000 đ`). Phần trăm có dấu `+/-` rõ (vd `+18,0%`). Chỉ số: dấu phẩy thập phân (vd `1,37x`). KHÔNG dùng locale en-US (`33,000`) trong báo cáo VBSE.
 
-7. **Constraint kịch bản 3 cell** (`COMPARISON_3CELL_SCENARIOS`). KHÔNG gán xác suất % vào kịch bản (theo `K_agent_db_00` mục 4.3). Header dùng "Khả năng cao nhất / vừa phải / thấp" qualitative, không "60% / 30% / 10%".
+7. **Constraint kịch bản 3 cell** (`COMPARISON_3CELL_SCENARIOS`). KHÔNG gán xác suất % vào kịch bản. Header dùng "Khả năng cao nhất / vừa phải / thấp" qualitative, không "60% / 30% / 10%". Đây là yêu cầu nội dung chung — MD final từ upstream pipeline phải đảm bảo không có % xác suất; TEMPLATE_VBSE chỉ render visual.
 
-8. **Honest steelman 6-cell** (`RISK_GRID_STEELMAN`). 2 card cuối highlight hồng BẮT BUỘC là lo ngại còn thực sự yếu (chưa bị bác bỏ thuyết phục) — không phải "all win" với mọi rebut đều solid. Đây là yêu cầu của `P_recommendation_memo_00` mục 4.4.
+8. **Honest steelman 6-cell** (`RISK_GRID_STEELMAN`). 2 card cuối highlight hồng BẮT BUỘC là lo ngại còn thực sự yếu (chưa bị bác bỏ thuyết phục) — không phải "all win" với mọi rebut đều solid. TEMPLATE_VBSE chỉ render visual; nội dung CONCERN_5/6 trong MD final phải honest do upstream pipeline đảm bảo.
 
 9. **Variant Perception 3 sub bắt buộc** (`VARIANT_PERCEPTION`). Cả 3 sub-section (Đồng thuận thị trường / Tâm lý NĐT cá nhân / Góc nhìn khác đồng thuận) phải fill. Không skip vì "không có data" — nếu không có thông tin, ghi rõ "Không quan sát được dữ liệu rõ rệt" thay vì để trống.
 
@@ -542,16 +513,16 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
    - Mọi placeholder `{{...}}` đã được fill (regex check còn `\{\{[A-Z_]+\}\}` không?)
    - Các chart placeholder đã thay thế bằng native chart
    - Slide name (LAYOUT_ID) còn nguyên, không bị đổi
-   - Số slide đầu cuối khớp với O pack spec
+   - Số slide đầu cuối khớp với section count trong MD final
    - Format số tiếng Việt đồng nhất
 
 14. **File source of truth — đừng tự sửa**:
-   - `T_vbse_01.pptx` là binary template, AI không sửa file này khi render báo cáo cá nhân (chỉ clone slide). Sửa template chỉ khi user yêu cầu update T pack.
+   - `TEMPLATE_VBSE.pptx` là binary template, AI không sửa file này khi render báo cáo cá nhân (chỉ clone slide). Sửa template chỉ khi user yêu cầu update T pack.
    - Disclaimer body fix cứng — nếu user yêu cầu đổi disclaimer, sửa trực tiếp trong template, không tạo placeholder mới.
 
 ## Lịch sử update
 
-- **2026-04-26 rev 1**: Khởi tạo T_vbse pack. Build 24 layout: 5 cover + 1 section divider + 12 content + 5 layout mới + 1 disclaimer.
+- **2026-04-26 rev 1**: Khởi tạo TEMPLATE_VBSE pack. Build 24 layout: 5 cover + 1 section divider + 12 content + 5 layout mới + 1 disclaimer.
 - **2026-04-26 rev 2**: Refactor theo feedback user:
   - Tam giác signature: đổi `RIGHT_TRIANGLE` → `ISOSCELES_TRIANGLE` cho đỉnh nhọn (theo mẫu user)
   - Fix cứng nội dung lặp lại: tên phòng ban, tên tổ, hotline, website, disclaimer body, các tiêu đề báo cáo
@@ -567,3 +538,9 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
   - `LINE_CHART_FULL` + `SCATTER_PEER`: bỏ outer panel `bg_card` lồng nhau — đơn giản hoá thành single layer (title bar + chart placeholder + source bên dưới). Layout cleaner, dễ AI parse.
   - `SCATTER_PEER` bảng peer: cột Mã từ 1.10" → 1.40" để text PEER_X_TICKER không bị wrap
   - Học pattern từ `T_finext_00.md`: thêm section "Layout pattern toàn cục" với ASCII diagram + section "Quy tắc bắt buộc khi AI render" 14 rules cover toàn bộ constraint vận hành (layout ID, placeholder format, reuse, chart strategy, color, format số, scenario constraint, steelman, variant perception, heatmap, big stat, tam giác, self-check, source of truth)
+- **2026-04-27 rev 4**: Siết rule strict independence của T pack theo audit kernel rev 5:
+  - Bỏ tất cả backward references lên K/P/O packs trong file: bỏ "Dùng cho: P_xxx" ở mỗi layout description; bỏ bảng "Mapping layout → loại báo cáo"; thay reference "do O pack quy định" / "theo O pack spec" bằng wording neutral (chart annotation chuẩn trong MD source / section count trong MD final).
+  - Pipeline render redraw: TEMPLATE_VBSE runtime chỉ đọc 2 nguồn = file pack chính nó + MD final. KHÔNG đọc K/P/O file. O ra MD final là chốt — T thuần visual filler trên content đông kết.
+  - Thêm section "Decoupling — TEMPLATE_VBSE hoàn toàn độc lập" thay cho mapping table cũ.
+  - Self-check item "khớp với O pack spec" → "khớp với section count trong MD final".
+- **2026-04-27 rev 5**: Pack restructure. Rename `T_vbse_00.md` → `TEMPLATE_VBSE.md`, `T_vbse_01.pptx` → `TEMPLATE_VBSE.pptx`. Update body content: pipeline render reference `WORKFLOW.md` Stage 7 + decoupling rule reference `system_prompt.md` mục 2. Pack vẫn giữ nguyên 27 layout + design tokens + render rule — không thay đổi visual spec.

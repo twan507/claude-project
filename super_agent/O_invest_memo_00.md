@@ -2,7 +2,9 @@
 
 File master của pack `O_invest_memo`. Spec cách render output cho quy trình `P_invest_memo`. Các file con trong pack (01-06) spec composition cụ thể cho từng loại báo cáo, đều reference rule chung ở đây.
 
-**Pack dependency:** `O_invest_memo` phụ thuộc `P_invest_memo` (workflow produce content) và `K_agent_db` (K hygiene rule + citation pattern). O pack không produce analysis mới — chỉ render content từ state artifacts của P pack thành báo cáo user-facing.
+**Pack dependency:** `O_invest_memo` phụ thuộc `P_invest_memo` (workflow produce content) và `K_agent_db` (K hygiene rule + citation pattern). O pack không produce analysis mới — chỉ render content từ state artifacts của P pack thành **MD final**.
+
+> **Render binary out of scope:** Pack này dừng ở MD final. Render pptx/docx/xlsx là concern downstream, không thuộc scope pack. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài. Mục pptx/docx render ở các file con là legacy spec, sẽ được dọn ở audit pass tiếp theo.
 
 ## 1. Mục đích & scope
 

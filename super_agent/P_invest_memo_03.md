@@ -103,7 +103,7 @@ Mã phải đạt **≥ 3/4 tiêu chí**:
 
 - **B1. Tăng trưởng:** Revenue Growth YoY hoặc NPAT Growth YoY quý gần nhất không âm sâu (≥ -10%)
 - **B2. Hiệu quả sinh lời:** ROE ≥ median ngành (từ industry_finstats cùng type)
-- **B3. Định giá:** P/E không vượt 150% median ngành VÀ không rơi vào "bẫy giá trị" (P/E quá rẻ + ROE thấp + ICR < 2)
+- **B3. Định giá:** P/E không vượt 150% median ngành (cross-sectional, peer hiện tại) VÀ không rơi vào "bẫy giá trị" (P/E quá rẻ + ROE thấp + ICR < 2). Benchmark khác tier 1 intentional: tier 1 dùng historical 3Y của ngành, tier 2 dùng cross-sectional peer hiện tại — hai mục đích khác nhau.
 - **B4. Sức khoẻ tài chính:** ICR (Interest Coverage Ratio — chỉ số khả năng trả lãi vay, EBIT / chi phí lãi vay) ≥ 3 (không phải bẫy nợ), biên không co hẹp 4 quý liên tiếp
 
 #### B-NGANHANG (29 mã, 1 ngành)

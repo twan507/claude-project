@@ -1,12 +1,14 @@
-# O_recommendation_memo_00 — Render Spec Báo cáo Khuyến nghị
+# O_stock_pitch_00 — Render Spec Báo cáo Khuyến nghị
 
-Spec render báo cáo khuyến nghị mã đơn lẻ gửi khách hàng. **Rigid structure** — 15 mục thứ tự cố định, heading exact. MD là source of truth, pptx render từ MD khi user yêu cầu.
+Spec render báo cáo khuyến nghị mua mã đơn lẻ gửi khách hàng (stock pitch). **Rigid heading structure**, số mục flex **13-16 tuỳ số luận điểm 4-7** (4 LĐ=13 mục, 5=14, 6=15 default, 7=16). Heading exact, thứ tự cố định. **Output cuối: MD final** (đã apply structure + K hygiene + citation + chart annotation YAML).
 
-Reference: `P_recommendation_memo_00` (workflow + methodology).
+Reference: `P_stock_pitch_00` (workflow + methodology).
+
+> **Render binary out of scope:** Pack này dừng ở MD final. Render pptx/docx/xlsx là concern downstream, không thuộc scope. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài. Mục pptx/docx ở dưới (nếu có) là legacy spec, sẽ được dọn ở audit pass tiếp theo.
 
 ## 1. Input từ P pack
 
-P pack sinh structured content cho 15 mục theo spec ở mục 5-11 của P_recommendation_memo_00. O pack chỉ render, không thêm/bớt nội dung.
+P pack sinh structured content cho 15 mục theo spec ở mục 5-11 của P_stock_pitch_00. O pack chỉ render, không thêm/bớt nội dung.
 
 Các trường hợp đặc biệt:
 - User chọn 3(b) ở pre-flight (không cung cấp branding) → render bản plain, dùng disclaimer template default
@@ -17,7 +19,7 @@ Các trường hợp đặc biệt:
 
 **Độ dài target:** 12-18 trang MD (dài hơn báo cáo tuần do depth phân tích từng luận điểm).
 
-**Rigid structure bắt buộc** (thứ tự + heading exact):
+**Rigid heading structure, số mục flex 13-16** theo số luận điểm (4 LĐ=13 mục, 5=14, 6=15 default, 7=16). Thứ tự + heading exact theo template dưới đây (default 6 luận điểm; 4 LĐ skip section 8-9, 5 LĐ skip section 9-10, 7 LĐ shift cấu trúc mua → section 12, chốt lãi → section 13...):
 
 ```
 [Header branding nếu có]
@@ -63,7 +65,7 @@ Các trường hợp đặc biệt:
 
 **Rigid heading nhưng số section luận điểm flex 4-7:** nếu báo cáo có 4 luận điểm, MD có section 4-7 (4 luận điểm); nếu 7 luận điểm, MD có section 4-10. Tổng số section luôn 11-14 + 4 section đầu/cuối cố định = 15-18 section tổng.
 
-Để đơn giản, file này dùng convention 15 mục với assumption 6 luận điểm (như mẫu VBSE GEL). Nếu pack ra 4 hoặc 7 luận điểm, adjust số.
+Để đơn giản, file này dùng convention 15 mục với assumption 6 luận điểm. Nếu pack ra 4 hoặc 7 luận điểm, adjust số.
 
 ## 3. Compose từng phần chi tiết
 
@@ -330,7 +332,7 @@ Luận điểm MUA [TICKER] quanh vùng giá [X] đồng
 ### 3.9. Section 13 — Bear Case
 
 ```
-## 13. Phản biện các lo ngại
+## 13. Bear Case — Phản biện và lo ngại còn yếu
 
 ### Đánh giá 5-7 lo ngại bear case
 
@@ -460,6 +462,24 @@ Nội dung báo cáo phản ánh quan điểm độc lập của analyst tại t
 **Ngày phát hành:** [DD/MM/YYYY]
 ```
 
+### 3.12. Block render cho checkpoint 1 / 2 (intermediate output)
+
+Khác với MD final, checkpoint block là output user-facing **trong session**, render ngắn gọn để user review. KHÔNG phải file MD save xuống outputs.
+
+**Format chung (cả CP1 và CP2):**
+
+- Plain markdown trong message, KHÔNG có frontmatter, KHÔNG có header branding
+- Heading top: `─── THESIS REVIEW — Trước khi build execution ───` (CP1) hoặc `─── BEAR CASE REVIEW — Gate cuối trước recommend ───` (CP2)
+- Độ dài: 0.5-1 trang nội dung structured
+- Kết bằng câu hỏi multi-choice 4-5 option
+- KHÔNG render full MD final — chỉ summary + variant perception (CP1) hoặc summary bear + lo ngại còn yếu (CP2)
+
+**Spec block CP1:** theo template `P_stock_pitch_00` mục 7.1 — gồm: ticker, số luận điểm, tóm tắt từng L, variant perception 3 câu, bảng self-assessment 4 dấu hiệu, multi-choice 5 option (a-e).
+
+**Spec block CP2:** theo template `P_stock_pitch_00` mục 10.1 — gồm: ticker, số lo ngại, tóm tắt phản biện, lo ngại còn yếu, self-assessment R/R + conviction, multi-choice 4 option (a-d).
+
+Agent KHÔNG ghép checkpoint block vào MD final. Sau khi user confirm cả 2 CP, MD final compose từ đầu theo structure 15 mục (mục 2 spec).
+
 ## 4. Compose workflow step-by-step
 
 **Bước 1 — Pre-flight:** P pack hỏi user 3 câu (ticker, memo tier 5C, branding info).
@@ -494,19 +514,19 @@ Nội dung báo cáo phản ánh quan điểm độc lập của analyst tại t
 
 **Bước 12 — Compose Stage 5:** P pack chạy mục 1, 2, 14, 15.
 
-**Bước 13 — Render full MD:** O pack ghép 15 mục + header + disclaimer thành file `recommendation_<TICKER>_<YYYYMMDD>.md`.
+**Bước 13 — Render full MD:** O pack ghép 15 mục + header + disclaimer thành file `stock_pitch_<TICKER>_<YYYYMMDD>.md`.
 
 **Bước 14 — Self-audit:** chạy 12 câu self-check P pack mục 14.
 
 **Bước 15 — Save & present MD:** save vào `/mnt/user-data/outputs/`, gọi `present_files`.
 
-**Bước 16 — Hỏi pptx:** "MD đã sẵn sàng. Có cần render thêm pptx (15 slide theo template VBSE-like) không?"
+**Bước 16 — Output cuối:** MD final đã đủ structured để consume bằng tool render bên ngoài. Pack này không tự render binary.
 
-**Bước 17 (optional) — Render pptx:** nếu user yêu cầu, render theo guide mục 5.
+## 5. Guide render pptx — 15 slide [LEGACY]
 
-## 5. Guide render pptx — 15 slide theo template VBSE-like
+> **Legacy spec — sẽ dọn ở audit pass tiếp theo.** Render pptx out of scope pack này. Giữ lại spec dưới đây làm reference cho việc build tool render bên ngoài.
 
-Pptx là format chính cho báo cáo gửi KH. Template tham khảo: mẫu VBSE_BaoCao_GEL_22042026.pptx.
+Pptx là format gửi KH cuối cùng — render thực hiện downstream với MD final làm input.
 
 **Layout chung:**
 
@@ -543,7 +563,7 @@ Pptx là format chính cho báo cáo gửi KH. Template tham khảo: mẫu VBSE_
 - **Slide 14 ba kịch bản:** không dùng từ "xác suất cao/vừa/thấp". Mỗi kịch bản dùng "Trigger" làm header con
 - **Variant perception:** highlighted với box riêng, có thể dùng quote style hoặc background nhạt
 
-**File output pptx:** `recommendation_<TICKER>_<YYYYMMDD>.pptx`, save vào `/mnt/user-data/outputs/`.
+**File output pptx:** `stock_pitch_<TICKER>_<YYYYMMDD>.pptx`, save vào `/mnt/user-data/outputs/`.
 
 ## 6. Guide render docx (optional)
 
@@ -555,7 +575,7 @@ Layout:
 - Bảng giữ nguyên, format theo style chuẩn
 - Footer: số trang + "Báo cáo phân tích [TICKER]"
 
-File output: `recommendation_<TICKER>_<YYYYMMDD>.docx`.
+File output: `stock_pitch_<TICKER>_<YYYYMMDD>.docx`.
 
 ## 7. Self-check checklist O pack
 
@@ -576,10 +596,10 @@ File output: `recommendation_<TICKER>_<YYYYMMDD>.docx`.
 - [ ] Section 14 có note "kịch bản là hệ thống điều kiện kỹ thuật, không phải dự báo chắc chắn"
 - [ ] Section 15 disclaimer đầy đủ theo branding info user cung cấp
 - [ ] **Không có chỉ báo trend ở bất kỳ section nào** — không từ "xu hướng" theo nghĩa breadth, không "đang rơi từ vùng quá mua / đang bật từ đáy"
-- [ ] K hygiene: không lộ ký hiệu DB raw (week_score raw, day_score raw, vsi raw, technical_zone AAA/AA raw, rank_pct raw, period 2025_4...)
+- [ ] K hygiene: không lộ ký hiệu DB raw — dịch theo bảng `K_agent_db_00` mục 5.2 (field name, score raw, zone code, period code, money_flow_score raw)
 - [ ] Số liệu định lượng đã quy đổi đơn vị (giá đồng, BCTC tỷ đồng, % thập phân nhân 100, tỷ đồng cho NN/TD)
 - [ ] Mỗi tin có dẫn link, mỗi claim quan trọng có nguồn
-- [ ] File save đúng tên `recommendation_<TICKER>_<YYYYMMDD>.md`
+- [ ] File save đúng tên `stock_pitch_<TICKER>_<YYYYMMDD>.md`
 - [ ] Đã hỏi user có cần render pptx không sau khi present MD
 - [ ] Present file qua present_files tool
 

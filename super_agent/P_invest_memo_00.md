@@ -54,7 +54,7 @@ Các thuật ngữ nền tảng xuất hiện xuyên suốt pack này. Agent và
 | **Conviction memo** | Tài liệu phân tích 7 phần viết trước khi vào position: Recommendation / Thesis / Variant perception / Business / Financial / Catalysts + Bear case / Monitoring + exit. Không có memo hoàn chỉnh = không vào position. |
 | **Conviction tier** | 3 mức độ tự tin về một mã sau chấm điểm tier 3, gán bằng tổng điểm bảng chấm (thang 18): **high** (15-18 điểm), **medium** (11-14), **low** (8-10). Dùng cho quyết định position sizing ở tier 6. |
 | **Bucket entry** | Phân loại thời điểm vào lệnh sau khi đã chọn mã. **Bucket 1** — vào ngay khi tuần+tháng zone A+. **Bucket 2** — chờ pullback khi tuần hoặc tháng đang B/C trong khi quý+năm vẫn tích cực. **Bucket 3** — watchlist, chưa vào, đợi tuần chuyển B+. Nguyên tắc: universe và ranking dùng khung trung-dài hạn (quý+năm), còn tuần+tháng chỉ để phân bucket. |
-| **Checkpoint (CP)** | Điểm dừng bắt buộc sau mỗi giai đoạn. Agent xuất báo cáo 6 phần và chờ user confirm/override trước khi qua giai đoạn kế. Pack có 7 checkpoint (CP1 đến CP cuối), chi tiết ở Phần 6. |
+| **Checkpoint (CP)** | Điểm dừng bắt buộc sau mỗi giai đoạn. Agent xuất báo cáo 6 phần và chờ user confirm/override trước khi qua giai đoạn kế. Pack có 7 checkpoint (CP1, CP2, CP3, CP4, CP5A, CP5B, CP5C), chi tiết ở Phần 6. |
 
 ## 3. Kiến trúc tổng thể
 
@@ -113,11 +113,13 @@ GIAI ĐOẠN 6 (song song) — Quản lý danh mục
 | 4. Chấm điểm | 6-10 mã/ngành | Top 3 mã/ngành (ranking tool, không filter) | `P_invest_memo_04` | Sau giai đoạn 3 | CP4 |
 | 5A. PDF deep-dive | 3 PDF/mã | Red flag report | `P_invest_memo_05` | Hàng tháng/quý | CP5A (per-stock) |
 | 5B. Modeling | DB + PDF + web | Target giá base/bull/bear | `P_invest_memo_06` | Chỉ top 3-5 high conviction | CP5B |
-| 5C. Memo | Tất cả output trước | Memo 7 phần | `P_invest_memo_07` | Bắt buộc trước khi vào position | CP cuối |
+| 5C. Memo | Tất cả output trước | Memo 7 phần | `P_invest_memo_07` | Bắt buộc trước khi vào position | CP5C |
 | 6A. Portfolio | Memo + shortlist | Sizing + rebalance plan | `P_invest_memo_08` | Hàng tháng + khi vào/ra position | Không có CP cứng |
 | 6B. Monitoring | Position hiện tại | Trigger check + exit decision | `P_invest_memo_09` | Hàng tuần | Không có CP cứng |
 
 Chi tiết từng checkpoint xem Phần 6. Giai đoạn 6 không có checkpoint cứng vì đây là hoạt động liên tục, không phải quyết định một lần.
+
+**Ghi chú numbering Tier:** Tier mapping không liên tục — không có "Tier 4" do giai đoạn 5 (deep-dive) đã được tách thành 3 sub-tier 5A/5B/5C ở refactor lịch sử. File con vẫn dùng "Tier 5A/5B/5C" giữ nguyên để tránh phá hệ thống cross-reference. Khi đọc file con, "Tier" là reference cụ thể; "Giai đoạn" là grouping high-level dùng trong master để mô tả workflow tổng.
 
 ## 4. Flow chi tiết từng giai đoạn
 
@@ -195,19 +197,19 @@ Các nguyên tắc này áp dụng ở mọi giai đoạn. Agent không được
 
 **Nguyên tắc 1 — Không bao giờ skip variant perception cho mã vào shortlist.**
 
-Mỗi mã lọt shortlist final phải trả lời được 3 câu hỏi: consensus sell-side (quan điểm trung bình của analyst công ty chứng khoán) đang nghĩ gì về mã này, consensus retail đang nghĩ gì, và thesis khác consensus ở chỗ nào cụ thể. Không viết được câu 3 = không có variant perception = loại khỏi shortlist, bất kể điểm bảng chấm cao. Đây là điều kiện tiên quyết cho alpha ở horizon 1-6 tháng.
+Mỗi mã lọt shortlist final phải trả lời được 3 câu hỏi: consensus sell-side (quan điểm trung bình của analyst công ty chứng khoán) đang nghĩ gì về mã này, consensus retail đang nghĩ gì, và thesis khác consensus ở chỗ nào cụ thể. Đây là điều kiện tiên quyết cho alpha ở horizon 1-6 tháng. Nếu không viết được câu 3 (variant perception ≈ consensus, hoặc differentiation chỉ là wishful thinking không có evidence, hoặc undervalued không có catalyst để re-rate), Agent **flag cảnh báo + downgrade conviction 1 bậc** (High → Medium / Medium → Low / Low → Watch list), user quyết định proceed với size nhỏ + audit log hoặc loại mã. Agent không tự reject — discipline ở dạng force user explicit aware về rủi ro, không che giấu cảnh báo. Chi tiết Gate 1 ở `P_invest_memo_07`.
 
 **Nguyên tắc 2 — Không vào position nếu chưa viết xong exit trigger.**
 
 Memo phần 7 phải liệt kê 4 điều kiện thoát cụ thể, measurable: target giá đạt (từ modeling), thesis broken (điều kiện cụ thể ví dụ "biên gộp xuống dưới X% trong 2 quý"), better opportunity (ngưỡng risk-reward so với position mới), stop loss (-15% hoặc -20%). Exit trigger viết trước khi vào, không sửa trong drawdown. Đây là nguyên tắc bảo vệ capital quan trọng nhất ở horizon ngắn.
 
-**Nguyên tắc 3 — Không bao giờ size position vượt 5% ADV 20 phiên của mã.**
+**Nguyên tắc 3 — Không bao giờ size mỗi phiên giải ngân vượt 5% ADV 20 phiên của mã.**
 
-ADV 20 phiên (Average Daily Volume — khối lượng giao dịch trung bình 20 phiên gần nhất) là constraint thanh khoản tuyệt đối. Portfolio < 1 triệu USD vẫn phải tuân thủ vì thói quen sẽ theo khi portfolio lớn lên. Slippage (chênh lệch giữa giá dự kiến và giá khớp thực tế do thanh khoản thấp) khi vào và ra ở mã thanh khoản thấp ăn trực tiếp vào alpha. Nếu đạt cả 3 tier conviction nhưng vi phạm constraint này → giảm size xuống mức hợp lệ, không bỏ qua ràng buộc.
+ADV 20 phiên (Average Daily Volume — khối lượng giao dịch trung bình 20 phiên gần nhất) là constraint thanh khoản tuyệt đối, áp **per-phiên giải ngân**, không phải absolute cap cho tổng vị thế. Cụ thể: max size mỗi phiên ≤ 5% × ADV; build full position phân 2-4 phiên → max tổng vị thế = 5% × ADV × N với N=2-4 (chi tiết công thức `P_invest_memo_08` Section 3.4). Portfolio < 1 triệu USD vẫn phải tuân thủ vì thói quen sẽ theo khi portfolio lớn lên. Slippage (chênh lệch giữa giá dự kiến và giá khớp thực tế do thanh khoản thấp) khi vào và ra ở mã thanh khoản thấp ăn trực tiếp vào alpha. Nếu đạt cả 3 tier conviction nhưng vi phạm constraint này → giảm size xuống mức hợp lệ, không bỏ qua ràng buộc.
 
 **Nguyên tắc 4 — Bear case phải được steelman trước khi final long.**
 
-Memo phần 6 phải viết 3 lập luận mạnh nhất để short mã từ góc độ một analyst Hindenburg Research (công ty nghiên cứu short-side nổi tiếng, chuyên phát hiện gian lận kế toán và overvalued stocks), mỗi lập luận có claim cụ thể với số, dẫn chứng từ BCTC hoặc tin tức, ước lượng downside nếu đúng. Đây là cách "steelman" — xây dựng luận điểm đối lập ở dạng mạnh nhất có thể trước khi phản biện. Sau đó mới viết phản biện. Nếu phản biện yếu hoặc không convincing so với bear case → không vào position. Đây là cơ chế chống confirmation bias (xu hướng chỉ tìm bằng chứng ủng hộ ý kiến của mình, bỏ qua bằng chứng ngược lại) — nguồn lỗi lớn nhất của retail.
+Memo phần 6 phải viết 3 lập luận mạnh nhất để short mã từ góc độ một analyst Hindenburg Research (công ty nghiên cứu short-side nổi tiếng, chuyên phát hiện gian lận kế toán và overvalued stocks), mỗi lập luận có claim cụ thể với số, dẫn chứng từ BCTC hoặc tin tức, ước lượng downside nếu đúng. Đây là cách "steelman" — xây dựng luận điểm đối lập ở dạng mạnh nhất có thể trước khi phản biện. Sau đó mới viết phản biện. Nếu phản biện yếu so với bear case (dưới 1/3 rebuttal thuyết phục), Agent **flag cảnh báo + downgrade size 30-50%** so với conviction gốc; nếu probability-weighted bear target dưới giá hiện tại (downside > upside), **flag cảnh báo nghiêm trọng + downgrade size 50-70%** (coin-flip bet). User quyết định cuối — có thể proceed với size nhỏ và audit log rõ lý do override cảnh báo, hoặc loại mã. Đây là cơ chế chống confirmation bias (xu hướng chỉ tìm bằng chứng ủng hộ ý kiến của mình, bỏ qua bằng chứng ngược lại) — nguồn lỗi lớn nhất của retail. Chi tiết Gate 2 ở `P_invest_memo_07`.
 
 **Nguyên tắc 5 — Dòng tiền dương + catalyst tiêu cực → loại, không bàn thêm.**
 
@@ -216,6 +218,8 @@ Khi mã có dòng tiền đang mạnh nhưng catalyst ngành/mã đã chuyển t
 **Nguyên tắc 6 — Mỗi giai đoạn kết thúc bằng checkpoint review, Agent không tự động chuyển tier.**
 
 Agent xuất báo cáo checkpoint theo khung 6 phần chuẩn (xem Phần 6) sau mỗi giai đoạn, chờ user xác nhận hoặc điều chỉnh trước khi sang giai đoạn kế. **Tuyệt đối không chạy liên tục qua nhiều giai đoạn trong 1 session** — điều này ngăn lỗi ở giai đoạn sớm lây sang các giai đoạn sau. User có quyền override quyết định (thêm/bớt ngành/mã, thay đổi quota, yêu cầu deep-dive thêm) nhưng mỗi override phải được ghi vào audit log với lý do cụ thể, để sau này đánh giá chất lượng override theo thời gian.
+
+**Lưu ý — convention nội bộ pack ngoài 6 nguyên tắc bất biến:** catalyst play exposure (mã qua đường C tier 2 — đạt Catalyst nhưng fail Fundamental) có cap riêng ≤ 15% portfolio, max 2-3 mã catalyst play (chi tiết `P_invest_memo_08` Section 7.4). Đây là tactical convention ở tầng portfolio construction, không phải nguyên tắc universal — không áp ở tier sớm hơn.
 
 ## 6. Cơ chế checkpoint review
 
@@ -244,7 +248,7 @@ Agent không tự chuyển sang tier kế. Chờ user trả lời Phần 6 rõ r
 | CP4 | Chấm điểm (tier 3) | Batch | Top 3 mã/ngành + tier conviction |
 | CP5A | PDF deep-dive (tier 5A) | Per-stock | Red flag report mỗi mã |
 | CP5B | Modeling (tier 5B) | Per-stock (top 3-5) | Giả định + target giá |
-| CP cuối | Memo hoàn chỉnh (tier 5C) | Per-stock | Gate cuối: variant perception + bear case + exit trigger |
+| CP5C | Memo hoàn chỉnh (tier 5C) | Per-stock | Gate cuối: variant perception + bear case + exit trigger |
 
 CP5A làm riêng từng mã, không batch — vì red flag của mã này không liên quan mã khác. CP5B chỉ làm cho top 3-5 high conviction.
 

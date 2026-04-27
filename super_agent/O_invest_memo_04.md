@@ -2,7 +2,7 @@
 
 Spec render báo cáo review danh mục hàng tuần. **Rigid structure** (theo master mục 8) — user đọc 12-24 lần/cycle, cần format nhất quán để scan nhanh.
 
-Reference: `O_invest_memo_00` (master rules), `P_invest_memo_09` tier 7 weekly workflow (mục 3.2 + mục 10 template Checkpoint 7 Weekly).
+Reference: `O_invest_memo_00` (master rules), `P_invest_memo_09` tier 7 weekly workflow (mục 3.2 + mục 10 template Weekly Review Session).
 
 ## 1. Input state & mapping
 

@@ -110,7 +110,7 @@ Mỗi thứ Hai đầu tuần hoặc cuối tuần trước (tuỳ user preferen
    - Mã đạt Base → proposal bán 50%
    - Mã đạt Bull → proposal bán thêm 30%
 
-6. **Output:** Checkpoint weekly dạng bảng per-stock + portfolio summary.
+6. **Output:** Weekly review session dạng bảng per-stock + portfolio summary.
 
 ### 3.3. Monthly review (1-2 giờ)
 
@@ -147,7 +147,7 @@ Mỗi thứ Hai đầu tuần hoặc cuối tuần trước (tuỳ user preferen
    - Ngành không vào tier 1 có catalyst mới không?
    - Note learning để cải thiện tier 1-3 cycle sau
 
-6. **Output:** Checkpoint monthly với 6 mục trên + proposal rebalance nếu cần.
+6. **Output:** Monthly review session với 6 mục trên + proposal rebalance nếu cần.
 
 ### 3.4. Quarterly review (2-3 giờ)
 
@@ -179,7 +179,7 @@ Sau khi BCTC quý của các mã trong portfolio công bố (thường cuối th
    - Nếu thesis đã partial realize (ví dụ catalyst 1 realize, target re-rating đợt 1) → đổi hard trigger level (Bear level mới thay cũ)
    - Nếu thesis deteriorating → tighten exit (thay vì Bear × 0.9 → Bear × 0.95)
 
-6. **Output:** Checkpoint quarterly với status per-stock (thesis intact / partial realized / deteriorating / failed) + update exit levels + proposal rebalance.
+6. **Output:** Quarterly review session với status per-stock (thesis intact / partial realized / deteriorating / failed) + update exit levels + proposal rebalance.
 
 ---
 
@@ -504,7 +504,7 @@ Khi:
 2. Soft trigger check
 3. Phase 2/3 management
 4. Take profit partial nếu price đạt target
-5. Output Checkpoint weekly
+5. Output Weekly review session
 
 ### 9.3. Monthly review (1-2 giờ)
 
@@ -513,7 +513,7 @@ Khi:
 3. Memo refresh cho memo quá 30 ngày
 4. Tier 0 regime re-check
 5. Missed opportunities learning
-6. Output Checkpoint monthly + rebalance proposal nếu cần
+6. Output Monthly review session + rebalance proposal nếu cần
 
 ### 9.4. Quarterly review (2-3 giờ)
 
@@ -522,14 +522,16 @@ Khi:
 3. Re-run tier 5A forensic partial
 4. Valuation update (quick DCF)
 5. Exit levels update
-6. Output Checkpoint quarterly + major rebalance nếu cần
+6. Output Quarterly review session + major rebalance nếu cần
 
 ---
 
-## 10. Template Checkpoint 7 — Weekly
+## 10. Template Weekly Review Session
+
+Tier 7 không có checkpoint cứng (xem `P_invest_memo_00` Phần 6 — giai đoạn 6 là hoạt động liên tục, không phải quyết định một lần). Template dưới đây là format **review session** dùng cho output weekly, không phải checkpoint stage gate như tier 0-5C.
 
 ```
-# Checkpoint 7 — Weekly Review [ngày]
+# Weekly Review Session [ngày]
 
 ## 1. Summary
 Positions active: [N]

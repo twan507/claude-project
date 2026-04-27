@@ -1,46 +1,46 @@
-# T_finext_00 — Master Index Pack T_finext
+# TEMPLATE_FINEXT — Catalog Layout Brand Finext
 
-Pack cung cấp template visual branded Finext cho render báo cáo pptx. Dùng khi user yêu cầu deliverable pptx có thiết kế Finext (dark-first, violet primary, modern tech-forward) và đã có MD source từ P pack + spec render từ O pack.
+Pack cung cấp template visual branded Finext cho render báo cáo pptx (dark-first, violet primary, modern tech-forward). Activate ở Stage 7 của `WORKFLOW.md` khi user pick brand Finext ở CP3.
 
-> **Lưu ý naming**: Pack này KHÁC với pack `T_finext` (nếu có) cho code skeleton Next.js / FE app. Pack code FE nếu cần đặt thành `T_finextapp_00`. Pack pptx này giữ tên `T_finext` để đối xứng với `T_vbse`.
+TEMPLATE_FINEXT là layout catalog độc lập — chỉ đọc 2 nguồn: file pack của chính nó + MD final do WORKFLOW.md produce.
 
-## Manifest pack T_finext
+## Manifest pack
 
 | File | Vai trò |
 |---|---|
-| `T_finext_00.md` | Master index (file này) — design tokens, layout list, chart strategy, cách AI dùng |
-| `T_finext_01.pptx` | Artifact binary 27 layout |
+| `TEMPLATE_FINEXT.md` | Master catalog (file này) — design tokens, 27 layout, placeholder schema, chart strategy, render rule |
+| `TEMPLATE_FINEXT.pptx` | Artifact binary 27 layout |
 
-## Khi nào activate T_finext
+## Khi nào activate TEMPLATE_FINEXT
 
-Activate đồng thời với O pack tương ứng khi tất cả điều kiện sau đúng:
+Activate khi user pick "(b) Finext" ở CP3 brand pre-flight (xem `WORKFLOW.md` mục 11). Điều kiện chung activate: user đã có MD final đúng `FORMAT.md` contract sau Stage 5.
 
-1. User yêu cầu deliverable pptx (không phải MD/docx)
-2. Audience là Finext brand (gửi KH Finext, họp nội bộ Finext, branding Finext)
-3. P pack workflow đã hoàn thành sinh MD source
-
-Không activate khi: user chỉ cần MD/docx, hoặc audience là brand khác (VBSE, internal khác).
+Không activate khi: user pick VBSE, hoặc skip render binary (chỉ MD).
 
 ## Pipeline render
 
-```
-P pack         → MD source (structured content + chart annotation YAML blocks)
-O pack         → spec render: section nào ở vị trí nào, format ra sao
-T_finext pack  → 27 layout có sẵn với placeholder pattern {{NAME}}
+TEMPLATE_FINEXT đứng cuối pipeline workflow, chỉ consume MD final đã đông kết:
 
-Agent flow:
-1. Đọc MD source + O pack spec → biết cần render section nào
-2. Đọc T_finext_00 (file này) → biết layout nào fit cho mỗi section
-3. Mở T_finext_01.pptx → clone slide layout cần dùng → fill placeholder từ MD
-4. Tại chart placeholder: build native PowerPoint chart từ YAML block trong MD
-5. Save thành báo cáo pptx cuối
 ```
+[Stage 1-5 của WORKFLOW.md đã chạy xong, output: MD final đúng FORMAT contract]
+       │
+       ▼
+TEMPLATE_FINEXT runtime (Stage 7)
+1. Đọc MD final → scan section heading + chart annotation block
+2. Đọc TEMPLATE_FINEXT.md (file này) → biết layout nào có sẵn + purpose
+3. Match semantic: section "Cover khuyến nghị MUA mã X" → COVER_A_RECOMMENDATION
+4. Mở TEMPLATE_FINEXT.pptx → clone slide layout → fill placeholder từ MD content
+5. Tại chart placeholder: build native PowerPoint chart từ YAML block trong MD
+6. Save thành báo cáo pptx cuối
+```
+
+TEMPLATE_FINEXT runtime CHỈ đọc 2 nguồn: file pack của chính nó + MD final. Không đọc FORMAT.md, không đọc WORKFLOW.md (đó là context của upstream stage). Mọi nội dung cần thiết (số liệu, luận điểm, chart data, citation) đã có trong MD final.
 
 ## Chart placeholder strategy
 
-T_finext KHÔNG vẽ chart visual fake. Layout có chart đều dùng pattern **chart placeholder**: rectangle khung trống + label `{{CHART_PLACEHOLDER}}` mô tả loại chart.
+TEMPLATE_FINEXT KHÔNG vẽ chart visual fake. Layout có chart đều dùng pattern **chart placeholder**: rectangle khung trống + label `{{CHART_PLACEHOLDER}}` mô tả loại chart.
 
-Pattern này identical với T_vbse vì O pack `O_invest_memo_00` mục 7 đã quy định chart annotation dạng YAML block trong MD:
+Pattern này identical với TEMPLATE_VBSE. Chart annotation chuẩn trong MD source dạng YAML block (T consume theo quy ước này — không reference pack nào quy định):
 
 ```
 ```chart
@@ -169,7 +169,7 @@ Mọi slide content (trừ cover/divider/disclaimer) tuân theo cấu trúc 3-ba
 
 ## Cách AI parse template
 
-Mỗi slide trong `T_finext_01.pptx` có:
+Mỗi slide trong `TEMPLATE_FINEXT.pptx` có:
 
 1. **Slide name** (XML attribute `cSld@name`) = LAYOUT_ID. AI dùng để identify layout khi clone.
 2. **Placeholder** dạng `{{NAME}}` trong text run. AI regex match `\{\{[A-Z_0-9]+\}\}` → biết shape nào cần fill.
@@ -182,8 +182,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 ### Cover (5 layout)
 
 #### LAYOUT 01 — `COVER_A_RECOMMENDATION`
-**Slide #:** 1. Cover khuyến nghị mã. Full dark BG + violet glow tint top + ticker XL trái + MUA badge violet rounded + 2 stat dark card (giá hiện tại, giá mục tiêu) + thesis section.
-**Dùng cho:** Recommendation memo (`P_recommendation_memo`).
+**Slide #:** 1. Cover khuyến nghị mua mã đơn lẻ. Full dark BG + violet glow tint top + ticker XL trái + MUA badge violet rounded + 2 stat dark card (giá hiện tại, giá mục tiêu) + thesis section.
 
 **Placeholders:**
 - `{{REPORT_SUBTITLE}}`
@@ -195,8 +194,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 - `{{PUBLISH_DATE}}`
 
 #### LAYOUT 02 — `COVER_B_DEEPDIVE`
-**Slide #:** 2. Cover phân tích chuyên sâu. Full dark BG + gradient violet bar top + ticker centered + 4 stat dark card với violet bar trái.
-**Dùng cho:** Invest memo deep-dive (`P_invest_memo` tier 5C/5D).
+**Slide #:** 2. Cover phân tích chuyên sâu mã đơn lẻ. Full dark BG + gradient violet bar top + ticker centered + 4 stat dark card với violet bar trái.
 
 **Placeholders:**
 - `{{TICKER}}` (≤ 6 ký tự)
@@ -208,8 +206,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 - `{{PUBLISH_DATE}}`
 
 #### LAYOUT 03 — `COVER_C_WEEKLY_MARKET`
-**Slide #:** 3. Cover báo cáo tuần. Top section violet glow tint + week label XL + regime badge violet rounded + 3 KPI dark card.
-**Dùng cho:** Weekly market report (`P_weekly_market`).
+**Slide #:** 3. Cover báo cáo thị trường tuần. Top section violet glow tint + week label XL + regime badge violet rounded + 3 KPI dark card.
 
 **Placeholders:**
 - `{{WEEK_LABEL}}`, `{{HEADLINE_LINE}}`, `{{REGIME_BADGE}}`
@@ -247,7 +244,7 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 ### Content layout (12)
 
-Cấu trúc giống T_vbse 1-1, chỉ khác visual style (violet thay đỏ navy, rounded card thay flat, circle icon thay square, gradient bar thay solid).
+Cấu trúc giống TEMPLATE_VBSE 1-1, chỉ khác visual style (violet thay đỏ navy, rounded card thay flat, circle icon thay square, gradient bar thay solid).
 
 #### LAYOUT 07 — `BULLET_LIST_SUMMARY`
 **Slide #:** 7. 5 bullet với violet circle marker. Dùng cho Weekly Exec Summary.
@@ -257,7 +254,7 @@ Cấu trúc giống T_vbse 1-1, chỉ khác visual style (violet thay đỏ navy
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
 #### LAYOUT 08 — `STAT_CALLOUT_GRID_4CELL`
-**Slide #:** 8. 4 stat callout rounded + section band violet + 4 numbered cards (circle icon). Dùng cho Recommendation memo "Tóm tắt khuyến nghị".
+**Slide #:** 8. 4 stat callout rounded + section band violet + 4 numbered cards (circle icon). Phù hợp cho slide tóm tắt khuyến nghị (4 mức giá target/stop + 4 luận điểm cốt lõi).
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{TARGET_SHORT}}`, `{{UPSIDE_SHORT}}`, `{{TARGET_MID}}`, `{{UPSIDE_MID}}`
 - `{{STOPLOSS}}`, `{{DOWNSIDE_STOP}}`, `{{RR_RATIO}}`, `{{RR_VERDICT}}`
@@ -325,7 +322,7 @@ Cấu trúc giống T_vbse 1-1, chỉ khác visual style (violet thay đỏ navy
 - `{{REBUT_1}}` ... `{{REBUT_6}}`
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
-**Constraint:** CONCERN_5/6 BẮT BUỘC là lo ngại thực sự yếu, không "all win" (theo `P_recommendation_memo_00` mục 4.4).
+**Constraint:** CONCERN_5/6 BẮT BUỘC là lo ngại thực sự yếu sau phản biện (honest steelman), không "all win" — đây là yêu cầu nội dung chung cho mọi báo cáo dùng layout này.
 
 #### LAYOUT 16 — `VARIANT_PERCEPTION`
 **Slide #:** 16. Insight box violet rounded với quote mark + 3 sub-section: đồng thuận / tâm lý NĐT / góc nhìn khác.
@@ -399,8 +396,7 @@ Cấu trúc giống T_vbse 1-1, chỉ khác visual style (violet thay đỏ navy
 - `{{FOOTER_LEFT}}`, `{{PAGE_NUM}}`
 
 #### LAYOUT 22 — `MINI_CHARTS_2X2`
-**Slide #:** 22. 4 chart placeholder 2×2, card rounded + title bar violet rounded.
-**Dùng cho:** Invest memo financial section (Doanh thu / EBIT / Dòng tiền / Nợ ròng 5 năm).
+**Slide #:** 22. 4 chart placeholder 2×2, card rounded + title bar violet rounded. Phù hợp cho block 4 chart chỉ số tài chính 5 năm hoặc 4 stat trend song song.
 - `{{SECTION_TITLE}}`, `{{SECTION_SUB}}`
 - `{{CHART_1_TITLE}}` ... `{{CHART_4_TITLE}}`
 - `{{CHART_1_UNIT}}` ... `{{CHART_4_UNIT}}`
@@ -472,47 +468,23 @@ Cấu trúc giống T_vbse 1-1, chỉ khác visual style (violet thay đỏ navy
 
 ---
 
-## Mapping layout → loại báo cáo
+## Decoupling — TEMPLATE_FINEXT hoàn toàn độc lập
 
-Identical với T_vbse (vì cấu trúc layout 1-1 mapping):
+TEMPLATE_FINEXT là layout catalog đứng một mình. File này KHÔNG reference FORMAT.md, WORKFLOW.md, hay file pack khác trong template_agent — đó là backward dependency vi phạm rule architecture (xem `system_prompt.md` mục 2).
 
-| Layout | Recommendation Memo | Weekly Market | Invest Memo Deep-dive |
-|---|---|---|---|
-| COVER_A_RECOMMENDATION | ✓ Slide 1 | — | — |
-| COVER_B_DEEPDIVE | — | — | ✓ Slide 1 |
-| COVER_C_WEEKLY_MARKET | — | ✓ Slide 1 | — |
-| COVER_D_MACRO_SECTOR | — | — | (future) |
-| COVER_E_GENERIC | — | — | (alternative) |
-| SECTION_DIVIDER | optional | optional | optional |
-| BULLET_LIST_SUMMARY | optional | ✓ Exec Summary | ✓ Exec Summary |
-| STAT_CALLOUT_GRID_4CELL | ✓ Slide 2 | — | ✓ Tier summary |
-| BIG_STAT_SUBPOINTS | ✓ Slide 5-7 luận điểm | — | ✓ Thesis section |
-| TWO_COLUMN_INFO_BUSINESS | ✓ Slide 3 | — | ✓ Business Overview |
-| COMPARISON_3CELL_SCENARIOS | ✓ Slide 14 | ✓ PTKT 3 kịch bản | ✓ Bear/Base/Bull |
-| STAT_TABLE_COMBO_SESSION | ✓ Slide 4 | ✓ VN market session | ✓ |
-| DATA_TABLE_FULL | optional | ✓ 24 ngành | ✓ BCTC 5 năm |
-| TIMELINE_NEWS | ✓ Slide 8 catalyst | ✓ Tin tức tuần | ✓ Catalyst |
-| RISK_GRID_STEELMAN | ✓ Slide 13 | ✓ Risk map | ✓ Risk |
-| VARIANT_PERCEPTION | ✓ | — | optional |
-| BUY_STRUCTURE_FLEX | ✓ Slide 11 | — | ✓ Execution |
-| TAKE_PROFIT_TARGETS | ✓ Slide 12 | — | ✓ Exit plan |
-| THESIS_B_PANEL_RIGHT | ✓ Variation | — | ✓ Alt thesis |
-| HEATMAP_INDUSTRY | — | ✓ Alt cho table | — |
-| PEER_COMPARE_TABLE | ✓ Định vị peer | optional | ✓ Peer comparison |
-| MINI_CHARTS_2X2 | optional | optional | ✓ Financial charts |
-| CALENDAR_WEEK | — | ✓ Lịch tuần | — |
-| LINE_CHART_FULL | optional | ✓ VNINDEX trend | ✓ Equity curve |
-| SCATTER_PEER | ✓ Định vị 2D | — | ✓ Peer positioning |
-| DONUT_COMPOSITION | ✓ Cơ cấu cổ đông | optional | ✓ Cơ cấu DT mảng |
-| DISCLAIMER | ✓ Slide 15 | ✓ Slide cuối | ✓ Slide cuối |
+TEMPLATE_FINEXT chỉ đọc 2 nguồn khi runtime render: (a) file pack của chính nó (catalog `.md` + binary `.pptx`), (b) MD final do WORKFLOW Stage 5 produce làm input nội dung.
 
-## Quy tắc bắt buộc khi AI render báo cáo qua T_finext
+Mỗi layout mô tả PURPOSE semantic của chính nó (cover khuyến nghị mã / scenario comparison 3-cell / heatmap 24 ngành / etc.) ở section "Danh sách 27 layout" trên. Agent runtime: scan MD final → match section heading + chart annotation với layout có sẵn theo semantic → clone layout → fill placeholder. Cùng 1 layout có thể fit nhiều loại MD content khác nhau, runtime tự match.
+
+Cấu trúc layout TEMPLATE_FINEXT 1-1 với TEMPLATE_VBSE (cùng LAYOUT_ID), khác visual style (dark/violet/chevron vs navy/red/triangle) — runtime chọn T pack nào dựa trên brand audience user yêu cầu, không phải dựa trên loại báo cáo.
+
+## Quy tắc bắt buộc khi AI render báo cáo qua TEMPLATE_FINEXT
 
 1. **Layout ID là duy nhất**. Slide name = LAYOUT_ID viết HOA_SNAKE. AI không được tự đổi tên slide khi clone.
 
 2. **Placeholder pattern**. Mọi placeholder phải dạng `{{NAME}}` với UPPER_SNAKE_CASE. AI regex `\{\{[A-Z_0-9]+\}\}` để parse. Không tự thêm placeholder mới.
 
-3. **Reuse layout có sẵn**. T_finext có 27 layout cover gần hết use case. AI KHÔNG tự tạo layout mới — clone layout phù hợp nhất rồi fill placeholder. Cần layout mới → flag để user quyết định.
+3. **Reuse layout có sẵn**. TEMPLATE_FINEXT có 27 layout cover gần hết use case. AI KHÔNG tự tạo layout mới — clone layout phù hợp nhất rồi fill placeholder. Cần layout mới → flag để user quyết định.
 
 4. **Chart placeholder strategy**. Layout có chart đặt rectangle `{{CHART_X_PLACEHOLDER}}`. AI khi render: tìm shape có text này → ghi nhận vị trí → remove shape → đọc YAML block từ MD → add native PowerPoint chart vào đúng vị trí. KHÔNG vẽ chart bằng shape.
 
@@ -522,9 +494,9 @@ Identical với T_vbse (vì cấu trúc layout 1-1 mapping):
 
 7. **Format số locale vi-VN**. Tiền/giá: `33.000 đ`. Phần trăm có dấu `+/-` (vd `+18,0%`). Chỉ số dùng dấu phẩy thập phân (`1,37x`).
 
-8. **Constraint kịch bản 3 cell** (`COMPARISON_3CELL_SCENARIOS`). KHÔNG gán xác suất % vào kịch bản (theo `K_agent_db_00` mục 4.3). Header dùng "Khả năng cao nhất / vừa phải / thấp" qualitative.
+8. **Constraint kịch bản 3 cell** (`COMPARISON_3CELL_SCENARIOS`). KHÔNG gán xác suất % vào kịch bản. Header dùng "Khả năng cao nhất / vừa phải / thấp" qualitative. Đây là yêu cầu nội dung chung — MD final từ upstream pipeline phải đảm bảo không có % xác suất; TEMPLATE_FINEXT chỉ render visual.
 
-9. **Honest steelman 6-cell** (`RISK_GRID_STEELMAN`). 2 card cuối highlight pink BẮT BUỘC là lo ngại còn thực sự yếu. Yêu cầu của `P_recommendation_memo_00` mục 4.4.
+9. **Honest steelman 6-cell** (`RISK_GRID_STEELMAN`). 2 card cuối highlight pink BẮT BUỘC là lo ngại còn thực sự yếu sau phản biện, không "all win". TEMPLATE_FINEXT chỉ render visual; nội dung CONCERN_5/6 trong MD final phải honest do upstream pipeline đảm bảo.
 
 10. **Variant Perception 3 sub bắt buộc**. Cả 3 sub-section phải fill. Không skip vì "không có data" — nếu không có thông tin, ghi "Không quan sát được dữ liệu rõ rệt".
 
@@ -538,13 +510,19 @@ Identical với T_vbse (vì cấu trúc layout 1-1 mapping):
    - Mọi placeholder `{{...}}` đã được fill (regex check còn `\{\{[A-Z_]+\}\}` không?)
    - Các chart placeholder đã thay thế bằng native chart
    - Slide name (LAYOUT_ID) còn nguyên, không bị đổi
-   - Số slide đầu cuối khớp với O pack spec
+   - Số slide đầu cuối khớp với section count trong MD final
    - Format số tiếng Việt đồng nhất
 
 15. **File source of truth — đừng tự sửa**:
-   - `T_finext_01.pptx` là binary template, AI không sửa file này khi render báo cáo cá nhân (chỉ clone slide). Sửa template chỉ khi user yêu cầu update T pack.
+   - `TEMPLATE_FINEXT.pptx` là binary template, AI không sửa file này khi render báo cáo cá nhân (chỉ clone slide). Sửa template chỉ khi user yêu cầu update T pack.
    - Disclaimer body fix cứng — nếu user yêu cầu đổi disclaimer, sửa trực tiếp trong template, không tạo placeholder mới.
 
 ## Lịch sử update
 
-- **2026-04-26 rev 1**: Khởi tạo T_finext pack pptx. Build 27 layout cấu trúc 1-1 mapping với T_vbse: 5 cover (4 dark + 1 light) + 1 section divider + 12 content + 5 extension + 3 chart placeholder + 1 disclaimer. Visual style khác biệt với T_vbse: dark-first cover (signature Finext), violet primary thay đỏ navy, chevron decorative `>>` thay tam giác (semantic "next/forward"), rounded card thay flat rectangle, circle numbered icon thay square, vertical gradient bar 2-stack thay solid bar, gradient 3-segment violet thay solid line. Trend color theo Finext palette (`up=#25B770`, `down=#E14040`, `ref=#FFC752`, `floor=#0593BB`). Color BG dark `#0A0A0A` cho cover/divider/disclaimer. Nội dung lặp lại fix cứng: brand name "Finext", phòng ban "Phòng Phân tích Đầu tư", website "www.finext.vn", hotline "1900 0000", disclaimer body Finext entity. Chart placeholder strategy identical với T_vbse (decoupled): AI build native chart từ YAML block trong MD source. Tài liệu master gồm: design tokens, layout pattern toàn cục với ASCII diagram, 27 layout với placeholder schema, mapping layout → loại báo cáo, 15 quy tắc bắt buộc khi AI render. Decoupling rule giữ nguyên: O ⟂ T, một O có thể render qua nhiều T (VBSE/Finext/internal), một T layout fit nhiều O pack.
+- **2026-04-26 rev 1**: Khởi tạo TEMPLATE_FINEXT pack pptx. Build 27 layout cấu trúc 1-1 mapping với TEMPLATE_VBSE: 5 cover (4 dark + 1 light) + 1 section divider + 12 content + 5 extension + 3 chart placeholder + 1 disclaimer. Visual style khác biệt với TEMPLATE_VBSE: dark-first cover (signature Finext), violet primary thay đỏ navy, chevron decorative `>>` thay tam giác (semantic "next/forward"), rounded card thay flat rectangle, circle numbered icon thay square, vertical gradient bar 2-stack thay solid bar, gradient 3-segment violet thay solid line. Trend color theo Finext palette (`up=#25B770`, `down=#E14040`, `ref=#FFC752`, `floor=#0593BB`). Color BG dark `#0A0A0A` cho cover/divider/disclaimer. Nội dung lặp lại fix cứng: brand name "Finext", phòng ban "Phòng Phân tích Đầu tư", website "www.finext.vn", hotline "1900 0000", disclaimer body Finext entity. Chart placeholder strategy identical với TEMPLATE_VBSE (decoupled): AI build native chart từ YAML block trong MD source. Tài liệu master gồm: design tokens, layout pattern toàn cục với ASCII diagram, 27 layout với placeholder schema, mapping layout → loại báo cáo, 15 quy tắc bắt buộc khi AI render. Decoupling rule giữ nguyên: O ⟂ T, một O có thể render qua nhiều T (VBSE/Finext/internal), một T layout fit nhiều O pack.
+- **2026-04-27 rev 2**: Register vào kernel skeleton (rev 5) + siết rule strict independence của T pack:
+  - Bỏ tất cả backward references lên K/P/O packs trong file: bỏ "Dùng cho: P_xxx" ở mỗi layout description; bỏ bảng "Mapping layout → loại báo cáo"; thay reference "do O pack quy định" / "theo O pack spec" bằng wording neutral (chart annotation chuẩn trong MD source / section count trong MD final).
+  - Pipeline render redraw: TEMPLATE_FINEXT runtime chỉ đọc 2 nguồn = file pack chính nó + MD final. KHÔNG đọc K/P/O file. O ra MD final là chốt — T thuần visual filler trên content đông kết.
+  - Thêm section "Decoupling — TEMPLATE_FINEXT hoàn toàn độc lập" thay cho mapping table cũ.
+  - Self-check item "khớp với O pack spec" → "khớp với section count trong MD final".
+- **2026-04-27 rev 3**: Pack restructure. Rename `T_finext_00.md` → `TEMPLATE_FINEXT.md`, `T_finext_01.pptx` → `TEMPLATE_FINEXT.pptx`. Update body content: pipeline render reference `WORKFLOW.md` Stage 7 + decoupling rule reference `system_prompt.md` mục 2. Bỏ note "Pack code FE đặt thành T_finextapp_00" — naming convention dùng TEMPLATE_X. Pack vẫn giữ nguyên 27 layout + design tokens + render rule — không thay đổi visual spec.

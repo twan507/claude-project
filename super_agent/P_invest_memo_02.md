@@ -97,6 +97,7 @@ Ngành phải thoả ít nhất **3/4 tiêu chí**:
 **B3. Định giá ngành không quá đắt**
 - Đạt: P/E ngành không vượt 150% median 3 năm của chính ngành đó
 - Không đạt: P/E vượt 150% median 3Y (ngành đã vào vùng đắt lịch sử)
+- **Lưu ý benchmark intentional:** ở tier 1 (ngành) dùng **historical median 3 năm của chính ngành** (so sánh ngành đang đắt hơn quá khứ chính nó — overvaluation toàn ngành). Ở tier 2 (mã, `P_invest_memo_03`) dùng **cross-sectional median ngành hiện tại** (so sánh mã đắt hơn peer). Hai mục đích khác nhau, intentional khác benchmark.
 
 **B4. Sức khoẻ tài chính ngành**
 - Đạt: ICR (Interest Coverage Ratio — chỉ số khả năng trả lãi vay, EBIT / chi phí lãi vay) ngành ≥ 3 (SXKD) hoặc NPL (Non-Performing Loans — tỷ lệ nợ xấu) ngành ≤ 2.5% (ngân hàng) hoặc tương đương cho các type khác

@@ -22,10 +22,10 @@ Pack 1 file. Toàn bộ workflow + methodology nằm trong file này. Render spe
 
 **Negative scope:**
 - Không đọc state file của `P_invest_memo` (tier 6 portfolio, tier 7 weekly review)
-- Không đưa khuyến nghị position cụ thể với level giá vào/ra/stop — watchlist phần 11 đề xuất mã qua luận điểm đầu tư, không kèm entry/stop/target
+- Không đưa khuyến nghị position cụ thể với level giá vào/ra/stop — watchlist phần 10 đề xuất mã qua luận điểm đầu tư, không kèm entry/stop/target
 - Không dùng từ command trực tiếp (mua, bán, giảm tỷ trọng) — diễn đạt qua observation
 - Không gán xác suất % cho kịch bản — dùng if-then trigger objective (xem K_agent_db_00 mục 4.3)
-- **Không sử dụng chỉ báo trend** (`market_snapshot.trend`, `industry_snapshot.trend`, `group_snapshot.trend`, `*_recent.recent_trend`) — phần này dành cho báo cáo của VBSE, pack này không động vào
+- **Không sử dụng chỉ báo trend** (`market_snapshot.trend`, `industry_snapshot.trend`, `group_snapshot.trend`, `*_recent.recent_trend`) — đây là phương pháp phân tích nội bộ, audience cuối (KH) không có nền methodology để hiểu. Chỉ `P_invest_memo` (audience analyst nội bộ) dùng trend.
 - Không phân tích portfolio cá nhân, không suggest rebalance
 
 **Dependency:** `K_agent_db`. Pack đọc trước `K_agent_db_00` master, các file con khi cần (chủ yếu `_01` schema, `_02` query patterns, `_05` news methodology).
@@ -44,6 +44,7 @@ Workflow chia 2 stage, ngăn cách bằng 1 checkpoint duy nhất:
 ─── Pre-flight ──────────────────────────────────────
   Hỏi user về file W-1
   Hỏi context bổ sung (optional)
+  Hỏi branding & disclaimer info (optional)
 
 ─── Stage 1: Compose phần 2-9 ───────────────────────
   Phần 2  Review tuần trước (skip nếu không có file)
@@ -53,17 +54,17 @@ Workflow chia 2 stage, ngăn cách bằng 1 checkpoint duy nhất:
   Phần 6  Biến động ngành
   Phần 7  Top dẫn dắt — 2 góc nhìn
   Phần 8  Tin tức & catalyst
-  Phần 9  Phân tích kỹ thuật VNINDEX + 3 kịch bản
+  Phần 9  Phân tích kỹ thuật VNINDEX + 3 kịch bản + Risk map
 
 ─── CHECKPOINT 1: Regime + Sector bias ──────────────
   Agent xuất block call sơ bộ
   User confirm / override / yêu cầu phân tích thêm
 
 ─── Stage 2: Compose phần 10-12 + Phần 1 ────────────
-  Phần 10  Chiến lược tuần tới
-  Phần 11  Mã & sự kiện đáng chú ý
-  Phần 12  Calendar + Risk map
-  Phần 1   Executive summary (viết cuối)
+  Phần 10  Watchlist — Mã đáng chú ý
+  Phần 11  Lịch sự kiện tuần tới
+  Phần 12  Tuyên bố miễn trừ trách nhiệm
+  Phần 1   Tóm tắt điều hành (viết cuối)
 
 ─── Render & deliver ────────────────────────────────
   Compile full MD theo O_weekly_market_00 structure
@@ -323,7 +324,7 @@ Sub-section 8.3: Bảng mapping 3 cột:
 
 Mỗi tin có dẫn link `https://finext.vn/news/<slug>` hoặc URL web search.
 
-### 5.8. Phần 9 — Phân tích kỹ thuật VNINDEX + 3 kịch bản
+### 5.8. Phần 9 — Phân tích kỹ thuật VNINDEX + 3 kịch bản + Risk map
 
 **Query DB:**
 
@@ -355,10 +356,15 @@ Compose theo K_agent_db_04 phần C (Technical Zone & chỉ báo kỹ thuật) �
 **Output structured:**
 
 Sub-section 9.1 Diễn biến giá tuần: prose 3-4 dòng + nến cuối tuần, vị thế MA, biên độ tuần/tháng/quý  
-Sub-section 9.2 Vùng kỹ thuật quan trọng: bảng kháng cự + hỗ trợ 4 khung (tuần / tháng / quý / năm), mỗi khung 2-3 mức (Fibonacci, POC, pivot, MA)  
+Sub-section 9.2 Vùng kỹ thuật quan trọng: bảng kháng cự + hỗ trợ 4 khung (tuần / tháng / quý / năm), mỗi khung 2-3 mức (Fibonacci, POC, pivot, MA). Bao gồm vùng giá VNINDEX cần theo dõi tuần tới — kháng cự gần (1-2 mức), hỗ trợ gần (1-2 mức), breakout level (mức nếu phá lên/xuống thì confirm kịch bản tích cực/tiêu cực).  
 Sub-section 9.3 Ba kịch bản: định nghĩa rõ trigger (đóng cửa trên/dưới mức X + điều kiện volume + điều kiện flow) và vùng mục tiêu
 
-**Note kỹ thuật bắt buộc cuối phần 9:** thêm 1 dòng "Các kịch bản là hệ thống điều kiện kỹ thuật, không phải dự báo chắc chắn. Diễn biến thực tế có thể lệch khỏi cả 3 nếu xuất hiện sự kiện ngoài kỳ vọng."
+**Note kỹ thuật bắt buộc sau 9.3:** thêm 1 dòng "Các kịch bản là hệ thống điều kiện kỹ thuật, không phải dự báo chắc chắn. Diễn biến thực tế có thể lệch khỏi cả 3 nếu xuất hiện sự kiện ngoài kỳ vọng."
+
+Sub-section 9.4 **Risk map** — 3-7 rủi ro chính tuần tới (flex theo bối cảnh, không ép số cứng). Mỗi rủi ro 3 dòng:
+- Bản chất: rủi ro gì, ảnh hưởng đến kịch bản cơ sở thế nào
+- Signal materialize: chỉ báo / sự kiện / mức giá nào để biết rủi ro đang xảy ra
+- Phản ứng đề xuất (định tính, không command): nếu materialize thì hướng nào (giảm exposure / chuyển sector / đứng ngoài)
 
 ### 5.9. Tổng hợp Stage 1 — quyết regime + sector bias
 
@@ -454,30 +460,11 @@ Confirm hay override trước khi tiếp phần 10-12?
 
 ## 7. Stage 2 — Compose phần 10, 11, 12, rồi quay về phần 1
 
-### 7.1. Phần 10 — Chiến lược tuần tới
+### 7.1. Phần 10 — Watchlist (Mã đáng chú ý)
 
-**Input:** regime đã chốt + sector bias đã chốt + 3 kịch bản phần 9.
+**Input:** regime đã chốt + sector bias đã chốt + dữ liệu mã từ phần 6, 7, 8.
 
-**Wording đặc biệt:** dùng dạng observation, không command. Sector bias diễn đạt "ngành quan tâm / ngành cần thận trọng" thay vì "tập trung / tránh" — báo cáo dùng cho cả nội bộ và khách hàng, wording observation phù hợp cả 2 audience.
-
-**Output structured:**
-
-Sub-section 10.1 Regime: 1 dòng nêu regime chốt + 2-3 dòng ngụ ý chiến lược (universe rộng/hẹp, ưu tiên phòng thủ/tấn công, mức độ thận trọng cần thiết)
-
-Sub-section 10.2 Sector bias chi tiết:
-- **Ngành quan tâm**: mỗi ngành 1 đoạn 2-3 dòng — lý do tích cực (vĩ mô + flow + catalyst), điểm cần theo dõi tuần tới
-- **Ngành cần thận trọng**: mỗi ngành 1 dòng — lý do thận trọng (rủi ro vĩ mô / catalyst tiêu cực / quá mua)
-
-Sub-section 10.3 Vùng giá VNINDEX cần theo dõi:
-- Kháng cự gần (1-2 mức)
-- Hỗ trợ gần (1-2 mức)
-- Breakout level — mức giá nếu phá lên/xuống thì confirm kịch bản tích cực/tiêu cực
-
-Sub-section 10.4 Risk-reward định tính tuần tới: 2-3 dòng tổng kết, không % không số cụ thể, dùng ngôn ngữ định tính ("rủi ro xuống lớn hơn tiềm năng tăng" / "cân bằng" / "tiềm năng tăng có ưu thế")
-
-### 7.2. Phần 11 — Mã & sự kiện đáng chú ý
-
-**Wording đặc biệt:** dùng dạng observation/luận điểm đầu tư, KHÔNG dùng từ command như "mua", "bán", "giảm tỷ trọng". Diễn đạt qua catalyst + flow + sự kiện sắp tới. Không có level giá vào/ra/stop.
+**Wording đặc biệt:** dùng dạng observation/luận điểm đầu tư, KHÔNG dùng từ command như "mua", "bán", "giảm tỷ trọng", "stop loss". Diễn đạt qua catalyst + flow + sự kiện sắp tới. KHÔNG có level giá vào/ra/stop. Phù hợp cả audience nội bộ (analyst tự diễn dịch thành action) và audience khách hàng (đọc như góc nhìn phân tích, tự cân nhắc).
 
 Ví dụ wording đúng:
 - "Catalyst Q1 dự kiến tích cực, dòng tiền cải thiện rõ tuần qua, vùng kỹ thuật khung tuần tích cực"
@@ -497,44 +484,68 @@ Cho mỗi ngành quan tâm (sector bias tích cực):
 Cho ngành cần thận trọng (sector bias tiêu cực):
 - `stock_snapshot` filter industry, lấy mã có market_rank_pct cao trong ngành nhưng ngành tổng thể yếu (mã vốn hoá lớn thường được nắm giữ rộng, có thể bị áp lực bán nếu ngành xấu hơn)
 
-Tin sự kiện:
-- `news_today_feed` + `news_history_feed` filter ticker để tìm mã có catalyst cá thể (BCTC sắp công bố, ĐHCĐ, divestment, M&A, niêm yết công ty con)
-
 **Output structured:**
 
-Sub-section 11.1 Mã đáng chú ý: 5-8 mã, gộp cả mã có cơ hội tăng và mã có rủi ro giảm — không tách 2 nhóm. Mỗi mã 2 dòng:
+Sub-section 10.1 Bối cảnh sector bias (intro 4-6 dòng):
+- 1-2 dòng nêu regime tuần + ngụ ý chiến lược (universe rộng/hẹp, mức độ thận trọng)
+- **Ngành quan tâm**: list ngắn gọn tên ngành kèm 1 câu lý do mỗi ngành
+- **Ngành cần thận trọng**: list ngắn gọn tên ngành kèm 1 câu lý do
+- 1 dòng risk-reward định tính tuần tới ("rủi ro xuống lớn hơn tiềm năng tăng" / "cân bằng" / "tiềm năng tăng có ưu thế")
+
+Sub-section 10.2 Mã đáng chú ý: 5-8 mã gộp cả cơ hội tăng và rủi ro giảm — không tách 2 nhóm. Mỗi mã 2 dòng:
 - Dòng 1: ticker (ngành) — luận điểm đầu tư 1 câu (rõ hướng tích cực hay tiêu cực qua wording)
 - Dòng 2: catalyst + flow + technical (ngắn gọn, observation)
 
-Sub-section 11.2 Sự kiện đáng chú ý tuần tới: BCTC dự kiến công bố, ĐHCĐ, divestment, M&A, niêm yết công ty con — chỉ ngày + sự kiện + ngành/mã liên quan, không kèm khuyến nghị action.
+**Lưu ý:** không ghi entry zone, stop, target, size cụ thể. Định tính qua observation.
 
-**Lưu ý:** không ghi entry zone, stop, target, size cụ thể. Định tính qua observation. Phù hợp cả audience nội bộ (analyst tự diễn dịch thành action) và audience khách hàng (đọc như góc nhìn phân tích, tự cân nhắc).
+### 7.2. Phần 11 — Lịch sự kiện tuần tới
 
-### 7.3. Phần 12 — Calendar + Risk map
+**Input:** sự kiện corporate từ phần 8 + macro events từ web search.
 
-**Calendar tuần tới:**
-
-Web search bổ sung:
+**Web search bổ sung:**
 - Macro release lịch tuần: FOMC minutes, CPI Mỹ, NFP, GDP, PMI Mỹ/EU/TQ/VN
 - Họp chính sách tuần: FOMC, ECB meeting, NHNN VN
 - Mùa BCTC: nếu đang trong mùa, lấy lịch công bố BCTC các mã top vốn hoá trong sector bias quan tâm
 
-Query DB:
-- `news_today_feed` + `news_history_feed` filter type báo cáo / thông cáo có ngày dự kiến tuần tới (chính sách, đấu giá TPCP, OPEX hợp đồng tương lai, ngày chốt cổ tức)
-
-**Risk map: 3-7 rủi ro chính** (flex theo bối cảnh thực tế tuần, không ép số cứng)
-
-Mỗi rủi ro 3 dòng:
-- Bản chất: rủi ro gì, ảnh hưởng đến kịch bản cơ sở thế nào
-- Signal materialize: chỉ báo / sự kiện / mức giá nào để biết rủi ro đang xảy ra
-- Phản ứng đề xuất: nếu materialize thì làm gì (giảm tỷ trọng / chuyển sector / đứng ngoài)
+**Query DB:**
+- `news_today_feed` + `news_history_feed` filter type báo cáo / thông cáo có ngày dự kiến tuần tới (chính sách, đấu giá TPCP, đáo hạn hợp đồng tương lai, ngày chốt cổ tức)
+- Sự kiện corporate: BCTC dự kiến công bố, ĐHCĐ, divestment, M&A, niêm yết công ty con — chỉ ngày + sự kiện + ngành/mã liên quan, không kèm khuyến nghị action
 
 **Output structured:**
 
-Sub-section 12.1 Calendar: bảng ngày + sự kiện + ngành VN ảnh hưởng (nếu có)  
-Sub-section 12.2 Risk map: list 3-7 rủi ro theo template 3 dòng
+Sub-section 11.1 Lịch macro: bảng ngày + sự kiện + ngành VN ảnh hưởng (nếu có)
+Sub-section 11.2 Lịch corporate: bảng ngày + ticker + sự kiện (BCTC/ĐHCĐ/M&A/etc.)
 
-### 7.4. Phần 1 — Executive summary (viết cuối)
+Lịch chỉ liệt kê sự kiện đáng chú ý — bỏ qua sự kiện không impact materially.
+
+### 7.3. Phần 12 — Tuyên bố miễn trừ trách nhiệm
+
+**Input:** branding + disclaimer info từ pre-flight (Section 4 câu 3).
+
+**3 trường hợp:**
+
+**(a) User cung cấp custom disclaimer:**
+Render đầy đủ disclaimer text user cung cấp + thông tin liên hệ (tên công ty, website, hotline, phòng ban).
+
+**(b) User cung cấp branding nhưng không có disclaimer text:**
+Dùng template default phù hợp báo cáo gửi KH:
+
+> Báo cáo này được [TÊN CÔNG TY] soạn thảo trên cơ sở các thông tin, dữ liệu được thu thập từ các nguồn được coi là đáng tin cậy vào thời điểm phát hành. Tuy nhiên, [TÊN CÔNG TY] không đảm bảo tuyệt đối về tính chính xác, đầy đủ của các thông tin này.
+>
+> Các nhận định trong báo cáo phản ánh quan điểm độc lập tại thời điểm công bố và có thể thay đổi mà không cần thông báo trước. Nhà đầu tư cần tự đánh giá mức độ phù hợp với tình hình tài chính cá nhân, khả năng chịu rủi ro và mục tiêu đầu tư trước khi ra quyết định.
+>
+> Quyết định đầu tư cuối cùng hoàn toàn thuộc về Quý khách hàng. [TÊN CÔNG TY] không chịu trách nhiệm về bất kỳ tổn thất nào phát sinh từ việc sử dụng báo cáo này.
+
+Kèm khối liên hệ: tên công ty, website, hotline, ngày phát hành.
+
+**(c) User chọn không cung cấp branding (pre-flight 3b):**
+Render note plain ngắn:
+
+> Báo cáo này phản ánh quan điểm phân tích nội bộ tại thời điểm soạn thảo và có thể thay đổi mà không cần thông báo. Nhà đầu tư tự cân nhắc dựa trên tình hình tài chính cá nhân và mục tiêu đầu tư.
+>
+> Ngày phát hành: [DD/MM/YYYY]
+
+### 7.4. Phần 1 — Tóm tắt điều hành (viết cuối)
 
 **Input:** toàn bộ 11 phần đã compose.
 
@@ -542,8 +553,8 @@ Sub-section 12.2 Risk map: list 3-7 rủi ro theo template 3 dòng
 - Bullet 1: regime tuần + 1 dòng tóm tắt căn cứ
 - Bullet 2: 1-2 catalyst lớn nhất tuần qua (tin trong nước hoặc quốc tế)
 - Bullet 3: sector bias quan tâm (ngắn gọn liệt kê tên ngành) + thận trọng
-- Bullet 4: 1 risk chính cần theo dõi tuần tới
-- Bullet 5 (optional): 1 mã đáng chú ý nhất trong watchlist
+- Bullet 4: 1 risk chính cần theo dõi tuần tới (từ Risk map phần 9.4)
+- Bullet 5 (optional): 1 mã đáng chú ý nhất trong watchlist phần 10
 
 Phần 1 phải đứng riêng, đọc 30 giây hiểu được toàn báo cáo.
 
@@ -584,16 +595,17 @@ Agent có thể đang trong session đã activate `P_invest_memo`. Khi user trig
 
 ## 10. Self-audit trước khi xuất file
 
-Chạy 8 câu trước khi present file:
+Chạy 9 câu trước khi present file:
 
 1. Phần 2 đã skip đúng nếu không có file W-1?
 2. Phần 5 đã đặt mapping vĩ mô → ngành làm input cho phần 6 không?
-3. **Đã không dùng bất kỳ chỉ báo `trend` nào** (market_snapshot.trend, industry_snapshot.trend, group_snapshot.trend, recent_trend) — đây là rule cứng nhất?
+3. **Đã không dùng bất kỳ chỉ báo `trend` nào** (market_snapshot.trend, industry_snapshot.trend, group_snapshot.trend, recent_trend)?
 4. Phần 9 ba kịch bản dùng if-then trigger, không có % xác suất?
-5. Checkpoint 1 đã được user confirm hoặc override trước khi compose phần 10-12?
-6. Watchlist phần 11 không có level giá vào/ra/stop cụ thể (soft only)?
-7. K hygiene: ký hiệu DB raw đã dịch hết, không còn `week_score: 18`, `industry_rank: 3`, `vsi: 2.1` raw trong output?
-8. Số liệu định lượng đã quy đổi đơn vị (BCTC: tỷ đồng, % thập phân nhân 100)?
+5. Phần 9.4 Risk map có 3-7 rủi ro với đủ 3 dòng (bản chất / signal / phản ứng)?
+6. Checkpoint 1 đã được user confirm hoặc override trước khi compose phần 10-12?
+7. Watchlist phần 10 không có level giá vào/ra/stop cụ thể (observation only)?
+8. Phần 12 disclaimer render đúng theo branding info (custom / default branded / plain)?
+9. K hygiene: ký hiệu DB raw đã dịch hết, không còn `week_score: 18`, `industry_rank: 3`, `vsi: 2.1` raw trong output? Số liệu định lượng đã quy đổi đơn vị (BCTC: tỷ đồng, % thập phân nhân 100)?
 
 Vi phạm câu nào sửa rồi mới render file final.
 
@@ -601,7 +613,8 @@ Vi phạm câu nào sửa rồi mới render file final.
 
 Pack sinh ra structured content cho `O_weekly_market_00` render. Ràng buộc:
 
-- 12 phần đầy đủ, kể cả phần rỗng (phần 2 nếu không có W-1 → ghi 1 dòng note)
+- 12 phần đầy đủ theo thứ tự: 1 Tóm tắt điều hành / 2 Review tuần trước / 3 Bối cảnh quốc tế / 4 Thị trường Việt Nam / 5 Vĩ mô & hàng hoá / 6 Biến động ngành / 7 Top dẫn dắt / 8 Tin tức & catalyst / 9 PTKT VNINDEX + 3 kịch bản + Risk map / 10 Watchlist / 11 Lịch sự kiện tuần tới / 12 Tuyên bố miễn trừ trách nhiệm
+- Phần rỗng vẫn render với 1 dòng note (vd phần 2 nếu không có W-1: "Tuần đầu cycle, chưa có dữ liệu review")
 - Số liệu định lượng đã quy đổi đơn vị theo K_agent_db_00 mục 6
 - Ký hiệu DB raw đã dịch theo K_agent_db_00 mục 5.2
 - Thuật ngữ tiếng Anh đã dịch theo K_agent_db_05 mục 9
