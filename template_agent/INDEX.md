@@ -97,12 +97,3 @@ Task ngoài scope (từ chối lịch sự):
 - Sinh nội dung mới không có trong input
 - Render brand ngoài whitelist (xem `FORMAT.md` brand whitelist)
 
-## Lịch sử update
-
-- **2026-04-27 init**: Khởi tạo template_agent. Architecture: system_prompt + INDEX + FORMAT + WORKFLOW + 2 TEMPLATE pack (VBSE, Finext). Flow 7 stage + 3 checkpoint. LLM-based normalization với multi-choice clarification questions. Skip-normalize fast path khi input đã match contract. Brand whitelist strict 2 (VBSE / Finext), không fallback.
-- **2026-04-27 rev 1**: Expand report_type list từ 5 (stock_pitch / weekly_market / deepdive / macro_sector / generic) sang **9 type**:
-  - 8 preset: `stock_pitch` / `weekly_market` / `market_scan` (mới) / `stock_memo` (rename từ deepdive, conviction-tier flex) / `portfolio_plan` (mới) / `portfolio_review_weekly` (mới) / `portfolio_review_monthly` (mới) / `portfolio_review_quarterly` (mới)
-  - 1 custom: quiz-driven 7 câu (2 turn) — agent xây spec runtime cho báo cáo không khớp preset, lưu `custom_spec_id` trong frontmatter
-  - Bỏ `macro_sector` + `generic` (chuyển hết vào `custom`)
-  - WORKFLOW Stage 3 thêm mục 5.4-5.5 cho custom quiz + spec build
-  - FORMAT mục 3 expand chi tiết structure cho 9 type
