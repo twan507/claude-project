@@ -88,7 +88,7 @@ Mỗi section H2 chứa:
 
 Mỗi report_type có structure cụ thể. Normalize phải map content vào đúng structure tương ứng.
 
-### 3.1. stock_pitch — Khuyến nghị mua mã đơn lẻ (15 sections, rigid)
+### 3.1. stock_pitch — Khuyến nghị mua mã đơn lẻ (13-16 sections, flex theo 4-7 luận điểm)
 
 **Audience:** khách hàng. **Length:** 12-18 trang.
 

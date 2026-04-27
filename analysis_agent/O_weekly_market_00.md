@@ -568,9 +568,11 @@ Disclaimer chỉ render ở phần 12, không lặp ở metadata footer. Metadat
 
 **Bước 9 — Self-audit:** chạy 8 câu self-check P pack mục 10 + checklist O pack mục 7 dưới đây.
 
-**Bước 10 — Save & present:** save vào `/mnt/user-data/outputs/`, gọi `present_files`.
+**Bước 10 — Present:** xuất nội dung MD trong message (Claude Desktop), user copy/save thủ công.
 
-## 5. Guide render docx
+## 5. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Docx weekly market report ít dùng — chỉ khi user yêu cầu archive formal hoặc share qua email cho leadership.
 
@@ -587,7 +589,9 @@ Docx weekly market report ít dùng — chỉ khi user yêu cầu archive formal
 - Table style chuẩn
 - Cover page template
 
-## 6. Guide render pptx
+## 6. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Pptx weekly market hiếm dùng — chỉ khi user explicit yêu cầu cho meeting trình bày.
 
@@ -632,7 +636,7 @@ Pptx weekly market hiếm dùng — chỉ khi user explicit yêu cầu cho meeti
 - [ ] Metadata cuối đầy đủ
 - [ ] Disclaimer footer: nếu user cung cấp branding đã render đầy đủ; nếu không, không render
 - [ ] File save đúng tên `weekly_market_<YYYYMMDD>.md` với YYYYMMDD = ngày kết thúc tuần
-- [ ] Present file qua present_files tool
+- [ ] Xuất nội dung MD trong message (Claude Desktop)
 
 ## 8. Output contract
 

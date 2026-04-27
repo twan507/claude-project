@@ -69,7 +69,7 @@ Workflow chia 2 stage, ngăn cách bằng 1 checkpoint duy nhất:
 ─── Render & deliver ────────────────────────────────
   Compile full MD theo O_weekly_market_00 structure
   Save file weekly_market_<YYYYMMDD>.md
-  Present file qua present_files tool
+  Xuất nội dung MD trong message (Claude Desktop)
 ```
 
 ## 4. Pre-flight — hỏi user trước khi vào Stage 1
@@ -552,7 +552,7 @@ Phần 1 phải đứng riêng, đọc 30 giây hiểu được toàn báo cáo.
 
 Sau khi có đủ 12 phần structured content, agent gọi `O_weekly_market_00` để render thành file MD final. Render rule + format chi tiết ở O pack.
 
-File output: `weekly_market_<YYYYMMDD>.md`, save vào `/mnt/user-data/outputs/`, gọi `present_files` để user download.
+File output: `weekly_market_<YYYYMMDD>.md`. Trên Claude Desktop, agent xuất nội dung MD trong message để user copy/save thủ công.
 
 Nếu user yêu cầu format khác (docx / pptx), render thêm theo `O_weekly_market_00` mục tương ứng.
 

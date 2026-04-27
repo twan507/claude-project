@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/d/twan-projects/claude-project/**)"
+    ]
+  }
+}

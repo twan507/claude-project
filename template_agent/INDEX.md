@@ -62,18 +62,18 @@ Hiện chỉ render được 2 brand:
 
 | Brand | File pack | Visual signature |
 |---|---|---|
-| **VBSE** | `TEMPLATE_VBSE.md/.pptx` | Navy `#003D7A` + đỏ `#D71249` + tam giác vuông cân |
-| **Finext** | `TEMPLATE_FINEXT.md/.pptx` | Dark `#0A0A0A` + violet `#8B5CF6` + chevron `>>` |
+| **VBSE** | `TEMPLATE_VBSE.md/.pptx` | Navy + đỏ accent + tam giác vuông cân (design tokens cụ thể xem `TEMPLATE_VBSE.md`) |
+| **Finext** | `TEMPLATE_FINEXT.md/.pptx` | Dark BG + violet primary + chevron `>>` (design tokens cụ thể xem `TEMPLATE_FINEXT.md`) |
 
 Brand khác → reject. Không có fallback "render plain branded" — chỉ chọn 1 trong 2 hoặc skip render binary (chỉ xuất MD).
 
-## 9 loại báo cáo support
+## 9 loại báo cáo (8 preset + 1 custom quiz-driven)
 
-8 preset type + 1 custom. Custom là quiz-driven — agent hỏi user xây spec runtime. Chi tiết structure xem `FORMAT.md` mục 3.
+Custom là quiz-driven — agent hỏi user xây spec runtime. Chi tiết structure xem `FORMAT.md` mục 3.
 
 | report_type | Mô tả | Section count | Length |
 |---|---|---|---|
-| `stock_pitch` | Khuyến nghị MUA mã đơn lẻ gửi KH | 15-18 (rigid + 3 luận điểm flex) | 12-18 trang |
+| `stock_pitch` | Khuyến nghị MUA mã đơn lẻ gửi KH | 13-16 (rigid + 4-7 luận điểm flex) | 12-18 trang |
 | `weekly_market` | Báo cáo thị trường tuần | 12 rigid | 9-11 trang |
 | `market_scan` | Báo cáo scan đầu cycle (top-down) | 7 flex | 8-15 trang |
 | `stock_memo` | Memo deep-dive nội bộ 1 mã | 3-7 theo conviction tier | 3-15 trang |

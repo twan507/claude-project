@@ -10,7 +10,7 @@ Bộ 3 agent độc lập phục vụ phân tích cổ phiếu Việt Nam và re
 
 | Agent | Folder | Mục đích | Số file |
 |---|---|---|---|
-| **analysis_agent** | `analysis_agent/` | Phân tích cổ phiếu Việt Nam đa giai đoạn, output MD final structured (memo, báo cáo tuần, khuyến nghị mua) | 25 |
+| **analysis_agent** | `analysis_agent/` | Phân tích cổ phiếu Việt Nam đa giai đoạn, output MD final structured (memo, báo cáo tuần, khuyến nghị mua) | 29 |
 | **template_agent** | `template_agent/` | Nhận MD/document bất kỳ → chuẩn hoá theo contract → render pptx branded (VBSE / Finext) | 8 |
 | **db_agent** | `db_agent/` | Phân tích single-shot nhanh: tra cứu, query MongoDB `agent_db`, đưa nhận định lẻ không qua workflow đa stage | 7 |
 
@@ -39,7 +39,7 @@ Tạo 3 project riêng trong Claude Desktop app:
 
 | Project name (đề xuất) | Source folder | Custom Instructions | Knowledge files |
 |---|---|---|---|
-| `Analysis Agent` | `analysis_agent/` | Paste nội dung `analysis_agent/system_prompt.md` | Upload toàn bộ file `.md` còn lại trong folder (24 file) |
+| `Analysis Agent` | `analysis_agent/` | Paste nội dung `analysis_agent/system_prompt.md` | Upload toàn bộ file `.md` còn lại trong folder (28 file) |
 | `Template Agent` | `template_agent/` | Paste nội dung `template_agent/system_prompt.md` | Upload `INDEX.md`, `FORMAT.md`, `WORKFLOW.md`, 2 `TEMPLATE_*.md`, 2 `TEMPLATE_*.pptx` (7 file) |
 | `DB Agent` | `db_agent/` | Paste nội dung `db_agent/system_prompt.md` | Upload `agent_db_00` đến `agent_db_05` (6 file) |
 
@@ -391,7 +391,7 @@ Pack `P_weekly_market` và `P_stock_pitch` (audience KH) tuân chặt:
 
 Lý do tách: render binary là concern khác với analysis quality. Tách giúp `analysis_agent` focus vào content depth, `template_agent` focus vào visual presentation.
 
-**Note:** Một số file P/O packs trong `analysis_agent` còn legacy section "Guide render docx/pptx" được marked `[LEGACY]` — sẽ cleanup ở pass tới. Không ảnh hưởng workflow runtime vì master rule rev 6 đã chốt MD final là output cuối.
+**Note:** Tại rev 6, 16/16 section "Guide render docx/pptx" trong các O pack đã được marked `[LEGACY]` (kèm note "Render binary out of scope, section giữ làm reference cho tool render bên ngoài"). Content section giữ nguyên — pass cleanup tiếp theo có thể xoá hẳn nếu cần thu gọn knowledge base. Không ảnh hưởng workflow runtime vì master rule rev 6 đã chốt MD final là output cuối.
 
 ### 8.2. Triết lý flex+downgrade thay strict reject (analysis_agent)
 
@@ -401,6 +401,8 @@ Khi gate methodology không pass strict (Variant Perception yếu, Bear Case reb
 - User quyết định cuối: proceed với size nhỏ + audit log, hoặc loại mã
 
 Lý do: discipline ở dạng force user explicit aware về rủi ro, không che giấu. User là người ra quyết định — agent đưa thông tin đầy đủ, không tự ý filter.
+
+**Exception — Nguyên tắc 5 (P_invest_memo) vẫn strict reject:** "Dòng tiền dương + catalyst tiêu cực → loại" giữ behavior strict (không flex+downgrade). Khác với 5 nguyên tắc còn lại — Variant Perception / Bear Case / R/R là đánh giá **chủ quan** có thể debate, còn pattern "dòng tiền dương + catalyst tiêu cực" là **objective historical pattern** với base rate lỗi rất cao (retail trap kinh điển ở thị trường VN: dòng tiền vào muộn priced-in tin xấu chưa lộ). Đưa cho user "quyết" với pattern này là ép user override discipline về 1 loại lỗi đã có evidence rõ. Giữ strict reject ở đây là design decision có chủ đích.
 
 ### 8.3. Brand whitelist strict (template_agent)
 
@@ -473,16 +475,16 @@ Hiện tại 3 agent đều scope cho thị trường VN (giả định MongoDB 
 
 ## 10. Note về deployment legacy
 
-Một số file P/O packs trong `analysis_agent` (đặc biệt `O_*.md`) có reference đến:
+**Lịch sử:** Một số file P/O packs trong `analysis_agent` từng có reference đến:
 - Path `/mnt/user-data/outputs/` (Linux)
 - Tool `present_files`
+- Skill `/mnt/skills/public/docx`, `/mnt/skills/public/pptx`
 
-**Đây là legacy từ deployment Claude Code / Claude skill (môi trường có filesystem + skill tool).** Trên **Claude Desktop** (môi trường hiện tại):
-- Không có filesystem path `/mnt/user-data/outputs/`
-- Không có tool `present_files`
-- Output flow đúng: Claude trả về MD final trong message, user copy/save thủ công, hoặc Claude tạo artifact trong chat
+Đây là legacy từ deployment Claude Code / Claude skill (môi trường có filesystem + skill tool). Trên **Claude Desktop** (môi trường hiện tại) các path/tool này không tồn tại.
 
-**Workaround hiện tại:** Khi chạy workflow trong Claude Desktop, agent ignore reference path/tool legacy, output MD trong message text. Một pass cleanup có thể xoá các reference này nếu cần (low priority — không ảnh hưởng output quality).
+**Trạng thái hiện tại (rev 6):** Các reference active đã được clean — thay bằng wording "xuất nội dung MD trong message (Claude Desktop), user copy/save thủ công". Các section render binary đã được marked `[LEGACY]`. Reference legacy còn lại chỉ trong các block historical note có chủ đích.
+
+Output flow đúng trên Claude Desktop: Claude trả về MD final trong message, user copy/save thủ công, hoặc Claude tạo artifact trong chat.
 
 ---
 

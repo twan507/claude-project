@@ -396,7 +396,9 @@ Add (watchlist upgrade):
 
 **Bước 14 — Render + present.**
 
-## 5. Guide render docx
+## 5. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Quarterly docx là **deliverable formal nhất** trong 3 loại monitoring — báo cáo cycle-level cho sếp/committee.
 
@@ -414,7 +416,9 @@ Quarterly docx là **deliverable formal nhất** trong 3 loại monitoring — b
 
 **Template:** đầy đủ tất cả style + landscape cho bảng lớn (BCTC 7-8 cột).
 
-## 6. Guide render pptx
+## 6. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Quarterly pptx cho **review meeting cycle** — có thể là thời điểm quan trọng nhất của quan hệ với portfolio committee.
 

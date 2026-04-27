@@ -387,7 +387,9 @@ Format checkbox như weekly:
 
 **Bước 13 — Render + present.**
 
-## 5. Guide render docx
+## 5. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Monthly docx là **formal deliverable** quan trọng — user thường share sếp/committee.
 
@@ -403,7 +405,9 @@ Monthly docx là **formal deliverable** quan trọng — user thường share s�
 
 **Template cần có:** đầy đủ heading + table + chart placeholder + monospace + footer.
 
-## 6. Guide render pptx
+## 6. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Monthly pptx dùng cho **review meeting** với sếp/portfolio committee.
 

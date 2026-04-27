@@ -81,13 +81,9 @@ Nếu không rõ báo cáo nào → hỏi user clarify.
 
 **Bước 6 — Compose content MD.** Dù format cuối là gì, **luôn produce MD trước làm nguồn truth**. MD này chứa toàn bộ nội dung + chart annotation dạng YAML block (xem Phần 7). Nếu format cuối là MD → đây là output cuối, không cần render tiếp.
 
-**Bước 7 — Render sang format cuối (nếu docx/pptx).** 
-- Đọc skill `/mnt/skills/public/docx` hoặc `/mnt/skills/public/pptx` trước khi build
-- Load template file user đã chỉ định từ `templates/`
-- Convert MD content sang format docx/pptx theo layout template
-- Render chart annotation thành chart thật (dùng data trong YAML block)
+**Bước 7 — Present MD cho user.** Trên Claude Desktop, xuất nội dung MD trong message để user copy/save thủ công. MD final là output cuối — render binary (docx/pptx) là concern downstream, không thuộc scope pack.
 
-**Bước 8 — Present file cho user.** Dùng tool `present_files` với path file output.
+> **Legacy spec:** Phiên bản trước có Bước 7 (render docx/pptx qua skill `/mnt/skills/public/*`) + Bước 8 (`present_files` tool). Đã bỏ ở rev 6 — MD final là output cuối, các tool này không tồn tại trên Claude Desktop.
 
 ## 4. Audience & tone default
 
@@ -181,8 +177,8 @@ Phân loại 4 nhóm nguồn với citation format khác nhau:
 
 **Nhóm 1 — Dữ liệu từ agent_db nội bộ (stock_finstats, stock_snapshot, industry_*, market_*, other_data, v.v.):** Ghi chung **"(nguồn: Tổng hợp)"**. Không lộ tên collection, không ghi cụ thể ticker/period vì thông tin này đã có trong context body. Đây là extension của K hygiene (tên collection thuộc ký hiệu DB raw, cấm lộ trong output).
 
-Ví dụ đúng: "Revenue VNM 2025 đạt 18,200 tỷ VND, tăng 10.3% YoY (nguồn: Tổng hợp)."
-Ví dụ sai: "Revenue VNM 2025 đạt 18,200 tỷ VND (nguồn: stock_finstats Q4/2025)."
+Ví dụ đúng: "Revenue VNM 2025 đạt 18.200 tỷ VND, tăng 10,3% YoY (nguồn: Tổng hợp)."
+Ví dụ sai: "Revenue VNM 2025 đạt 18.200 tỷ VND (nguồn: stock_finstats Q4/2025)."
 
 **Nhóm 2 — Tin/báo cáo từ agent_db (news_*):** Dẫn link finext.vn đầy đủ, link chính là source — không cần kèm "(nguồn: Tổng hợp)". Pattern: `https://finext.vn/news/{article_slug}` hoặc `https://finext.vn/reports/{report_slug}`.
 
@@ -201,7 +197,7 @@ Ví dụ: "ERP VN Damodaran 2025 là 8.35% ([NYU Stern country risk](https://pag
 Body text dày citation đọc khó. Khi 1 đoạn có ≥ 3 citation external (Nhóm 3 hoặc 4), dùng footnote số `[1]` trong body và liệt kê nguồn cuối section hoặc cuối báo cáo:
 
 ```
-Revenue 2025 đạt 18,200 tỷ VND (nguồn: Tổng hợp), cao hơn consensus sell-side 8-10%[^1] 
+Revenue 2025 đạt 18.200 tỷ VND (nguồn: Tổng hợp), cao hơn consensus sell-side 8-10%[^1] 
 và đúng trend CAGR 15% mà Damodaran ngành retail VN dự báo[^2].
 
 [^1]: [SSI VNM Update 03/2026](https://www.ssi.com.vn/...)
@@ -218,7 +214,7 @@ Nhóm 2 link finext.vn tuỳ ngữ cảnh: body flow cần thoáng → footnote,
 - Ticker: uppercase, không dấu nháy ("VNM", không "'VNM'" hay "vnm")
 - Date: "Q1/2026", "tháng 4/2026", "ngày 15/4/2026". Không dùng "Q1 2026" hay "2026-04-15" trong prose (OK trong bảng)
 
-**Number formatting (locale vi-VN, sync PROJECT_STATUS root convention):**
+**Number formatting (locale vi-VN, sync README mục 7.1):**
 - Dấu chấm ngăn cách nghìn: "18.200 tỷ" không "18200 tỷ" hay "18,200 tỷ"
 - Dấu phẩy thập phân: "15,5%" không "15.5%"
 - Phần trăm có dấu rõ: `+18,2%` / `-3,5%`

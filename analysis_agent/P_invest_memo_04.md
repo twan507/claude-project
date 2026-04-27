@@ -112,7 +112,7 @@ Mỗi tiêu chí 1-3 điểm. Thang điểm:
 
 **Tác động bucket xuống tier 5:**
 
-Mã có Tiêu chí 3 = 1đ (thanh khoản thấp) sẽ vướng constraint 5% ADV khi sizing ở tier 5. Ví dụ mã 5-10 tỷ/phiên, 5% ADV = 250-500 triệu — với portfolio 1 triệu USD, mã này chỉ vào được 2-4% size, giới hạn conviction tier. Agent **flag rõ** điều này trong checkpoint để user biết trước.
+Mã có Tiêu chí 3 = 1đ (thanh khoản thấp) sẽ vướng constraint 5% ADV khi sizing ở tier 6. Ví dụ mã 5-10 tỷ/phiên: per-phiên cap 5% ADV = 250-500 triệu; với N=3 phiên build position → max tổng vị thế = 750M-1.5 tỷ (~3-6% portfolio 1 triệu USD). Conviction High (target 6-8%) có thể không đủ size — flag user biết trước. Công thức đầy đủ ở `P_invest_memo_08` Section 3.4. Agent **flag rõ** điều này trong checkpoint để user biết trước.
 
 ### Tiêu chí 4 — Catalyst cá thể (catalyst)
 
@@ -176,7 +176,7 @@ Mã vào shortlist qua đường C (fail B) chắc chắn có catalyst mạnh �
 
 ## 4. Cân bằng bucket khi chọn top 3
 
-Top 3 mã/ngành **không nhất thiết là 3 mã cao điểm nhất**. Cần phân bổ đa bucket để có linh hoạt entry timing ở tier 5-6.
+Top 3 mã/ngành **không nhất thiết là 3 mã cao điểm nhất**. Cần phân bổ đa bucket để có linh hoạt entry timing ở tier 6.
 
 ### Nguyên tắc cân bằng
 
@@ -206,7 +206,7 @@ Tình huống phổ biến hơn — Bucket 2 (pullback) thường có nhiều m�
 - Điểm tổng các mã đều ≥ 11 (medium conviction trở lên)
 - Ngành có flag "đang rơi từ đỉnh" hoặc "dao động biên độ lớn" từ tier 1 (không nên Bucket 1)
 
-**Flag:** user biết shortlist ngành này toàn Bucket 2 = tier 5-6 sizing sẽ tiêu thụ ít cash ngay (30-50% size), giữ cash buffer cao hơn dự kiến.
+**Flag:** user biết shortlist ngành này toàn Bucket 2 = tier 6 sizing sẽ tiêu thụ ít cash ngay (30-50% size), giữ cash buffer cao hơn dự kiến.
 
 ### Khi bảng chấm có mã Bucket 3 cao điểm
 
@@ -221,7 +221,7 @@ Mã Bucket 3 trong top 3 = mã chất lượng cao đang chờ tín hiệu bật
 
 ### Flag sếp cho tier 5
 
-Trong output tier 3, ghi rõ distribution bucket của top 3 mỗi ngành để tier 5-6:
+Trong output tier 3, ghi rõ distribution bucket của top 3 mỗi ngành để tier 5/6:
 - Biết trước khối lượng cash sẽ tiêu thụ trong lần vào đầu tiên
 - Chuẩn bị plan theo dõi mã Bucket 2 (đợi confirm) và Bucket 3 (watchlist)
 - Điều chỉnh cash buffer nếu phần lớn shortlist là Bucket 2-3
@@ -230,7 +230,7 @@ Trong output tier 3, ghi rõ distribution bucket của top 3 mỗi ngành để 
 
 ## 5. Phân tier conviction
 
-Sau khi chốt top 3/ngành, phân mỗi mã vào 1 trong 3 tier conviction dựa trên tổng điểm. Tier conviction quyết định size position ở tier 5-6.
+Sau khi chốt top 3/ngành, phân mỗi mã vào 1 trong 3 tier conviction dựa trên tổng điểm. Tier conviction quyết định size position ở tier 6.
 
 | Tier | Điểm tổng | Size target (% portfolio) | Ý nghĩa |
 |---|---|---|---|
@@ -240,7 +240,7 @@ Sau khi chốt top 3/ngành, phân mỗi mã vào 1 trong 3 tier conviction dự
 
 **Nguyên tắc:**
 
-- Size target là **guideline**, điều chỉnh cuối ở tier 5-6 dựa trên memo + modeling + ADV constraint (≤ 5% ADV)
+- Size target là **guideline**; điều chỉnh cuối ở tier 5/6 dựa trên memo (tier 5C) + modeling (tier 5B) + ADV constraint tier 6 (xem `P_invest_memo_08` Section 3.4 cho công thức `5% × ADV × N` với N=2-4 phiên build position)
 - Điểm 8-10 vẫn vào shortlist final vì đã pass universe — chỉ size nhỏ, không loại
 - Điểm dưới 8 là hiếm (vì shortlist tier 2 đã filter chất lượng). Nếu có, flag bất thường trong checkpoint
 
@@ -264,9 +264,9 @@ Ngoài bảng chấm, một số điều kiện dẫn đến **loại thẳng** 
 
 Mã có market_rank_pct = 0 (thanh khoản không đủ để xếp hạng hệ thống) — đã loại ở tier 2 về nguyên tắc. Nếu do lỗi data tier 2 để lọt, loại ngay.
 
-### R2. Trading value trung bình < 5 tỷ/phiên
+### R2. Sanity check trading value trung bình 20 phiên
 
-Sát với ngưỡng D1 tier 2. Nếu lọt qua tier 2 do biến động 1-2 phiên spike, nhưng data cập nhật mới cho thấy trading value trung bình 20 phiên < 5 tỷ → loại.
+Verify tier 2 D1 dùng đúng "trung bình 20 phiên ≥ 5 tỷ" (không phải snapshot 1-2 phiên). Nếu data tier 2 dùng phiên gần đây có spike, re-check với 20-phiên average mới — nếu < 5 tỷ → loại consistent với D1 spec.
 
 ### R3. Scandal lớn chưa resolve
 
@@ -276,7 +276,7 @@ Phát hiện ở Tiêu chí 2 (web search):
 - Nghi ngờ gian lận BCTC được báo chí chính thống đưa tin
 - Qualified audit opinion trong kỳ gần nhất
 
-Loại thẳng, không kháng cự. User có thể override bằng cách yêu cầu deep-dive nhưng phải ghi audit log rõ lý do.
+Agent **flag CẢNH BÁO MẠNH + downgrade conviction 2 bậc** (High → Low / Medium → Watch / Low → loại). User quyết định cuối: proceed với size rất nhỏ (≤ 1% portfolio) + audit log nêu lý do mạnh, hoặc loại mã. Triết lý flex+downgrade consistent với master mục 5 nguyên tắc 1, 4 — không strict reject vì governance issue có thể đã priced-in một phần, user là người evaluate cuối.
 
 ### R4. Cảnh báo dòng tiền + catalyst tiêu cực (Nguyên tắc 5 của `P_invest_memo_00`)
 
@@ -288,7 +288,9 @@ Mã có:
 
 ### R5. Chi tiết BCTC không khớp với tier 2
 
-Rà lại BCTC kỳ gần nhất ở tier 3 (có thể tier 2 dùng data cũ), phát hiện số liệu thực tế xấu hơn nhiều (ví dụ CFO âm sâu, giao dịch bên liên quan bất thường lớn). Loại, chờ tier 5A deep-dive xác nhận.
+Rà lại BCTC kỳ gần nhất ở tier 3 (có thể tier 2 dùng data cũ), phát hiện số liệu thực tế xấu hơn nhiều (ví dụ CFO âm sâu, giao dịch bên liên quan bất thường lớn).
+
+Agent **flag CẢNH BÁO + downgrade conviction 1-2 bậc** (mức độ tùy chênh lệch số liệu). User quyết định: chờ tier 5A deep-dive xác nhận trước khi proceed, hoặc loại mã. Triết lý flex+downgrade consistent — số liệu khác biệt có thể do lỗi data hoặc xấu thật, tier 5A confirm root cause trước khi quyết định.
 
 ---
 
@@ -438,7 +440,7 @@ Cho mỗi mã top 3 final:
 - Mã b3 (Low Bucket 3): tier 5A check nhanh, tier 5B chỉ peer multiples. Memo gọn 3-4 phần — nếu memo không ra conviction đủ, loại khỏi shortlist final trước khi vào position.
 
 Thanh khoản cảnh báo:
-- Mã [X] trading value TB 7 tỷ/phiên — tier 5B sizing max 350 triệu/position (5% ADV). Conviction High nhưng size thực tế chỉ ~3% portfolio.
+- Mã [X] trading value TB 7 tỷ/phiên — per-phiên cap 350 triệu (5% ADV); với N=3 phiên build → max tổng vị thế ~1 tỷ (≈4% portfolio 1M USD). Conviction High target 6-8% sẽ vướng constraint, size thực tế giảm ~4%. Công thức đầy đủ `P_invest_memo_08` Section 3.4.
 
 ## 8. Câu hỏi chờ user
 
@@ -508,7 +510,7 @@ Top 3 theo điểm: b1 (14 B2), b2 (13 B2), b3 (12 B1). Distribution 1 B1 + 2 B2
 | d4 | 1 | 2 | 1 | 1 | 2 | 2 | **9** | 2 |
 | d5 | 1 | 1 | 1 | 3 | 1 | 1 | **8** | 2 | catalyst play qua C |
 
-Top 3: d1 (High B2), d2 (Medium B1), d3 (Medium B3). Distribution 1 B1 + 1 B2 + 1 B3 — đa dạng. Mã d3 Bucket 3 sẽ không vào ngay, tier 5-6 theo dõi.
+Top 3: d1 (High B2), d2 (Medium B1), d3 (Medium B3). Distribution 1 B1 + 1 B2 + 1 B3 — đa dạng. Mã d3 Bucket 3 sẽ không vào ngay, tier 5/6 theo dõi.
 
 ### Tổng shortlist final
 
@@ -571,7 +573,7 @@ Tier 2 có thể chạy cách đây vài ngày, data có thể đã thay đổi 
 
 ### 10.8. Không phân tier conviction rõ ràng
 
-Agent có thể chỉ xuất tổng điểm mà không map sang tier High/Medium/Low, hoặc đặt ngưỡng ad-hoc khác nhau giữa các ngành. Dẫn đến tier 5-6 sizing không nhất quán.
+Agent có thể chỉ xuất tổng điểm mà không map sang tier High/Medium/Low, hoặc đặt ngưỡng ad-hoc khác nhau giữa các ngành. Dẫn đến tier 6 sizing không nhất quán.
 
 **Xử lý:** áp ngưỡng cứng Section 5 cho toàn shortlist: High 15-18, Medium 11-14, Low 8-10. Cùng ngưỡng cho mọi ngành. Dưới 8 là bất thường, flag riêng.
 

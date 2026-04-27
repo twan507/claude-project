@@ -327,7 +327,9 @@ Khi user yêu cầu render portfolio plan:
 
 **Bước 13 — Render format cuối + present file.**
 
-## 5. Guide render docx
+## 5. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 **Layout:**
 - Cover (trang 1): "Portfolio Plan — [ngày]" + regime badge + portfolio size
@@ -345,7 +347,9 @@ Khi user yêu cầu render portfolio plan:
 - Monospace style cho order block
 - Landscape page option cho bảng lớn
 
-## 6. Guide render pptx
+## 6. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 **Layout 10-15 slide:**
 

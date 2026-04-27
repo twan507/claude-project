@@ -482,7 +482,9 @@ Khi user yêu cầu render stock memo (ví dụ "xuất memo VNM"):
 
 **Bước 9 — Present file cho user.**
 
-## 7. Guide render docx
+## 7. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Khi format cuối là docx:
 
@@ -501,7 +503,9 @@ Khi format cuối là docx:
 - Footer có page number + "Memo [TICKER] v[X.Y] — [ngày]"
 - Header optional có logo
 
-## 8. Guide render pptx
+## 8. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Khi format cuối là pptx (pitch deck 1 mã):
 

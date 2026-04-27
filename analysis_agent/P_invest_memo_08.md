@@ -240,7 +240,7 @@ Từ cao xuống thấp:
 - Zone tuần (technical_zone.overall.w) bật lên A trở lên (từ B/C)
 - week_score dương 2-3 phiên liên tiếp
 - day_score dương trong 2/3 phiên gần nhất
-- VSI (Volume Strength Index — chỉ số cường độ volume, tỷ lệ volume phiên vs volume trung bình gần đây; VSI > 1 = volume cao hơn trung bình) ≥ 1.2 trong phiên bật (xác nhận volume)
+- Cường độ thanh khoản phiên bật ≥ 1.2× trung bình 5 phiên gần đây (volume xác nhận; nội bộ là `volume_strength_index ≥ 1.2`)
 
 Agent monitor đều các mã Bucket 2 trong monitoring phase (tier 7). Khi có tín hiệu confirm → notify user + đề xuất vào thêm.
 
@@ -339,6 +339,8 @@ Các mã catalyst play (qua đường C tier 2, fail B nhưng có catalyst mạn
 - Tổng ≤ 15% portfolio trong mọi regime
 - Max 2-3 mã catalyst play
 - Rule: catalyst play rủi ro cao hơn fundamental pass B, nên cap exposure riêng
+
+**Lưu ý:** Đây là **convention nội bộ** (xem master `P_invest_memo_00` mục 5 Lưu ý), không phải nguyên tắc bất biến — user có thể override với audit log nêu lý do (vd nhiều catalyst đặc biệt cùng cycle).
 
 ---
 

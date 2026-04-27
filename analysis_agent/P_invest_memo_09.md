@@ -92,8 +92,8 @@ Mỗi thứ Hai đầu tuần hoặc cuối tuần trước (tuỳ user preferen
    - % toward target: price/Base × 100
 
 2. **Soft trigger check:**
-   - market_rank_pct trend 2 tuần gần
-   - Zone quý (technical_zone.overall.q) — có đổi từ A → B không?
+   - Xếp hạng dòng tiền thị trường trend 2 tuần gần (nội bộ `market_rank_pct`)
+   - Vùng kỹ thuật khung quý — có chuyển từ A về B không? (nội bộ `technical_zone.overall.q`)
    - DSO trend (nếu có BCTC mới)
    - Flow NN 1 tháng
 
@@ -223,9 +223,9 @@ User confirm để đặt lệnh?
 
 **Logic:** trigger match → flag cảnh báo + đề xuất action, user quyết định.
 
-**Ví dụ soft triggers từ memo:**
-- market_rank_pct < 0.3 trong 2 tuần
-- Zone quý (technical_zone.overall.q) chuyển từ A về B
+**Ví dụ soft triggers từ memo (output user-facing dùng wording dịch; raw token chỉ trong audit log):**
+- Xếp hạng dòng tiền thị trường rơi xuống top 70% (dưới rank_pct 0.3) trong 2 tuần
+- Vùng kỹ thuật khung quý chuyển từ tích cực về trung tính (zone A → B)
 - DSO quý mới tăng > 10 ngày so cùng kỳ
 - Flow NN bán ròng > 2 tuần liên tiếp
 - Key competitor công bố kết quả gây concern cho mã
@@ -305,10 +305,10 @@ Nếu multiple positions có hard trigger cùng ngày (ví dụ regime crash):
 ### 5.1. Phase 2 — Bucket 2 confirm vào tranche 2
 
 Điều kiện confirm từ tier 6 (Section 5.2):
-- Zone tuần (technical_zone.overall.w) bật lên A trở lên
-- week_score dương 2-3 phiên liên tiếp
-- day_score dương trong 2/3 phiên gần nhất
-- VSI (Volume Strength Index — chỉ số cường độ volume, tỷ lệ volume phiên vs volume trung bình gần đây) ≥ 1.2 trong phiên bật
+- Vùng kỹ thuật khung tuần bật lên tích cực (zone A) trở lên (nội bộ `technical_zone.overall.w`)
+- Điểm dòng tiền tuần dương 2-3 phiên liên tiếp (nội bộ `week_score > 0`)
+- Điểm dòng tiền ngày dương trong 2/3 phiên gần nhất (nội bộ `day_score > 0`)
+- Cường độ thanh khoản phiên bật ≥ 1.2× trung bình gần đây (nội bộ `volume_strength_index ≥ 1.2`)
 
 **Agent action khi match:**
 

@@ -149,7 +149,7 @@ K là thư viện. P gọi K khi cần lookup: schema, translation rule, query p
 
 ### P đến O
 
-P sinh **structured content** (markdown có schema rõ, hoặc JSON nếu pack quy định), KHÔNG tự render file binary. O nhận structured content rồi render deliverable theo format quy định.
+P sinh **structured content** (markdown có schema rõ), KHÔNG tự render file binary. O nhận structured content rồi render deliverable theo format quy định.
 
 ### K đến O
 

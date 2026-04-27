@@ -49,7 +49,7 @@ Các thuật ngữ nền tảng xuất hiện xuyên suốt pack này. Agent và
 | **Funnel A/B/C/D** | Tên gọi 4 trục phân tích dùng xuyên suốt pack. Funnel A (Flow + kỹ thuật) / Funnel B (Fundamental) / Funnel C (Catalyst) / Funnel D (Thanh khoản). Vai trò loại thẳng hay xếp hạng tùy vào tier. |
 | **Regime** | Trạng thái vĩ mô thị trường mà agent quyết định ở tier 0, có 4 giá trị: **risk-on full** (ưa rủi ro, universe rộng), **risk-on selective** (chọn lọc hơn), **defensive only** (chỉ ngành phòng thủ), **đứng ngoài** (giữ tiền mặt, dừng quy trình). |
 | **Catalyst** | Sự kiện hoặc điều kiện cụ thể có thể đẩy giá mã/ngành trong 0-3 tháng: kết quả kinh doanh, chính sách mới, chu kỳ hàng hóa, M&A, niêm yết công ty con. Phải có timing và magnitude cụ thể, không phải "câu chuyện dài hạn". |
-| **Catalyst score** | Điểm chấm mức độ mạnh và độ chắc của catalyst (thang 0-6 ở tier 0). Điểm ≥ 3 được coi là catalyst active hợp lệ để vào universe filter. |
+| **Catalyst score** | Điểm chấm mức độ mạnh và độ chắc của catalyst — thang 1-3 cho mỗi catalyst đơn lẻ; tổng cộng max 6 điểm/ngành (2 catalyst × 3 điểm) ở tier 0/1. Điểm ≥ 3 ở mức single catalyst được coi là catalyst active hợp lệ để vào universe filter. |
 | **Variant perception** | Thesis đi ngược hoặc khác với consensus thị trường đang nghĩ. Ở horizon 1-6 tháng, alpha đến từ "thấy trước thị trường" về một yếu tố cụ thể. Không có variant perception = không có lý do giá phải chạy về target trong vài tháng tới. |
 | **Conviction memo** | Tài liệu phân tích 7 phần viết trước khi vào position: Recommendation / Thesis / Variant perception / Business / Financial / Catalysts + Bear case / Monitoring + exit. Không có memo hoàn chỉnh = không vào position. |
 | **Conviction tier** | 3 mức độ tự tin về một mã sau chấm điểm tier 3, gán bằng tổng điểm bảng chấm (thang 18): **high** (15-18 điểm), **medium** (11-14), **low** (8-10). Dùng cho quyết định position sizing ở tier 6. |
@@ -155,7 +155,7 @@ Phần này tóm tắt mục tiêu, input/output, và logic cốt lõi của m�
 
 **Mục tiêu:** mỗi ngành thu còn 6-10 mã qua universe filter → ranking filter → phân bucket entry.
 
-**Universe filter (loại thẳng):** (Vòng B Fundamental ∩ Vòng D Thanh khoản ≥ 10 tỷ/phiên) ∪ (Vòng C Catalyst mã ∩ Vòng D). C là đường riêng cho catalyst play có thể không đạt B.
+**Universe filter (loại thẳng):** (Vòng B Fundamental ∩ Vòng D Thanh khoản ≥ 5 tỷ/phiên trung bình 20 phiên) ∪ (Vòng C Catalyst mã ∩ Vòng D). C là đường riêng cho catalyst play có thể không đạt B. Chi tiết tiêu chí D ở `P_invest_memo_03` mục 4 (D1: trading value ≥ 5 tỷ, D2: volume ≥ 100k cp, D3: market_rank_pct > 0).
 
 **Ranking filter (xếp hạng, không loại):** Vòng A (Flow + kỹ thuật trung-dài hạn — zone quý/năm, xếp hạng dòng tiền thị trường, điểm dòng tiền tuần). Top 6-10 trong universe.
 
@@ -221,7 +221,11 @@ Khi mã có dòng tiền đang mạnh nhưng catalyst ngành/mã đã chuyển t
 
 Agent xuất báo cáo checkpoint theo khung 6 phần chuẩn (xem Phần 6) sau mỗi giai đoạn, chờ user xác nhận hoặc điều chỉnh trước khi sang giai đoạn kế. **Tuyệt đối không chạy liên tục qua nhiều giai đoạn trong 1 session** — điều này ngăn lỗi ở giai đoạn sớm lây sang các giai đoạn sau. User có quyền override quyết định (thêm/bớt ngành/mã, thay đổi quota, yêu cầu deep-dive thêm) nhưng mỗi override phải được ghi vào audit log với lý do cụ thể, để sau này đánh giá chất lượng override theo thời gian.
 
-**Lưu ý — convention nội bộ pack ngoài 6 nguyên tắc bất biến:** catalyst play exposure (mã qua đường C tier 2 — đạt Catalyst nhưng fail Fundamental) có cap riêng ≤ 15% portfolio, max 2-3 mã catalyst play (chi tiết `P_invest_memo_08` Section 7.4). Đây là tactical convention ở tầng portfolio construction, không phải nguyên tắc universal — không áp ở tier sớm hơn.
+**Lưu ý — convention nội bộ pack ngoài 6 nguyên tắc bất biến:**
+- **Catalyst play exposure cap:** mã qua đường C tier 2 (đạt Catalyst, fail Fundamental) có cap riêng ≤ 15% portfolio, max 2-3 mã (chi tiết `P_invest_memo_08` Section 7.4).
+- **Bucket 2 timeout:** sau 4 tuần kể từ Phase 1 entry, nếu Bucket 2 chưa confirm Phase 2 → agent flag user xem xét đóng Phase 1 hoặc giữ chờ thêm (chi tiết `P_invest_memo_08` Section 5.2 + `P_invest_memo_09` Section 5.2).
+
+Đây là tactical convention ở tầng portfolio construction / monitoring, không phải nguyên tắc universal — user có thể override với audit log.
 
 ## 6. Cơ chế checkpoint review
 
@@ -238,7 +242,9 @@ Mọi checkpoint phải theo đúng khung này:
 5. **Lựa chọn sát nút** — ngành/mã suýt đạt hoặc lọt universe nhưng ranking thấp, để user có thể override
 6. **Câu hỏi chờ user** — cụ thể, có default + list điều chỉnh khả dĩ
 
-Agent không tự chuyển sang tier kế. Chờ user trả lời Phần 6 rõ ràng. Template chi tiết cho mỗi checkpoint xem trong file tier.
+Agent không tự chuyển sang tier kế. Chờ user trả lời Phần 6 (đặt cuối checkpoint) rõ ràng. Template chi tiết cho mỗi checkpoint xem trong file tier.
+
+**Tier-specific data sections:** template file con (01-08) có thể insert thêm 1-3 phần data riêng (vd "Bảng catalyst active" ở CP1, "Mã bị loại bắt buộc" ở CP4, "Sequence entry" ở Tier 6) giữa Phần 5 (Lựa chọn sát nút) và "Câu hỏi user". 6 phần named anchors bên trên là yêu cầu tối thiểu — extra data sections cho phép, miễn là "Câu hỏi user" luôn ở cuối + 6 anchor đều hiện diện.
 
 ### Danh sách 7 checkpoint
 

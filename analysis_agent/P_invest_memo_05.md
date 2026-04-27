@@ -193,8 +193,8 @@ BCTC quý soát xét **không thay thế** BCTC năm cho đánh giá chính (so�
 |---|---|---|
 | Unqualified (chấp nhận toàn bộ) | BCTC trình bày trung thực hợp lý | Xanh — bình thường |
 | Qualified (chấp nhận có ngoại trừ) | Có 1 hạng mục kiểm toán không đồng ý | Đỏ — tùy mức độ ngoại trừ |
-| Adverse (không chấp nhận) | BCTC không trung thực | Đỏ nghiêm trọng — loại thẳng |
-| Disclaimer (từ chối ý kiến) | Không đủ bằng chứng để đưa ý kiến | Đỏ nghiêm trọng — loại thẳng |
+| Adverse (không chấp nhận) | BCTC không trung thực | Đỏ nghiêm trọng — đề xuất loại; user override yêu cầu audit log mạnh (xem Section 5) |
+| Disclaimer (từ chối ý kiến) | Không đủ bằng chứng để đưa ý kiến | Đỏ nghiêm trọng — đề xuất loại; user override yêu cầu audit log mạnh (xem Section 5) |
 
 3. Đọc **"Vấn đề kiểm toán chính" (KAM — Key Audit Matters)** — kiểm toán liệt kê các vấn đề phức tạp đã xử lý trong kỳ. Đây là manh mối rủi ro lớn nhất của doanh nghiệp theo góc nhìn kiểm toán
 4. Đọc **"Các vấn đề cần lưu ý" (Emphasis of Matter)** — thường về going concern, biến cố sau kỳ báo cáo, tranh chấp pháp lý

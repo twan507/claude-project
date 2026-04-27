@@ -82,7 +82,7 @@ Workflow 5 stage, 2 checkpoint:
   Compile MD theo O_stock_pitch_00 structure
   Save file stock_pitch_<TICKER>_<YYYYMMDD>.md
   Hỏi user có cần render pptx không
-  Present file qua present_files tool
+  Xuất nội dung MD trong message (Claude Desktop)
 ```
 
 ## 4. Pre-flight — hỏi user trước khi vào Stage 1
@@ -484,7 +484,7 @@ Luận điểm MUA [TICKER] quanh vùng giá [X] đồng
 03 [Tiêu đề L3]
 [...]
 
-04 [Tiêu đề L4 nếu có, max 4 luận điểm in tóm tắt — nếu báo cáo có 5-7 luận điểm thì gộp vào 4 tóm tắt mạnh nhất]
+04 [Tiêu đề L4 nếu có, max 4 luận điểm in tóm tắt — nếu báo cáo có 5-7 luận điểm thì chọn 4 luận điểm có headline data point lớn nhất / impact rõ nhất; ưu tiên Variant Perception + Catalyst nếu cùng level]
 [...]
 ```
 
@@ -544,7 +544,7 @@ Render đầy đủ disclaimer theo branding info user cung cấp ở pre-flight
 
 Sau khi có đủ 15 mục structured content, agent gọi `O_stock_pitch_00` để render thành file MD final.
 
-File output: `stock_pitch_<TICKER>_<YYYYMMDD>.md`, save vào `/mnt/user-data/outputs/`, gọi `present_files`.
+File output: `stock_pitch_<TICKER>_<YYYYMMDD>.md`. Trên Claude Desktop, agent xuất nội dung MD trong message để user copy/save thủ công.
 
 Sau khi present MD, agent hỏi user:
 > "MD đã sẵn sàng. Có cần render thêm pptx (15 slide branded) không?"

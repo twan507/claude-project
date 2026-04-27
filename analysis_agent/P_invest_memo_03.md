@@ -11,7 +11,7 @@ Reference: `P_invest_memo_00` phần Flow chi tiết (overview), `P_invest_memo_
 **Mục tiêu:** trong mỗi ngành shortlist từ tier 1, sàng lọc từ full_ticker_list xuống 6-10 mã qua:
 - **Universe filter:** loại thẳng mã không đạt fundamental + liquidity, hoặc catalyst mạnh
 - **Ranking filter:** xếp hạng mã trong universe theo flow + kỹ thuật
-- **Phân bucket entry timing:** chia 3 bucket dựa trên zone tuần+tháng cho tier 4-5 sizing
+- **Phân bucket entry timing:** chia 3 bucket dựa trên zone tuần+tháng cho tier 6 sizing
 
 **Input:**
 
@@ -58,7 +58,7 @@ Sau khi có universe, dùng **Vòng A (Flow + kỹ thuật trung-dài hạn)** x
 
 ### Tầng 3 — Phân bucket entry timing
 
-Sau khi có shortlist ranked, phân mỗi mã vào 1 trong 3 bucket dựa trên **zone tuần + tháng + điểm dòng tiền tuần**. Bucket quyết định timing và tỷ lệ size khi vào position ở tier 5-6.
+Sau khi có shortlist ranked, phân mỗi mã vào 1 trong 3 bucket dựa trên **zone tuần + tháng + điểm dòng tiền tuần**. Bucket quyết định timing và tỷ lệ size khi vào position ở tier 6.
 
 ---
 
@@ -193,7 +193,7 @@ Tính average trading_value qua 20 phiên ở agent side.
 
 Horizon 1-6 tháng với portfolio < 1 triệu USD vẫn chịu slippage lớn nếu mã thanh khoản thấp. Nguyên tắc ≤ 5% ADV 20 phiên từ `P_invest_memo_00` Nguyên tắc 3 áp dụng ở tier 5 cho sizing — nhưng ở tier 2 phải loại trước để tránh phí resource cho mã không vào được.
 
-**Ngoại lệ:** không có. D áp cứng cho mọi type và mọi regime. Nếu universe sau D < 6 mã, chấp nhận shortlist ngành nhỏ hơn thay vì nới D.
+**Ngoại lệ:** D không được nới tự động bởi Agent (cascading từ master Nguyên tắc 3 — 5% ADV slippage protection). User có thể override với audit log nêu lý do mạnh (vd theo dõi mã thanh khoản đặc biệt). Nếu universe sau D < 6 mã, default action: chấp nhận shortlist ngành nhỏ hơn thay vì nới D.
 
 ---
 
@@ -328,7 +328,7 @@ Nếu universe ngành < 3 mã: flag rõ trong checkpoint — ngành này có th�
 
 ## 7. Phân bucket entry timing
 
-Sau khi có shortlist ranked, phân mỗi mã vào 1 trong 3 bucket. Bucket quyết định timing + tỷ lệ size khi tier 5-6 vào position.
+Sau khi có shortlist ranked, phân mỗi mã vào 1 trong 3 bucket. Bucket quyết định timing + tỷ lệ size khi tier 6 vào position.
 
 ### 3 bucket — logic phân
 
@@ -388,6 +388,8 @@ Nếu tier 1 flag ngành có pattern "đang rơi từ đỉnh" hoặc "dao độ
 - Ưu tiên Bucket 2 và Bucket 3 (chờ pullback confirm)
 
 Nếu ngành có flag "đang bật từ đáy" → tier 2 ưu tiên Bucket 1 và Bucket 2 — early entry trong trend mới.
+
+**Handler flag y_trend > 0.8 từ tier 1** (xem `P_invest_memo_02` Section 6): nếu ngành có flag này, default downgrade Bucket 1 → Bucket 2 cho mọi mã trong ngành (vùng quá mua dài hạn → rủi ro đảo chiều). Agent flag rõ trong CP3 Phần 5 (Lựa chọn sát nút) để user xác nhận downgrade hoặc override.
 
 ---
 
@@ -507,7 +509,7 @@ Bảng tổng hợp tất cả shortlist:
 Các cảnh báo cho tier 3 (chấm điểm):
 - Mã [X]: market_rank_pct 0.45 — chỉ dưới trung vị, điểm ranking tiêu chí 5 (dòng tiền NN/TD) có thể thấp
 - Mã [Y]: catalyst play, thesis phụ thuộc sự kiện. Tier 3 cần đánh giá kỹ tiêu chí 4 (catalyst cá thể)
-- Mã [Z]: trading value 6 tỷ/phiên — sát ngưỡng D. Tier 5 sizing cần cẩn thận constraint 5% ADV (max ~300 triệu/position). Nếu conviction cao sau memo → phải giảm size thực tế so với conviction tier
+- Mã [Z]: trading value 6 tỷ/phiên — sát ngưỡng D. Tier 6 sizing constraint 5% ADV per-phiên = ~300 triệu; với N=3 phiên build → max tổng vị thế ~900 triệu (≈3-4% portfolio). Nếu conviction High target 6-8% → phải giảm size thực tế. Công thức đầy đủ `P_invest_memo_08` Section 3.4
 - Mã [W]: catalyst play nhưng rơi Bucket 3 — thị trường có thể priced-in tiêu cực hoặc chưa nhận ra catalyst. User review kỹ catalyst trước khi quyết định giữ/loại
 
 ## 7. Câu hỏi chờ user
@@ -624,7 +626,7 @@ Mã fail B qua đường C (catalyst play) nếu rơi vào Bucket 3 (tuần+thá
 
 ### 11.5. Mã có trading value sát ngưỡng 5 tỷ
 
-Mã trading value 5-8 tỷ/phiên vừa đạt D1. Nhưng ở tier 5 sizing 5% ADV = 250-400 triệu/mã — với conviction cao muốn vào 5-7% portfolio (ví dụ 50k USD = 1.2 tỷ), sẽ không đủ size trong 1 phiên. Agent không flag sớm → tier 5 vướng constraint, phải giảm size khi conviction cao.
+Mã trading value 5-8 tỷ/phiên vừa đạt D1. Tier 6 sizing per-phiên cap 5% ADV = 250-400 triệu; với N=3 phiên build → max tổng vị thế 750M-1.2 tỷ. Conviction cao muốn vào 5-7% portfolio (50k USD = 1.2 tỷ) sẽ vướng constraint. Agent không flag sớm → tier 6 phải giảm size khi conviction cao.
 
 **Xử lý:** trong checkpoint 3 Phần 6, flag rõ các mã có trading value < 10 tỷ/phiên để tier 5 biết constraint sizing trước khi làm modeling. Mã 10-20 tỷ cũng ghi nhận nếu conviction dự kiến cao.
 

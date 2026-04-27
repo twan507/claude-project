@@ -194,7 +194,7 @@ Tối đa **1 ngành/chu kỳ** lọt shortlist dù **fail Funnel B**, nếu đ�
 
 Lý do cơ chế này: catalyst cực mạnh có thể đảo chiều ngành yếu. Nhưng phải có confirmation sớm từ dòng tiền/xu hướng trước khi vào, tránh bắt dao rơi thuần định tính.
 
-**Không** cho phép override nếu tổng điểm catalyst < 6, bất kể user nói gì. Đây là rule cứng để tránh confirmation bias.
+**Agent không tự suy luận override** nếu tổng điểm catalyst < 6 — confirmation bias risk cao. User vẫn có thể override với audit log nêu lý do cụ thể (insider info, theo dõi catalyst lâu, thông tin mới chưa vào DB). Agent ghi cảnh báo cường độ rủi ro confirmation bias kèm audit log.
 
 ---
 
@@ -295,7 +295,7 @@ Từ `industry_recent.series[]` (20 phiên), phân loại 1 trong 5 pattern tren
 | Ổn định | Trung tính — screen bình thường |
 | Tăng đều | Tích cực — môi trường tốt, screen bình thường |
 
-**Flag y_trend > 0.8:** dù ngành không bị loại vì tiêu chí này, cảnh báo cho tier 2 — ngành ở vùng quá mua dài hạn, rủi ro đảo chiều structural tăng cao. Tier 2 cân nhắc giảm 1 bucket mỗi mã.
+**Flag y_trend > 0.8:** dù ngành không bị loại vì tiêu chí này, cảnh báo cho tier 2 — ngành ở vùng quá mua dài hạn, rủi ro đảo chiều structural tăng cao. Tier 2 nhận flag này → handler ở `P_invest_memo_03` Section 7 (bucket logic): default downgrade Bucket 1 → Bucket 2 cho mã trong ngành flag. Không auto-cascade, agent flag rõ trong CP3 để user xác nhận downgrade.
 
 ---
 

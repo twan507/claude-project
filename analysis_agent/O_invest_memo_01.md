@@ -336,7 +336,9 @@ Khi user yêu cầu render market scan:
 
 **Bước 10 — Present file.**
 
-## 6. Guide render docx
+## 6. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 **Layout:**
 - Cover (trang 1): Title "Market Scan — [ngày]" + logo + regime confirm
@@ -352,7 +354,9 @@ Khi user yêu cầu render market scan:
 - Footer: page number + "Market Scan [ngày]"
 - Header optional: logo
 
-## 7. Guide render pptx
+## 7. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 **Slide layout đề xuất (12-18 slide tuỳ regime):**
 

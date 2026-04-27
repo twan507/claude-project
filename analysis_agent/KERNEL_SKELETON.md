@@ -44,7 +44,7 @@ File index của project knowledge. Agent đọc file này đầu session để 
 
 Wording dạng observation/luận điểm phân tích, không dùng từ command (mua/bán/giảm tỷ trọng). Sector bias diễn đạt "quan tâm/thận trọng". Watchlist đề xuất mã có cơ hội đầu tư qua luận điểm, không kèm level giá. Branding & disclaimer optional — user cung cấp ở pre-flight thì render branded version cho audience khách hàng.
 
-Pack độc lập với `P_invest_memo` — không đọc state file invest cycle, không liên quan portfolio đang cầm. **Không sử dụng chỉ báo trend** (`market_snapshot.trend`, `industry_snapshot.trend`, `*_recent.recent_trend`) — phần này dành cho báo cáo bên VBSE.
+Pack độc lập với `P_invest_memo` — không đọc state file invest cycle, không liên quan portfolio đang cầm. **Không sử dụng chỉ báo trend** (`market_snapshot.trend`, `industry_snapshot.trend`, `*_recent.recent_trend`) — đây là methodology nội bộ analyst, audience cuối (KH) không có nền để hiểu. Trend chỉ dùng trong `P_invest_memo`.
 
 **Master:** `P_weekly_market_00`
 
@@ -109,8 +109,6 @@ Khi P pack abort ở checkpoint 1 hoặc 2, O pack KHÔNG render file — tránh
 **Depends:** `P_stock_pitch`, `K_agent_db`.
 
 **Status:** Active.
-
-## T — Template packs
 
 ## Render binary — out of scope
 

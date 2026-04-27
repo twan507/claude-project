@@ -255,7 +255,9 @@ Không có action bắt buộc tuần này. Review tiếp thứ Hai tuần sau.
 
 **Bước 11 — Render format cuối + present file.**
 
-## 5. Guide render docx
+## 5. Guide render docx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Weekly docx ít dùng, chỉ khi cần archive formal hoặc share meeting thứ Hai.
 
@@ -269,7 +271,9 @@ Weekly docx ít dùng, chỉ khi cần archive formal hoặc share meeting thứ
 - Heading + body + table style (minimal)
 - Footer compact: page + "Weekly [ngày]"
 
-## 6. Guide render pptx
+## 6. Guide render pptx [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Weekly pptx **rất hiếm** — monitor operational không pitch được. Chỉ build pptx khi user explicit yêu cầu cho meeting tuần.
 

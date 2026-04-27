@@ -63,9 +63,9 @@ Các trường hợp đặc biệt:
 | Mục 14 Tóm tắt hành động + 3 kịch bản | Section 14 |
 | Mục 15 Disclaimer | Section 15 |
 
-**Rigid heading nhưng số section luận điểm flex 4-7:** nếu báo cáo có 4 luận điểm, MD có section 4-7 (4 luận điểm); nếu 7 luận điểm, MD có section 4-10. Tổng số section luôn 11-14 + 4 section đầu/cuối cố định = 15-18 section tổng.
+**Rigid heading nhưng số section luận điểm flex 4-7:** nếu báo cáo có 4 luận điểm, MD có section 4-7 (4 luận điểm); nếu 7 luận điểm, MD có section 4-10. Tổng số mục đánh số: 13 (4 LĐ) → 16 (7 LĐ).
 
-Để đơn giản, file này dùng convention 15 mục với assumption 6 luận điểm. Nếu pack ra 4 hoặc 7 luận điểm, adjust số.
+Để đơn giản, file này dùng convention 15 mục với assumption 6 luận điểm (default). Nếu pack ra 4 hoặc 7 luận điểm, adjust số.
 
 ## 3. Compose từng phần chi tiết
 
@@ -518,7 +518,7 @@ Agent KHÔNG ghép checkpoint block vào MD final. Sau khi user confirm cả 2 C
 
 **Bước 14 — Self-audit:** chạy 12 câu self-check P pack mục 14.
 
-**Bước 15 — Save & present MD:** save vào `/mnt/user-data/outputs/`, gọi `present_files`.
+**Bước 15 — Present MD:** xuất nội dung MD trong message (Claude Desktop), user copy/save thủ công.
 
 **Bước 16 — Output cuối:** MD final đã đủ structured để consume bằng tool render bên ngoài. Pack này không tự render binary.
 
@@ -563,9 +563,11 @@ Pptx là format gửi KH cuối cùng — render thực hiện downstream với 
 - **Slide 14 ba kịch bản:** không dùng từ "xác suất cao/vừa/thấp". Mỗi kịch bản dùng "Trigger" làm header con
 - **Variant perception:** highlighted với box riêng, có thể dùng quote style hoặc background nhạt
 
-**File output pptx:** `stock_pitch_<TICKER>_<YYYYMMDD>.pptx`, save vào `/mnt/user-data/outputs/`.
+**File output pptx:** `stock_pitch_<TICKER>_<YYYYMMDD>.pptx` (legacy reference).
 
-## 6. Guide render docx (optional)
+## 6. Guide render docx (optional) [LEGACY]
+
+> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
 
 Docx ít dùng — chủ yếu khi user muốn archive formal hoặc gửi qua email với file đính kèm.
 
@@ -601,7 +603,7 @@ File output: `stock_pitch_<TICKER>_<YYYYMMDD>.docx`.
 - [ ] Mỗi tin có dẫn link, mỗi claim quan trọng có nguồn
 - [ ] File save đúng tên `stock_pitch_<TICKER>_<YYYYMMDD>.md`
 - [ ] Đã hỏi user có cần render pptx không sau khi present MD
-- [ ] Present file qua present_files tool
+- [ ] Xuất nội dung MD trong message (Claude Desktop)
 
 ## 8. Output contract
 

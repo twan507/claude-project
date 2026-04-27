@@ -79,9 +79,9 @@ Check input có phải MD đã match `FORMAT.md` contract không. Logic detectio
 
 | Signal | Check |
 |---|---|
-| Frontmatter | Top file có `---` block với `report_type` thuộc 5 whitelist |
+| Frontmatter | Top file có `---` block với `report_type` thuộc 9 whitelist (8 preset + custom) |
 | Heading hierarchy | H1 duy nhất + H2 cho section + không H4+ |
-| Section count | Match expected count theo `report_type` (vd stock_pitch 15±3) |
+| Section count | Match expected count theo `report_type` (vd stock_pitch 13-16) |
 | Chart YAML | Chart block dùng syntax ` ```chart` đúng spec |
 | Citation pattern | Có ít nhất 1 trong: `(nguồn: Tổng hợp)` / link finext.vn / footnote `[^N]` |
 | Locale | Số dùng `.` ngăn nghìn + `,` thập phân |
@@ -143,7 +143,7 @@ Bạn có thể trả lời "1a 2b 3a", hoặc "default" để áp dụng defaul
 
 | Loại | Khi nào hỏi | Ví dụ |
 |---|---|---|
-| Confirm report_type | Confidence < 80% | "Loại báo cáo: (a) stock_pitch (b) weekly_market (c) market_scan (d) stock_memo (e) portfolio_plan (f) review portfolio (g) custom" |
+| Confirm report_type | Confidence < 80% | "Loại báo cáo: (a) stock_pitch (b) weekly_market (c) market_scan (d) stock_memo (e) portfolio_plan (f) portfolio_review_weekly (g) portfolio_review_monthly (h) portfolio_review_quarterly (i) custom" |
 | Required field | Field bắt buộc thiếu theo report_type | "Mã ticker không có trong input. Cung cấp ticker hoặc chuyển sang `custom`?" |
 | Section missing | Section bắt buộc theo contract thiếu | "Báo cáo stock_pitch thiếu Variant Perception. (a) Tôi sẽ tự fill từ context (b) Bạn cung cấp (c) Skip" |
 | Ambiguous content | Content có thể interpret nhiều cách | "Section 'Phân tích kỹ thuật' có 5 mức giá nhưng không label. (a) R1/R2/S1/S2/POC (b) Hỗ trợ tuần/tháng (c) Bạn label cụ thể" |
@@ -284,7 +284,7 @@ Nếu user reply không match option (vd reply tự do, partial answer): hỏi l
 
 **Task 2: Apply heading hierarchy**
 - H1 = title báo cáo theo report_type
-- H2 = section theo rigid structure (nếu stock_pitch / weekly_market) hoặc flex (deepdive / macro_sector / generic)
+- H2 = section theo rigid structure (stock_pitch / weekly_market / portfolio_review_*) hoặc flex (market_scan / stock_memo / portfolio_plan / custom)
 - H3 = subsection khi cần
 
 **Task 3: Translate raw symbols**
@@ -295,7 +295,7 @@ Nếu user reply không match option (vd reply tự do, partial answer): hỏi l
 **Task 4: Locale vi-VN**
 - Số: dấu `.` ngăn nghìn, `,` thập phân
 - % với dấu `+/-` rõ
-- Date format dd/mm/yyyy
+- Date: `ngày DD/MM/YYYY` trong prose, `Q[N]/YYYY` hoặc `tháng MM/YYYY` khi nói quý/tháng (xem FORMAT.md mục 6.2)
 
 **Task 5: Citation format**
 - Detect mỗi claim có data → assign 1 trong 4 nhóm citation
@@ -376,7 +376,7 @@ Naming convention output (theo `report_type`):
 - `portfolio_review_quarterly_<YYYY_Q>.md`
 - `custom_<slug>_<YYYYMMDD>.md`  (slug từ `custom_purpose` hoặc user-provided)
 
-Save vào `/mnt/user-data/outputs/`.
+Trên Claude Desktop, agent xuất nội dung MD trong message để user copy/save thủ công.
 
 ## 10. Stage 6 — Brand pre-flight
 
@@ -427,7 +427,7 @@ File `.pptx`. Naming theo MD source + suffix `<brand>`:
 
 `<brand>` = `vbse` hoặc `finext`.
 
-Save vào `/mnt/user-data/outputs/`, present qua `present_files` tool.
+Trên Claude Desktop, agent xuất file binary qua artifact hoặc attach trong message.
 
 ### 12.2. Render error fallback
 
