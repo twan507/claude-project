@@ -32,11 +32,21 @@ MD final (đúng FORMAT contract)
 TEMPLATE pack (visual catalog) → binary final
 ```
 
-- `FORMAT.md` định nghĩa MD chuẩn — đứng độc lập, không reference WORKFLOW hay TEMPLATE
-- `WORKFLOW.md` đọc FORMAT để biết target output, không reference TEMPLATE
-- `TEMPLATE_X.md` đứng độc lập tuyệt đối — không đọc FORMAT, không đọc WORKFLOW. Chỉ đọc 2 nguồn khi runtime: file pack của chính nó + MD final do WORKFLOW produce
+**Rule dependency direction (1 chiều):**
 
-Rule này enforce structurally vì agent là external, không thấy file nào ngoài bản thân nó.
+- `FORMAT.md` định nghĩa MD contract — không đọc/depend WORKFLOW hay TEMPLATE để define spec
+- `WORKFLOW.md` đọc FORMAT để biết target output — không depend TEMPLATE để define flow
+- `TEMPLATE_X.md` runtime chỉ consume 2 nguồn: file pack của chính nó + MD final đã đông kết do WORKFLOW produce — không đọc FORMAT/WORKFLOW spec để define layout
+
+**Minimal cross-reference cho phép** (clarity runtime):
+
+- FORMAT có thể mention "WORKFLOW Stage X" như runtime activation point, không spec content WORKFLOW
+- WORKFLOW có thể mention "TEMPLATE_VBSE / TEMPLATE_FINEXT" như brand whitelist + runtime handoff Stage 7
+- TEMPLATE có thể mention "WORKFLOW Stage 7" như runtime entry point + reference `system_prompt.md` cho rule architecture
+
+Cấm: FORMAT đọc WORKFLOW spec để define MD; WORKFLOW đọc TEMPLATE catalog để define flow; TEMPLATE đọc FORMAT/WORKFLOW spec để define layout. Đây là backward authoring dependency.
+
+Rule enforce structurally vì agent là external, không thấy file nào ngoài bản thân nó. Reference cross-file chỉ là pointer cho người đọc tài liệu/agent runtime; không dùng để build/derive content.
 
 ## 3. Execution loop mỗi turn
 

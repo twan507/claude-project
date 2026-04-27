@@ -498,15 +498,15 @@ Pattern: `English term (dịch ngắn)`. Lần xuất hiện sau trong cùng bá
 
 Trước khi MD final đi vào Stage 7 render, agent self-check:
 
-- [ ] Frontmatter đầy đủ + `report_type` thuộc 5 loại whitelist
+- [ ] Frontmatter đầy đủ + `report_type` thuộc 9 loại whitelist (8 preset + custom)
 - [ ] H1 duy nhất, H2 theo structure của report_type
-- [ ] Số section khớp spec (vd stock_pitch có 11-14 section + 4 cố định = 15-18 tổng)
+- [ ] Số section khớp spec (vd stock_pitch có 13-16 section flex theo số luận điểm 4-7; weekly_market 12 rigid; v.v.)
 - [ ] Block khuyến nghị 4 dòng (stock_pitch)
 - [ ] Chart YAML block đúng syntax + type thuộc whitelist
 - [ ] Citation format đúng 4 nhóm
 - [ ] Locale vi-VN đồng nhất (số, %, đơn vị)
 - [ ] Không lộ ký hiệu DB raw
 - [ ] Thuật ngữ EN dịch inline lần đầu
-- [ ] Disclaimer cuối báo cáo (mọi report_type trừ generic không gửi KH)
+- [ ] Disclaimer cuối báo cáo (bắt buộc với mọi report_type gửi KH như stock_pitch / weekly_market; tùy chọn với report_type nội bộ như market_scan / stock_memo / portfolio_*; custom theo `custom_audience`)
 
 Vi phạm câu nào → quay lại Stage 4 normalize fix, hoặc clarify với user.

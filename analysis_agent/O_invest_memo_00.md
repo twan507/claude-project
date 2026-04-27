@@ -212,16 +212,19 @@ Nhóm 1 "(nguồn: Tổng hợp)" giữ inline, không cần footnote — nó ng
 Nhóm 2 link finext.vn tuỳ ngữ cảnh: body flow cần thoáng → footnote, body ngắn → inline.
 
 **Unit convention:**
-- VND: mặc định tỷ VND cho tổng, triệu VND cho per-share khi cần, nghìn VND (hoặc "k") cho giá. Ghi đơn vị rõ: "18,200 tỷ VND", "85k/cp"
-- Tỷ lệ: 1 chữ số thập phân cho % ("15.5%", "22.3%"). Không dùng basis point trừ khi ngữ cảnh banking/fixed income
-- USD: "45 triệu USD", "1.2B USD" cho lớn
+- VND: mặc định tỷ VND cho tổng, triệu VND cho per-share khi cần, nghìn VND (hoặc "k") cho giá. Ghi đơn vị rõ: "18.200 tỷ VND", "85k/cp"
+- Tỷ lệ: 1 chữ số thập phân cho % ("15,5%", "22,3%"). Không dùng basis point trừ khi ngữ cảnh banking/fixed income
+- USD: "45 triệu USD", "1,2B USD" cho lớn
 - Ticker: uppercase, không dấu nháy ("VNM", không "'VNM'" hay "vnm")
 - Date: "Q1/2026", "tháng 4/2026", "ngày 15/4/2026". Không dùng "Q1 2026" hay "2026-04-15" trong prose (OK trong bảng)
 
-**Number formatting:**
-- Dấu phẩy ngăn cách nghìn: "18,200 tỷ" không "18200 tỷ"
-- Dấu chấm thập phân: "15.5%" không "15,5%" (theo convention tài chính VN đã chuẩn hoá)
-- Rounding: revenue/LNST đến tỷ, margin đến 0.1%, price đến 0.1k
+**Number formatting (locale vi-VN, sync PROJECT_STATUS root convention):**
+- Dấu chấm ngăn cách nghìn: "18.200 tỷ" không "18200 tỷ" hay "18,200 tỷ"
+- Dấu phẩy thập phân: "15,5%" không "15.5%"
+- Phần trăm có dấu rõ: `+18,2%` / `-3,5%`
+- Rounding: revenue/LNST đến tỷ, margin đến 0,1%, price đến 0,1k
+
+**Lưu ý:** ví dụ trong các file con (`O_invest_memo_01-06`) hiện có thể còn dùng convention cũ (`18,200 tỷ`, `15.5%`) — sẽ được normalize qua audit pass sau. Khi compose output mới, agent áp convention vi-VN root ở mục này.
 
 **Heading & structure:**
 - Heading cấp 1 (`#`) chỉ 1 lần ở đầu file (tiêu đề báo cáo)

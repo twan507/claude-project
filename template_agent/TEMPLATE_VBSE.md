@@ -470,11 +470,15 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 
 ---
 
-## Decoupling — TEMPLATE_VBSE hoàn toàn độc lập
+## Decoupling — TEMPLATE_VBSE độc lập về authoring
 
-TEMPLATE_VBSE là layout catalog đứng một mình. File này KHÔNG reference FORMAT.md, WORKFLOW.md, hay file pack khác trong template_agent — đó là backward dependency vi phạm rule architecture (xem `system_prompt.md` mục 2).
+TEMPLATE_VBSE là layout catalog đứng một mình về **authoring dependency**: nội dung layout (placeholder schema, design tokens, render rule) KHÔNG được derive từ spec của FORMAT.md hay WORKFLOW.md. Đây là rule architecture (xem `system_prompt.md` mục 2 — minimal cross-reference cho clarity runtime, không backward authoring dependency).
 
-TEMPLATE_VBSE chỉ đọc 2 nguồn khi runtime render: (a) file pack của chính nó (catalog `.md` + binary `.pptx`), (b) MD final do WORKFLOW Stage 5 produce làm input nội dung.
+TEMPLATE_VBSE runtime chỉ consume 2 nguồn data:
+- (a) file pack của chính nó (catalog `.md` + binary `.pptx`)
+- (b) MD final đã đông kết do WORKFLOW Stage 5 produce
+
+Reference đến WORKFLOW Stage 5/7 trong file này là pointer runtime (khi nào activate, đọc input từ đâu), không phải derive content.
 
 Mỗi layout mô tả PURPOSE semantic của chính nó (cover khuyến nghị mã / scenario comparison 3-cell / heatmap 24 ngành / etc.) ở section "Danh sách 27 layout" trên. Agent runtime: scan MD final → match section heading + chart annotation với layout có sẵn theo semantic → clone layout → fill placeholder. Cùng 1 layout có thể fit nhiều loại MD content khác nhau, runtime tự match.
 

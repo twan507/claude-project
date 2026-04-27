@@ -105,9 +105,9 @@ LLM analyze content thô, extract:
 
 ### 4.1. Outputs
 
-- **report_type detection:** infer 1 trong 5 loại (stock_pitch / weekly_market / deepdive / macro_sector / generic). Confidence score.
+- **report_type detection:** infer 1 trong 9 loại (stock_pitch / weekly_market / market_scan / stock_memo / portfolio_plan / portfolio_review_weekly / portfolio_review_monthly / portfolio_review_quarterly / custom). Confidence score. Nếu confidence < 80% hoặc không match 8 preset → đề xuất `custom` ở Stage 3.
 - **Section list detected:** liệt kê heading có sẵn trong input
-- **Required field check:** ticker / company_name / industry (nếu stock_pitch hoặc deepdive); week_label (nếu weekly_market); etc.
+- **Required field check:** ticker / company_name / industry (nếu stock_pitch hoặc stock_memo); week_label (nếu weekly_market); conviction_tier (nếu stock_memo); portfolio_size_vnd (nếu portfolio_plan); etc.
 - **Data inventory:** số liệu, bảng, chart data tìm thấy
 - **Ambiguities:** điểm cần clarify (vd "Tìm thấy 4 luận điểm nhưng chỉ 3 có headline data — clarify luận điểm 4 có cần thêm data không")
 - **Missing for contract:** field/section bắt buộc theo report_type nhưng chưa có (vd thiếu Variant Perception trong stock_pitch)
@@ -365,12 +365,16 @@ Apply user edit (nếu có ở CP2). Rerun full self-audit theo `FORMAT.md` mụ
 
 Output: file `.md` chuẩn hóa.
 
-Naming convention output:
+Naming convention output (theo `report_type`):
 - `stock_pitch_<TICKER>_<YYYYMMDD>.md`
 - `weekly_market_<YYYYMMDD>.md`
-- `deepdive_<TICKER>_<YYYYMMDD>.md`
-- `macro_sector_<slug>_<YYYYMMDD>.md`
-- `generic_<slug>_<YYYYMMDD>.md`
+- `market_scan_<YYYYMMDD>.md`
+- `stock_memo_<TICKER>_<YYYYMMDD>.md`
+- `portfolio_plan_<YYYYMMDD>.md`
+- `portfolio_review_weekly_<YYYYMMDD>.md`
+- `portfolio_review_monthly_<YYYYMM>.md`
+- `portfolio_review_quarterly_<YYYY_Q>.md`
+- `custom_<slug>_<YYYYMMDD>.md`  (slug từ `custom_purpose` hoặc user-provided)
 
 Save vào `/mnt/user-data/outputs/`.
 
@@ -412,11 +416,14 @@ TEMPLATE pack runtime:
 
 ### 12.1. Output
 
-File `.pptx`. Naming:
+File `.pptx`. Naming theo MD source + suffix `<brand>`:
 - `stock_pitch_<TICKER>_<YYYYMMDD>_<brand>.pptx`
 - `weekly_market_<YYYYMMDD>_<brand>.pptx`
-- `deepdive_<TICKER>_<YYYYMMDD>_<brand>.pptx`
-- ...
+- `market_scan_<YYYYMMDD>_<brand>.pptx`
+- `stock_memo_<TICKER>_<YYYYMMDD>_<brand>.pptx`
+- `portfolio_plan_<YYYYMMDD>_<brand>.pptx`
+- `portfolio_review_<period>_<id>_<brand>.pptx` (period = weekly/monthly/quarterly)
+- `custom_<slug>_<YYYYMMDD>_<brand>.pptx`
 
 `<brand>` = `vbse` hoặc `finext`.
 

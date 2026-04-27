@@ -1,4 +1,4 @@
-# PROJECT STATUS — 2026-04-27 (cập nhật: P_invest_memo + P_stock_pitch + O_invest_memo + O_weekly_market + O_stock_pitch audit/fix done)
+# PROJECT STATUS — 2026-04-27 (9/9 audit + fix done — ALL phases complete)
 
 > File handoff context cho cuộc hội thoại tiếp theo. Đọc file này đầu session + `CLAUDE.md` (behavioral guidelines) để có toàn bộ bối cảnh.
 
@@ -8,7 +8,7 @@ Project gồm **3 agent độc lập** ở thư mục gốc `D:\twan-projects\cl
 
 | Folder | Vai trò | Status |
 |---|---|---|
-| `super_agent/` | Phân tích cổ phiếu VN, output MD final (báo cáo phân tích) | Active, đang audit |
+| `analysis_agent/` | Phân tích cổ phiếu VN, output MD final (báo cáo phân tích) | Active, đang audit |
 | `template_agent/` | Nhận MD/document → chuẩn hoá → render binary pptx branded | Active, vừa build |
 | `db_agent/` | Database agent (related to MongoDB `agent_db`) | Chưa audit, ngoài scope hiện tại |
 
@@ -23,7 +23,7 @@ D:\twan-projects\claude-project\
 ├── CLAUDE.md                     # Behavioral guidelines (load mọi session)
 ├── PROJECT_STATUS.md             # File này
 │
-├── super_agent/                  # 25 file
+├── analysis_agent/                  # 25 file
 │   ├── system_prompt.md          # Meta-rules 3 layer K/P/O
 │   ├── KERNEL_SKELETON.md        # Index pack
 │   │
@@ -81,7 +81,7 @@ D:\twan-projects\claude-project\
 
 ---
 
-## 3. `super_agent/` — kiến trúc chi tiết
+## 3. `analysis_agent/` — kiến trúc chi tiết
 
 ### 3.1. Layer architecture
 
@@ -257,18 +257,18 @@ Lý do: tránh coupling implicit, agent có thể swap/extend độc lập.
 
 ### 5.2. K → P → O strict one-way
 
-Pack super_agent: dependency direction K → P → O. Không có call ngược (P không sửa K, O không sửa P). K **re-queryable** nhiều lần xuyên suốt session (thư viện), nhưng chỉ P và O đọc K, không ai sửa K.
+Pack analysis_agent: dependency direction K → P → O. Không có call ngược (P không sửa K, O không sửa P). K **re-queryable** nhiều lần xuyên suốt session (thư viện), nhưng chỉ P và O đọc K, không ai sửa K.
 
-### 5.3. T pack đã tách khỏi super_agent
+### 5.3. T pack đã tách khỏi analysis_agent
 
-Layer T (Template) ban đầu là layer thứ 4 trong super_agent. Đã tách sang `template_agent/` ở rev 6 vì:
+Layer T (Template) ban đầu là layer thứ 4 trong analysis_agent. Đã tách sang `template_agent/` ở rev 6 vì:
 - T natural boundary "không đọc K/P/O" được enforce structurally khi tách agent
 - Brand presentation là concern riêng với phân tích/content
 - Reusability cao hơn (nhận MD từ source bất kỳ)
 
-### 5.4. Render binary out of scope của super_agent
+### 5.4. Render binary out of scope của analysis_agent
 
-super_agent xuất MD final là output cuối. Render binary (pptx/docx/xlsx) là concern downstream, ngoài scope. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài.
+analysis_agent xuất MD final là output cuối. Render binary (pptx/docx/xlsx) là concern downstream, ngoài scope. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài.
 
 ### 5.5. Naming changes đã apply
 
@@ -305,7 +305,7 @@ Chỉ báo trend (`market_snapshot.trend`, `industry_snapshot.trend`, `group_sna
 | 3 | `P_invest_memo` (10 file) | ✓ Audit + Fix (H1, H2, H3, M1, M2, M3, M4, M5 áp 2026-04-27) |
 | 4 | `P_weekly_market` (1 file) | ✓ Audit + Fix (restructure sections 10-12) |
 
-### Đã làm xong (8/9 phần — bổ sung 2026-04-27)
+### Đã làm xong (9/9 phần — bổ sung 2026-04-27)
 
 | Phần | File | Status |
 |---|---|---|
@@ -313,12 +313,7 @@ Chỉ báo trend (`market_snapshot.trend`, `industry_snapshot.trend`, `group_sna
 | 6 | `O_invest_memo` (7 file) | ✓ Audit + Fix (M1 CP5C sync, M2 Weekly Review Session sync; M3 legacy specs defer Priority 2) |
 | 7 | `O_weekly_market` (1 file) | ✓ Audit + Fix (M1 disclaimer duplicate, M2 raw field K hygiene, M3 K hygiene reference, L4 CP1 block render spec; M4 legacy specs defer Priority 2) |
 | 8 | `O_stock_pitch` (1 file) | ✓ Audit + Fix (M1 numbering 13-16 mục flex sync, M3 Section 13 heading align; M2 legacy specs defer Priority 2). M5+M6 đã apply qua P_stock_pitch fix. |
-
-### Chưa làm
-
-| Phần | File | Status |
-|---|---|---|
-| 9 | `template_agent` (4 file: system_prompt, INDEX, FORMAT, WORKFLOW + 2 TEMPLATE pack) | ⏳ Pending audit (đã build mới, chưa audit) |
+| 9 | `template_agent` (6 file: system_prompt, INDEX, FORMAT, WORKFLOW, TEMPLATE_VBSE, TEMPLATE_FINEXT) | ✓ Audit + Fix (H1 WORKFLOW sync 9 type, H2 FORMAT checklist sync, M1 loosen independence rule, M2 TEMPLATE Decoupling sync; cross-agent locale fix analysis_agent O master) |
 
 ### Phần 3 audit findings — ĐÃ FIX (2026-04-27)
 
@@ -423,34 +418,36 @@ P_stock_pitch (1 file 609 dòng) audit + fix cùng phiên. **0 high issue** (log
 
 ---
 
-### Priority 1 — Audit phần 9: `template_agent` (4 file architectural + 2 TEMPLATE pack)
+### Phần 9 audit findings — ĐÃ FIX (2026-04-27)
 
-4 file architectural + 2 TEMPLATE pack. Đã build mới, chưa audit chính thức.
-- `system_prompt.md` — meta-rules
-- `INDEX.md` — manifest
-- `FORMAT.md` — 9 report_type spec
-- `WORKFLOW.md` — 7 stage flow + custom quiz
-- `TEMPLATE_VBSE.md` + `TEMPLATE_FINEXT.md` — catalog layouts
+`template_agent` (6 file) audit + fix cùng phiên. **2 high + 4 medium + 10 low**. Fix toàn bộ 2 high + 2 medium quan trọng + 1 cross-agent locale fix.
 
-Issues nghi ngờ cần check:
-- FORMAT.md mục 3.5 portfolio_plan section list có khớp với O_invest_memo_03 không
-- FORMAT.md mục 3.4 stock_memo flex theo conviction tier có khớp với O_invest_memo_02 không
-- Custom quiz có các edge case cần handle không
+- **H1** WORKFLOW.md content stale — body reference 5 report_type cũ (deepdive/macro_sector/generic) sau khi INDEX rev 1 expand 5→9 type. Fix mục 4.1 (detection list), mục 9 (naming convention output 9 file kiểu), mục 12.1 (binary naming).
+- **H2** FORMAT.md mục 9 Validation checklist stale — đổi "5 loại whitelist" → "9 loại (8 preset + custom)", bỏ reference "generic", clarify disclaimer rule theo audience (gửi KH bắt buộc, nội bộ tùy chọn, custom theo `custom_audience`).
+- **M1** Loosen system_prompt mục 2 independence rule — chuyển từ strict "không reference nhau" sang "minimal cross-reference cho phép cho clarity runtime, cấm backward authoring dependency". Giải quyết mâu thuẫn nội tại realistic workflow.
+- **M2** TEMPLATE_VBSE + TEMPLATE_FINEXT Decoupling section sync wording — clarify "độc lập về authoring" thay "hoàn toàn độc lập" + giải thích reference WORKFLOW Stage 5/7 là pointer runtime.
+- **Decision 2 / cross-agent fix** analysis_agent `O_invest_memo_00.md` mục 6 locale convention — đổi từ US-style (`,` thousands + `.` decimal) sang vi-VN root (`.` thousands + `,` decimal) để sync PROJECT_STATUS root convention. Note rằng các file con `O_invest_memo_01-06` còn ví dụ cũ — sẽ normalize qua audit pass sau.
+- **M3 (defer)** Locale conflict analysis_agent O packs file con — mostly defer; agent compose mới sẽ áp convention vi-VN.
+- **M4 (defer)** WORKFLOW mục 5.2 bảng question wording confusing (gộp 3 portfolio_review thành 1) — acceptable cosmetic.
 
-### Priority 2 — Cleanup legacy pptx render specs
+**Low (defer):** L1 FORMAT mục 1 reference TEMPLATE; L2-L10 cosmetic; rev history mention pre-rename names.
+
+---
+
+### Priority 1 — Cleanup legacy pptx render specs
 
 Các file đã đánh dấu `[LEGACY]` cần dọn ở audit pass tiếp theo:
 - `O_stock_pitch_00.md` mục 5 "Guide render pptx [LEGACY]"
 - `O_invest_memo_00.md` notes về pptx/docx render
 - `O_weekly_market_00.md` notes tương tự
 
-Vì super_agent đã chốt scope là MD final, các spec render binary trong O packs không còn cần thiết. Có thể xoá hoặc move sang documentation riêng.
+Vì analysis_agent đã chốt scope là MD final, các spec render binary trong O packs không còn cần thiết. Có thể xoá hoặc move sang documentation riêng.
 
-### Priority 3 — `db_agent/` (out of current scope)
+### Priority 2 — `db_agent/` (out of current scope)
 
-Folder `db_agent/` có 7 file (`agent_db_00.md` đến `_05` + `system_prompt.md`). Chưa audit, có vẻ là agent riêng cho database operations. Mối quan hệ với `super_agent/K_agent_db_*` chưa rõ — có thể là:
-- (a) Agent độc lập query MongoDB cho super_agent consume
-- (b) Bản gốc của K_agent_db trong super_agent
+Folder `db_agent/` có 7 file (`agent_db_00.md` đến `_05` + `system_prompt.md`). Chưa audit, có vẻ là agent riêng cho database operations. Mối quan hệ với `analysis_agent/K_agent_db_*` chưa rõ — có thể là:
+- (a) Agent độc lập query MongoDB cho analysis_agent consume
+- (b) Bản gốc của K_agent_db trong analysis_agent
 - (c) Agent khác hoàn toàn
 
 Nếu user muốn tích hợp/audit `db_agent/` cũng cần làm rõ relationship trước.
@@ -479,7 +476,7 @@ Decisions chốt 2026-04-27 (P_invest_memo phần 3 fix):
 
 ## 9. Conventions quan trọng (tóm tắt nhanh)
 
-**System prompt rules (super_agent):**
+**System prompt rules (analysis_agent):**
 - 3 layer K/P/O + 1 index
 - Master-first reading: đọc `_00` trước file con
 - Checkpoint discipline: P pack không tự chuyển giai đoạn
@@ -494,7 +491,7 @@ Decisions chốt 2026-04-27 (P_invest_memo phần 3 fix):
 - Báo cáo gửi KH có disclaimer (3 trường hợp render)
 
 **Restrictions:**
-- super_agent: render binary out of scope
+- analysis_agent: render binary out of scope
 - P_weekly_market + P_stock_pitch: không dùng trend, không command, không xác suất %, không level giá
 - P_stock_pitch: chỉ MUA, không BÁN/GIỮ/short
 - template_agent: brand whitelist strict (VBSE/Finext only)
@@ -502,7 +499,7 @@ Decisions chốt 2026-04-27 (P_invest_memo phần 3 fix):
 **File naming output:**
 - `weekly_market_<YYYYMMDD>.md` (ngày cuối tuần - Chủ Nhật)
 - `stock_pitch_<TICKER>_<YYYYMMDD>.md`
-- `tier{N}_<YYYYMMDD>_confirmed.md` cho state files super_agent
+- `tier{N}_<YYYYMMDD>_confirmed.md` cho state files analysis_agent
 - Binary từ template_agent: `<report_type>_<id>_<YYYYMMDD>_<brand>.pptx`
 
 ---
@@ -514,8 +511,8 @@ Decisions chốt 2026-04-27 (P_invest_memo phần 3 fix):
 1. `CLAUDE.md` (project root) — behavioral guidelines
 2. `PROJECT_STATUS.md` (file này) — bối cảnh tổng thể
 3. Tuỳ task tiếp theo:
-   - **Audit P_stock_pitch** → đọc `super_agent/P_stock_pitch_00.md` + `super_agent/O_stock_pitch_00.md` + `super_agent/system_prompt.md` + `super_agent/KERNEL_SKELETON.md`
-   - **Audit O_invest_memo** → đọc `super_agent/O_invest_memo_00.md` đến `_06.md` + `super_agent/P_invest_memo_00.md` (master cho cross-check)
+   - **Audit P_stock_pitch** → đọc `analysis_agent/P_stock_pitch_00.md` + `analysis_agent/O_stock_pitch_00.md` + `analysis_agent/system_prompt.md` + `analysis_agent/KERNEL_SKELETON.md`
+   - **Audit O_invest_memo** → đọc `analysis_agent/O_invest_memo_00.md` đến `_06.md` + `analysis_agent/P_invest_memo_00.md` (master cho cross-check)
    - **Audit template_agent** → đọc 4 file architectural + 2 TEMPLATE pack
 
 ---
