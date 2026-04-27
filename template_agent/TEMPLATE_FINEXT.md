@@ -1,6 +1,20 @@
 # TEMPLATE_FINEXT — Catalog Layout Brand Finext
 
-Pack cung cấp template visual branded Finext cho render báo cáo pptx (dark-first, violet primary, modern tech-forward). Activate ở Stage 7 của `WORKFLOW.md` khi user pick brand Finext ở CP3.
+Pack cung cấp template visual branded Finext cho render báo cáo pptx (**editorial fintech magazine style**: light BG, violet primary, asymmetric layout, typography-driven hero). Activate ở Stage 7 của `WORKFLOW.md` khi user pick brand Finext ở CP3.
+
+**Design philosophy** — đối lập với TEMPLATE_VBSE để hai brand có visual identity rõ rệt khi cùng nội dung render ra:
+
+| Trục | TEMPLATE_VBSE | TEMPLATE_FINEXT |
+|---|---|---|
+| Tinh thần | Brokerage classic — formal, conservative, dày data | Editorial fintech — modern, asymmetric, magazine-style |
+| BG | White trên content + Navy half-bleed cover | **White toàn bộ** (mọi slide) |
+| Hero element | Big number / ticker XL | **Thesis / quote / typography hero** (number xuống vai trò support) |
+| Layout symmetry | Symmetric grid, evenly distributed | **Asymmetric** (golden ratio 1:2 hoặc 2:3, dominant + supporting) |
+| Title bar | Top horizontal | **Mix top horizontal + side vertical band** (per layout) |
+| Decorative | Tam giác vuông cân đỏ | **Chevron violet + horizontal/vertical violet rule** |
+| Card | Flat rectangle sharp corner | **Rounded corner** (10000–25000 EMU) |
+| Numbered icon | Square red | **Circle violet** |
+| Bar accent | Solid red 0.08"×0.70" | **Gradient violet 2-stack** (chính + light) hoặc full-height side band |
 
 TEMPLATE_FINEXT là layout catalog độc lập — chỉ đọc 2 nguồn: file pack của chính nó + MD final do WORKFLOW.md produce.
 
@@ -62,17 +76,17 @@ Loại chart support: `bar`, `line`, `pie/donut`, `scatter`, `combo`. Không sup
 
 ## Design tokens
 
-### Color palette (extract từ Finext brand tokens)
+### Color palette
 
 **Primary Violet** (signature brand):
 
 | Token | Hex | Dùng cho |
 |---|---|---|
 | Violet chính | `#8B5CF6` | Primary brand, accent bar, button CTA, active state |
-| Violet light | `#B47EFF` | Hover, secondary accent, gradient stop, label trên dark BG |
-| Violet dark | `#7C3AED` | Pressed state, depth |
+| Violet light | `#B47EFF` | Hover, secondary accent, gradient stop dưới của 2-stack bar |
+| Violet dark | `#7C3AED` | Pressed state, big stat color, header text emphasis |
 | Violet deep | `#4C1D95` | Deep tint cho hierarchical depth |
-| Violet glow | `#2A1F4A` | Background tint subtle (mô phỏng glassmorphism trên dark) |
+| Violet tint | `#F3EEFF` | Card highlight nhạt, soft background tint, decorative chevron BG |
 
 **Trend colors** (KHÔNG dùng success/error generic, dùng trend):
 
@@ -81,56 +95,61 @@ Loại chart support: `bar`, `line`, `pie/donut`, `scatter`, `combo`. Không sup
 | Trend up | `#25B770` | Tăng giá / dòng tiền vào |
 | Trend down | `#E14040` | Giảm giá / dòng tiền ra |
 | Trend ref | `#FFC752` | Tham chiếu / sideway |
-| Trend floor | `#0593BB` | Sàn / cyan accent |
+| Trend floor | `#0593BB` | Sàn / cyan accent (dùng cho stat trung tính) |
 
-**Background**:
+**Background & border**:
 
 | Token | Hex | Use case |
 |---|---|---|
-| BG dark | `#0A0A0A` | Cover, section divider, disclaimer (signature dark-first Finext) |
-| BG card dark | `#1E1E1E` | Card trên dark BG |
-| BG paper | `#FAFBFC` | Light paper (content slide) |
-| BG card light | `#F5F5F5` | Card trên light BG |
-| BG card violet | `#F3EEFF` | Violet tint card highlight |
-| BG pink | `#FDE8F0` | Highlight error/warning |
+| BG white | `#FFFFFF` | Slide background mặc định (mọi slide) |
+| BG paper | `#FAFBFC` | Soft paper alternative khi cần chút khác biệt |
+| BG card | `#F5F5F5` | Card neutral trên BG trắng |
+| BG violet | `#F3EEFF` | Card highlight violet (cho luận điểm key, summary card) |
+| BG pink | `#FDE8F0` | Highlight error / "lo ngại còn yếu" |
+| **Border light** | **`#E5E7EB`** | Border, divider, separator nhẹ — token mới thêm |
 
 **Text**:
 
 | Token | Hex | Use case |
 |---|---|---|
-| Text dark | `#1F2937` | Body text trên light BG |
-| Text mid | `#6B7280` | Sub-text trên light BG |
-| Text light | `#9CA3AF` | Footer, muted, chart placeholder |
-| Text inverse | `#F0F0F0` | Text chính trên dark BG |
-| Text inverse mid | `#B8B8B8` | Sub text trên dark BG |
-| Text inverse subtle | `#707070` | Disabled trên dark BG |
+| Text dark | `#1F2937` | Body text chính trên BG light |
+| Text mid | `#6B7280` | Sub-text, label |
+| Text light | `#9CA3AF` | Footer, muted, chart placeholder text |
+| Text inverse | `#FFFFFF` | Text trên violet fill (button, badge, side band) |
+
+**Note**: TEMPLATE_FINEXT phiên bản trước có dark-first identity với BG `#0A0A0A`, BG card dark `#1E1E1E`, và 3 text inverse tokens (`F0F0F0`, `B8B8B8`, `707070`) — tất cả đã loại bỏ ở phiên bản hiện tại. Nếu cần text trên fill violet/ violet_dark, dùng `text_inverse = #FFFFFF`.
 
 **Font**: Calibri (default Office, không cần embed).
 
 **Slide size**: 16:9, 13.33" × 7.5".
 
-### Signature pattern Finext (khác VBSE)
+### Signature pattern Finext
 
-| Yếu tố | VBSE | Finext |
-|---|---|---|
-| Cover background | Half-bleed navy + white | **Full dark `#0A0A0A`** |
-| Vertical bar accent | Đỏ solid | **Gradient violet → violet light** (2-stack) |
-| Decorative shape | Tam giác vuông cân đỏ | **Chevron `>>`** (semantic "next/forward" — brand "Finext") |
-| Numbered icon | Square đỏ | **Circle violet** (mềm mại, modern) |
-| Card style | Flat rectangle | **Rounded corner** (signature border-radius) |
-| Title divider | Solid red line | **Gradient 3-segment violet** (deep → main → light) |
-| Trend display | Standard | Theo Finext trend palette (`up=#25B770`, `down=#E14040`) |
+Đã liệt kê ở bảng đối lập VBSE/Finext đầu file. Chi tiết shape sử dụng:
+
+- **Vertical violet bar 2-stack** `0.08" × 0.70"`: top half `#8B5CF6`, bottom half `#B47EFF`. Đặt cạnh trái title bar (mọi slide content layout 7-26).
+- **Side vertical band**: `0.30"–1.50"` rộng, full height, fill `#8B5CF6`. Dùng cho COVER_B (0.30"), SECTION_DIVIDER (1.50"), DISCLAIMER (1.0").
+- **Chevron decorative**: `MSO_SHAPE.CHEVRON`. Dùng ở COVER_E (top-right tint), SECTION_DIVIDER (trên side band), DISCLAIMER (trên side band).
+- **Horizontal violet rule**: `0.04"` cao, full hoặc partial width. Title divider, footer separator.
+- **Rounded card**: corner radius 10000–25000 EMU. Dùng cho mọi card content.
+- **Circle numbered icon**: violet fill, white text. Dùng cho takeaway/subpoint/layer numbering.
 
 ## Layout pattern toàn cục
 
-Mọi slide content (trừ cover/divider/disclaimer) tuân theo cấu trúc 3-band:
+**Slide background**: `#FFFFFF` mặc định cho mọi slide (inherit từ slide master, không có `<p:bg>` hay full-slide rect cover).
+
+**Cover slides (1-5)**: KHÔNG tuân pattern title-bar 3-band của content. Mỗi cover có editorial composition riêng (xem chi tiết LAYOUT 01-05 dưới).
+
+**Section divider (6) + Disclaimer (27)**: KHÔNG tuân pattern title-bar 3-band. Dùng side band trái + content phải.
+
+**Content slides (7-26)** tuân theo cấu trúc 3-band:
 
 ```
-┌─ Slide 13.33" × 7.5" (16:9) ────────────────────────────┐
+┌─ Slide 13.33" × 7.5" (16:9) — BG #FFFFFF ──────────────┐
 │                                                          │
 │ ▌  {{TITLE}}                          ← top=0.30"       │
 │ ▌  {{SUB-TITLE}}                                         │
-│ ────────── divider light ───────────                     │
+│ ────────── divider violet rule ───────────               │
 │                                                          │
 │   Content area                                           │
 │     left=0.60"   width=12.13"                            │
@@ -141,27 +160,20 @@ Mọi slide content (trừ cover/divider/disclaimer) tuân theo cấu trúc 3-ba
 └──────────────────────────────────────────────────────────┘
 ```
 
-**Title bar** — cao 1.10" từ top:
-- Vertical violet **gradient bar** (2-stack `0.08" × 0.70"`) cạnh trái title (signature Finext)
-- `{{TITLE}}` font Pt(24) bold dark
-- `{{SUB-TITLE}}` font Pt(11) italic mid
-
-**Content area** — `GRID = {content_l: 0.60, content_top: 1.40, content_w: 12.13, content_h: 5.30}`.
-
-**Footer** — `top=7.10`.
-
-**Cover slides (1-5)**: dark BG full, không tuân pattern title bar.
-**Section divider (6) + Disclaimer (27)**: full dark BG, chevron decorative.
+- **Title bar** (cao 1.10" từ top): vertical violet bar 2-stack `0.08" × 0.70"` cạnh trái + `{{TITLE}}` Pt(24) bold dark + `{{SUB-TITLE}}` Pt(11) italic mid.
+- **Content area** GRID `{content_l: 0.60, content_top: 1.40, content_w: 12.13, content_h: 5.30}`.
+- **Footer** `top=7.10`.
 
 ## Nội dung fix cứng (không placeholder)
 
 | Trường | Giá trị fix cứng |
 |---|---|
-| Brand name | "FINEXT" / "Finext" |
+| Brand name | "Finext" (Title Case — đồng nhất mọi slide) |
 | Phòng ban | "Phòng Phân tích Đầu tư" |
 | Website | "www.finext.vn" |
 | Hotline | "1900 0000" |
-| Disclaimer body | 3 đoạn pháp lý chuẩn Finext (entity: "Công ty Cổ phần Chứng khoán Finext") |
+| Footer brand string | `Finext • Phòng Phân tích Đầu tư` (single space + bullet + single space) |
+| Disclaimer body | 3 đoạn pháp lý chuẩn Finext (entity: "Công ty Cổ phần Chứng khoán Finext"), mỗi đoạn là 1 paragraph riêng |
 | Tiêu đề "BÁO CÁO PHÂN TÍCH & KHUYẾN NGHỊ" trong COVER_A | Cố định |
 | Tiêu đề "PHÂN TÍCH CHUYÊN SÂU" trong COVER_B | Cố định |
 | Tiêu đề "BÁO CÁO THỊ TRƯỜNG TUẦN" trong COVER_C | Cố định |
@@ -182,52 +194,94 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 ### Cover (5 layout)
 
 #### LAYOUT 01 — `COVER_A_RECOMMENDATION`
-**Slide #:** 1. Cover khuyến nghị mua mã đơn lẻ. Full dark BG + violet glow tint top + ticker XL trái + MUA badge violet rounded + 2 stat dark card (giá hiện tại, giá mục tiêu) + thesis section.
+**Slide #:** 1. Cover khuyến nghị mua mã đơn lẻ — **editorial pitch style**.
+
+**Composition** (khác VBSE classic ticker-XL hero):
+- Top violet rule full-width + masthead row (FINEXT brand left, badge "KHUYẾN NGHỊ MUA" violet rounded right)
+- Subtle border separator
+- Subtitle line italic
+- **Ticker as compact violet pill tag** (1.4"×0.45", rounded) + company full name italic (giống editorial subhead)
+- **Hero zone**: large quote mark (60pt violet `"`) + `{{THESIS_HEADLINE}}` 36pt bold (thesis là hero, không phải ticker)
+- Compact 3-cell stat row bottom: Giá hiện tại / Giá mục tiêu / Tiềm năng — mỗi cell có vertical violet rule trái 0.05"
+- Bottom violet rule + footer date + website/hotline
 
 **Placeholders:**
 - `{{REPORT_SUBTITLE}}`
-- `{{TICKER}}` (≤ 5 ký tự, font 96pt)
+- `{{TICKER}}` (≤ 5 ký tự, font 18pt trong pill)
 - `{{COMPANY_FULL_NAME}}`, `{{INDUSTRY_LABEL}}`
 - `{{PRICE_CURRENT}}`, `{{PRICE_TARGET}}`
 - `{{UPSIDE_LINE}}`
-- `{{THESIS_HEADLINE}}`
+- `{{THESIS_HEADLINE}}` (≤ 90 ký tự, là hero element 36pt bold)
 - `{{PUBLISH_DATE}}`
 
 #### LAYOUT 02 — `COVER_B_DEEPDIVE`
-**Slide #:** 2. Cover phân tích chuyên sâu mã đơn lẻ. Full dark BG + gradient violet bar top + ticker centered + 4 stat dark card với violet bar trái.
+**Slide #:** 2. Cover phân tích chuyên sâu — **asymmetric R/R hero style**.
+
+**Composition** (khác VBSE 4-stat 4-cell evenly):
+- Left full-height violet band 0.30" wide
+- Top section: tag "PHÂN TÍCH CHUYÊN SÂU" violet + subtitle italic 22pt
+- **Left side**: ticker XL 84pt bold violet_dark (hero positioning) + company italic + industry label dưới
+- **Right side asymmetric**: R/R card violet_tint dominant (6.0"×2.30", rounded 15000) — `{{RR_RATIO}}` 72pt bold, `{{RR_VERDICT}}` italic
+- 3 supporting stats inline below R/R: Giá hiện tại / Mục tiêu / Cắt lỗ — mỗi cell có top color rule (violet/up/down)
+- Footer Finext brand string
 
 **Placeholders:**
-- `{{TICKER}}` (≤ 6 ký tự)
+- `{{TICKER}}` (≤ 6 ký tự, font 84pt)
 - `{{REPORT_SUBTITLE}}`, `{{COMPANY_FULL_NAME}}`, `{{INDUSTRY_LABEL}}`
 - `{{PRICE_CURRENT}}`, `{{PRICE_DATE}}`
 - `{{TARGET_BASE}}`, `{{UPSIDE_BASE}}`
 - `{{STOPLOSS}}`, `{{DOWNSIDE_STOP}}`
-- `{{RR_RATIO}}`, `{{RR_VERDICT}}`
+- `{{RR_RATIO}}` (hero stat 72pt), `{{RR_VERDICT}}`
 - `{{PUBLISH_DATE}}`
 
 #### LAYOUT 03 — `COVER_C_WEEKLY_MARKET`
-**Slide #:** 3. Cover báo cáo thị trường tuần. Top section violet glow tint + week label XL + regime badge violet rounded + 3 KPI dark card.
+**Slide #:** 3. Cover báo cáo thị trường tuần — **magazine masthead style**.
+
+**Composition** (khác VBSE 3-KPI ngang sau headline):
+- Top masthead band violet_tint 0.50" — brand left + section name right
+- **Week label as huge masthead** 72pt bold (`{{WEEK_LABEL}}` là hero)
+- Regime badge violet rounded floating right of week label
+- Horizontal violet rule full width
+- Headline as feature title 28pt italic dark
+- 3 KPI bottom row: 3 rounded card bg_card với top violet rule trái + label/value/note. KPI value 30pt bold.
+- Bottom violet rule
 
 **Placeholders:**
-- `{{WEEK_LABEL}}`, `{{HEADLINE_LINE}}`, `{{REGIME_BADGE}}`
+- `{{WEEK_LABEL}}` (hero 72pt), `{{HEADLINE_LINE}}`, `{{REGIME_BADGE}}`
 - `{{VNINDEX_CLOSE}}`, `{{VNINDEX_CHANGE}}`
 - `{{LIQUIDITY_AVG}}`, `{{LIQUIDITY_NOTE}}`
 - `{{FOREIGN_NET}}`, `{{FOREIGN_NOTE}}`
 - `{{PUBLISH_DATE}}`
 
 #### LAYOUT 04 — `COVER_D_MACRO_SECTOR`
-**Slide #:** 4. Cover chủ đề vĩ mô / phân tích ngành. Full dark BG + vertical gradient bar trái full height + 3 takeaway numbered (circle icon).
+**Slide #:** 4. Cover chủ đề vĩ mô / phân tích ngành — **editorial pull-quote stack style**.
+
+**Composition** (khác VBSE 3-takeaway numbered linear):
+- Theme tag violet rounded top
+- Report title 40pt bold (hero)
+- Subtitle italic 14pt
+- Partial violet horizontal rule
+- **3 takeaways as staggered pull quotes** — không phải numbered list. Mỗi takeaway có violet quote mark `"` 48pt + text italic 15pt. Indent staggered: 0.6"/1.0"/1.4" (zig-zag editorial flow).
+- Footer + bottom violet rule
 
 **Placeholders:**
-- `{{THEME_TAG}}`, `{{REPORT_TITLE}}`, `{{REPORT_SUBTITLE}}`
-- `{{TAKEAWAY_1}}` ... `{{TAKEAWAY_3}}`
+- `{{THEME_TAG}}`, `{{REPORT_TITLE}}` (hero 40pt), `{{REPORT_SUBTITLE}}`
+- `{{TAKEAWAY_1}}` ... `{{TAKEAWAY_3}}` (mỗi takeaway ≤ 100 ký tự, italic 15pt)
 - `{{PUBLISH_DATE}}`
 
 #### LAYOUT 05 — `COVER_E_GENERIC`
-**Slide #:** 5. Cover tổng quát light BG minimalist. Khác biệt với 4 cover dark khác — dùng cho báo cáo định kỳ, ad-hoc với tone nhẹ hơn.
+**Slide #:** 5. Cover tổng quát — **asymmetric bottom-left composition**.
+
+**Composition** (khác VBSE center-aligned classic):
+- Tag violet rounded top-left
+- Decorative chevron violet_tint top-right corner (oversized, partially off-canvas)
+- Vertical violet rule signature 0.10"×1.50"
+- **Title bottom-left aligned** 40pt bold (asymmetric, không center)
+- Subtitle italic 14pt
+- Footer + bottom violet rule
 
 **Placeholders:**
-- `{{REPORT_KIND_TAG}}`, `{{REPORT_TITLE}}`, `{{REPORT_SUBTITLE}}`
+- `{{REPORT_KIND_TAG}}`, `{{REPORT_TITLE}}` (hero 40pt), `{{REPORT_SUBTITLE}}`
 - `{{PUBLISH_DATE}}`
 
 ---
@@ -235,16 +289,26 @@ Khi fill: thay nguyên text `{{NAME}}` bằng giá trị thực, giữ font size
 ### Section divider (1 layout)
 
 #### LAYOUT 06 — `SECTION_DIVIDER`
-**Slide #:** 6. Full dark BG + chevron decorative phải dưới + section info trái.
+**Slide #:** 6. **Magazine chapter side-band style**.
+
+**Composition** (khác VBSE full navy + tam giác):
+- Left vertical violet band 1.50" wide full height (signature chapter band)
+- Section tag white text trên band (top)
+- Decorative chevron white trên band (bottom)
+- Right side: section title 48pt bold dark (hero) + partial violet rule + section description italic 16pt mid
 
 **Placeholders:**
-- `{{SECTION_TAG}}`, `{{SECTION_TITLE}}`, `{{SECTION_DESC}}`
+- `{{SECTION_TAG}}` (text trên band)
+- `{{SECTION_TITLE}}` (hero 48pt)
+- `{{SECTION_DESC}}` (italic 16pt)
 
 ---
 
 ### Content layout (12)
 
-Cấu trúc giống TEMPLATE_VBSE 1-1, chỉ khác visual style (violet thay đỏ navy, rounded card thay flat, circle icon thay square, gradient bar thay solid).
+**Triết lý redesign**: cấu trúc layout TEMPLATE_FINEXT giữ **cùng LAYOUT_ID + cùng placeholder schema** với TEMPLATE_VBSE để runtime mapping work, NHƯNG **spatial arrangement khác hẳn** (đảo bố cục, đổi orientation, đổi hierarchy) để 2 báo cáo cùng nội dung render ra 2 brand không nhìn giống nhau. Specific differentiation per layout: xem **bảng spatial differentiation** ở phụ lục cuối file.
+
+**Status redesign**: LAYOUT 01-27 đã redesign xong theo philosophy editorial fintech (Phase 1 + Phase 2 hoàn thành).
 
 #### LAYOUT 07 — `BULLET_LIST_SUMMARY`
 **Slide #:** 7. 5 bullet với violet circle marker. Dùng cho Weekly Exec Summary.
@@ -463,8 +527,18 @@ Cấu trúc giống TEMPLATE_VBSE 1-1, chỉ khác visual style (violet thay đ�
 ### Disclaimer (1 layout)
 
 #### LAYOUT 27 — `DISCLAIMER`
-**Slide #:** 27. Full dark BG + chevron decorative phải dưới + disclaimer body fix cứng. Toàn bộ nội dung fix cứng, chỉ 1 placeholder.
-- `{{PUBLISH_DATE}}`
+**Slide #:** 27. **Side band magazine style** (khác VBSE full navy + tam giác).
+
+**Composition**:
+- Left vertical violet band 1.0" wide full height
+- 2 chevrons trắng decorative trên band
+- Header "TUYÊN BỐ MIỄN TRỪ TRÁCH NHIỆM" 22pt bold violet_dark
+- Partial violet rule
+- **3 paragraphs disclaimer body** — mỗi đoạn là 1 text box riêng (paragraph break thật, không dùng `\n\n` literal)
+- Contact card rounded bg_card với left violet rule: Website + Hotline trái, Finext brand string + Publish date phải
+- Bottom violet rule
+
+**Toàn bộ nội dung fix cứng**, chỉ 1 placeholder: `{{PUBLISH_DATE}}`
 
 ---
 
@@ -480,7 +554,7 @@ Reference đến WORKFLOW Stage 5/7 trong file này là pointer runtime (khi nà
 
 Mỗi layout mô tả PURPOSE semantic của chính nó (cover khuyến nghị mã / scenario comparison 3-cell / heatmap 24 ngành / etc.) ở section "Danh sách 27 layout" trên. Agent runtime: scan MD final → match section heading + chart annotation với layout có sẵn theo semantic → clone layout → fill placeholder. Cùng 1 layout có thể fit nhiều loại MD content khác nhau, runtime tự match.
 
-Cấu trúc layout TEMPLATE_FINEXT 1-1 với TEMPLATE_VBSE (cùng LAYOUT_ID), khác visual style (dark/violet/chevron vs navy/red/triangle) — runtime chọn T pack nào dựa trên brand audience user yêu cầu, không phải dựa trên loại báo cáo.
+Cấu trúc layout TEMPLATE_FINEXT giữ cùng LAYOUT_ID + cùng placeholder schema với TEMPLATE_VBSE (để runtime brand routing work), nhưng spatial arrangement khác hẳn theo design philosophy editorial fintech — runtime chọn T pack nào dựa trên brand audience user yêu cầu, không phải dựa trên loại báo cáo.
 
 ## Quy tắc bắt buộc khi AI render báo cáo qua TEMPLATE_FINEXT
 
@@ -520,4 +594,33 @@ Cấu trúc layout TEMPLATE_FINEXT 1-1 với TEMPLATE_VBSE (cùng LAYOUT_ID), kh
 15. **File source of truth — đừng tự sửa**:
    - `TEMPLATE_FINEXT.pptx` là binary template, AI không sửa file này khi render báo cáo cá nhân (chỉ clone slide). Sửa template chỉ khi user yêu cầu update T pack.
    - Disclaimer body fix cứng — nếu user yêu cầu đổi disclaimer, sửa trực tiếp trong template, không tạo placeholder mới.
+
+---
+
+## Phụ lục — Bảng spatial differentiation summary
+
+LAYOUT 07-26 đã redesign theo bảng dưới. Mỗi row mô tả "VBSE vs Finext present cùng nội dung" — đã apply trong template hiện tại. Spec ngắn gọn (composition cụ thể đã thực thi trong `TEMPLATE_FINEXT.pptx`).
+
+| LAYOUT | VBSE trình bày | Finext trình bày |
+|---|---|---|
+| 07 BULLET_LIST_SUMMARY | 5 bullet dọc với label + body | Magazine sidebar list — index "01"-"05" violet 22pt + label bold + body italic, separator border light giữa items |
+| 08 STAT_CALLOUT_GRID_4CELL | 4 stat 2×2 + 4 luận điểm 2×2 | 4 stat horizontal banner row top + 4 luận điểm zig-zag indent (alternate left/right) với circle number violet |
+| 09 BIG_STAT_SUBPOINTS | Big stat panel TRÁI + 3 subpoint phải | Big stat hero TOP-CENTER full-width violet_tint band (KPI 64pt) + 3 subpoint horizontal row giữa + KPI table compact bottom |
+| 10 TWO_COLUMN_INFO_BUSINESS | 2 cột bằng nhau | Asymmetric 1:2 — info bảng compact LEFT (3.8") + 5 segment editorial card stack RIGHT (8.13") |
+| 11 COMPARISON_3CELL_SCENARIOS | 3 cell horizontal đều | Center cell BIG (BASE 6.0" violet_tint, big_pct 44pt) + 2 cell BULL/BEAR sidebar nhỏ (2.85") |
+| 12 STAT_TABLE_COMBO_SESSION | 4 stat + bảng 8 mức dọc | 4 stat horizontal top + 8-level **ladder visualization** (vertical spine + price markers, 5th level "Giá hiện tại" highlight bold violet) |
+| 13 DATA_TABLE_FULL | Bảng 8×8 truyền thống | Magazine table: header band violet rounded + zebra rows bg_card + cột 1 (TICKER) violet bold + table_note italic bottom |
+| 14 TIMELINE_NEWS | Timeline trục DỌC | Timeline trục **NGANG** — 4 nodes circle violet trên violet rule + alternating above/below cho date+tag và title+body (zig-zag editorial) |
+| 15 RISK_GRID_STEELMAN | Grid 6 cell 3×2 | 6 hàng dọc — concern card trái + violet right-arrow giữa + rebut card phải. CONCERN_5/6 highlight bg_pink + arrow đỏ |
+| 16 VARIANT_PERCEPTION | Insight box trên + 3 sub vertical | Floating violet insight bubble top-right với big quote mark 80pt + 3 cards horizontal bottom (top color band per card) |
+| 17 BUY_STRUCTURE_FLEX | Bảng layer DỌC | 5 horizontal **stepped bars** (mỗi layer indent +0.20") với violet header band 1.6" + 3 column price/allocation/trigger + 3 risk band cards horizontal bottom |
+| 18 TAKE_PROFIT_TARGETS | 4 milestone DỌC + R/R bottom | R/R **panel side TRÁI** (violet_tint, RR_RATIO 44pt) + 4 milestone **horizontal staircase** (height tăng dần từ M1 đến M4) phải |
+| 19 THESIS_B_PANEL_RIGHT | Alt cho LAYOUT 09 | KPI panel violet PHẢI 1/3 (KPI_VALUE 64pt white) + 4 subpoint zig-zag indent trái 2/3 |
+| 20 HEATMAP_INDUSTRY | 6×4 grid rounded card | 6×4 grid + **legend strip top** với 5 magnitude buckets rounded. Cell có name top + pct big + note small italic |
+| 21 PEER_COMPARE_TABLE | Bảng peer 8 hàng × 8 cột | **P1 hero card** full-width violet_tint (TICKER 36pt + 6 metrics inline) + **7 peer compact cards** 4×2 grid (mini metric grid 2×3) + verdict band violet bottom |
+| 22 MINI_CHARTS_2X2 | 4 chart 2×2 grid đều | **Asymmetric**: CHART_1 prominent 8.0"×5.45" trái + CHART_2/3/4 stacked vertical phải 3.98" |
+| 23 CALENDAR_WEEK | 7 ngày bảng NGANG | 7 ngày **bảng DỌC** với weekday rows (T2-T6) cao 0.85" + weekend rows (T7-CN) collapsed nhỏ hơn. Day band trái violet (weekday) hoặc text_light (weekend) |
+| 24 LINE_CHART_FULL | Chart 2/3 trái + 3 commentary phải | Chart **full-width top** (12.13"×3.30") + chart_source line + **3 commentary cards horizontal bottom** với circle number violet |
+| 25 SCATTER_PEER | Scatter trái + bảng peer phải | Scatter **dominant trái 70%** (8.5") + 6 peer cards **stacked phải 30%** (PEER_1 highlight violet_tint) + verdict band bottom |
+| 26 DONUT_COMPOSITION | 2 donut side-by-side đơn giản | 2 donut side-by-side với **violet underline title** trên mỗi donut + 5-row legend table dưới mỗi donut (zebra rows + circle dot violet marker) |
 
