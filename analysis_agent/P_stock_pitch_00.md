@@ -140,27 +140,27 @@ Sub-section 3.2 Cơ cấu kinh doanh & tài sản cốt lõi: liệt kê 3-6 m�
 
 **Query DB:**
 
-1. `stock_snapshot` filter ticker (latest):
-   - `latest.price.open, high, low, close`, `pct_change`
-   - `latest.price.total_volume`, `total_value`, `vsi`
-   - `latest.price.w_pct`, `m_pct`, `q_pct`, `y_pct`
-   - `latest.technical_indicator`: ma5, ma20, ma60, ma240
-   - `latest.fibonacci.w/m/q/y`: các mức 23.6%, 38.2%, 50%, 61.8%, 78.6%
-   - `latest.volume_profile.w/m/q/y`: poc, val, vah
-   - `latest.pivot`: r1, r2, r3, s1, s2, s3
-   - `latest.range_position`: w_pos, m_pos, q_pos
-   - `latest.technical_zone.overall.w/m/q/y` (zone đa khung)
+1. `stock_snapshot` filter ticker (1 doc):
+   - `price.open, high, low, close, volume, trading_value, volume_strength_index, diff, pct_change`
+   - `change.w_pct, m_pct, q_pct, y_pct`
+   - `money_flow_score.day_score, week_score, industry_rank_pct, market_rank_pct`
+   - `technical_indicator.ma`: ma5, ma20, ma60, ma120, ma240
+   - `technical_indicator.fibonacci.{w|m|q|y}`: `f382, f500, f618` (3 mức Fibonacci 38.2/50/61.8% — K_01 chỉ có 3 mức này)
+   - `technical_indicator.volume_profile.{w|m|q|y}`: poc, val, vah
+   - `technical_indicator.pivot.{w|m|q|y}`: pivot, r1, s1 (Classical Pivot — K_01 chỉ có pivot/r1/s1)
+   - `technical_zone.overall.{w|m|q|y}` (zone đa khung — chỉ dùng nội bộ, dịch khi output)
 
-2. `stock_nntd` slice 5 phiên + 20 phiên:
-   - `net_value` phiên hiện tại
-   - Aggregate net_value tuần (5 phiên) và tháng (20 phiên)
-   - Phân biệt nước ngoài và tự doanh
+   **Lưu ý:** `stock_snapshot` không có field `range_position`. Vị thế giá trong biên độ tuần/tháng/quý tự tính từ `price.close` và `technical_indicator.ohl.{w|m|q|y}.prev_high/prev_low`.
 
-3. `market_snapshot` (latest) tham chiếu — VNINDEX hôm đó để có context thị trường
+2. `stock_nntd` filter ticker:
+   - `nn.latest.net_value` (phiên hiện tại), `nn.week.net_value` (5 phiên), `nn.month.net_value` (20 phiên)
+   - `td.latest/week/month.net_value` cho tự doanh
+
+3. `market_snapshot` (1 doc) tham chiếu — VNINDEX hôm đó để có context thị trường (`price.close`, `change.w_pct`, `breadth`)
 
 **Output structured:**
 
-Sub-section 4.1 Dữ liệu giao dịch phiên: 4 stat callout — đóng cửa + biến động phiên / cao nhất / thấp nhất / GTGD + cường độ thanh khoản (vsi)
+Sub-section 4.1 Dữ liệu giao dịch phiên: 4 stat callout — đóng cửa + biến động phiên / cao nhất / thấp nhất / GTGD + cường độ thanh khoản (đã dịch từ `volume_strength_index` theo K hygiene)
 
 Sub-section 4.2 Dòng tiền tổ chức phiên: NN + tự doanh, mỗi loại stat callout giá trị net phiên
 
@@ -208,9 +208,9 @@ Mỗi mức kèm cột "+/- so giá hiện tại" để KH thấy rõ khoảng c
 
 | Luận điểm | Collection chính | Field/aggregate |
 |---|---|---|
-| L1 Định giá | `stock_finstats` + `industry_snapshot` (peer comparison) | P/E, P/B, EV/EBITDA, BVPS; so sánh với median ngành |
-| L2 Dòng tiền | `stock_nntd` 5+20 phiên, `stock_snapshot.money_flow_score` | Aggregate net_value, week_score, day_score chuỗi |
-| L3 Kỹ thuật | `stock_snapshot` technical_zone, fibonacci, volume_profile, pivot | Vùng giá, vsi, range_position |
+| L1 Định giá | `stock_finstats.valuation_ratios[]` + `industry_finstats.valuation_ratios[]` (peer comparison) | P/E, P/B, EV/EBITDA, BVPS — đọc từ `valuation_ratios[]` array với `vi_name` lookup. Định giá ngành KHÔNG nằm trong `industry_snapshot` (xem K_01 mục B) |
+| L2 Dòng tiền | `stock_nntd` (`nn.week/month.net_value`), `stock_snapshot.money_flow_score` | Net_value tuần/tháng, week_score, day_score; aggregate 5/20 phiên đã sẵn trong doc |
+| L3 Kỹ thuật | `stock_snapshot.technical_zone, technical_indicator.{fibonacci, volume_profile, pivot}` | Vùng giá, `price.volume_strength_index`, vị thế tự tính từ `ohl` |
 | L4-L5 Catalyst | `news_history_feed` filter ticker + ngành, web search | Tin tuần/tháng/quý gần nhất, dẫn link finext.vn |
 | L6 Vị thế | `stock_info` + web search peer comparison | Market share, license, partnership |
 | L7 Sự kiện | `news_history_feed` filter type thông cáo | Sự kiện corporate sắp tới |
@@ -330,7 +330,7 @@ N mốc chốt lời (flex 3-5 tuỳ mã):
 | M1 — Chốt lãi đầu | Đảm bảo lợi nhuận đầu tiên | Fibonacci 38.2% khung tuần / kháng cự gần | 20-30% | Vùng kháng cự đầu tiên |
 | M2 — Chốt lãi giữa | Khi đạt mức kháng cự rõ rệt | R1 tuần / Fibonacci 50% khung tháng | 20-30% | Kháng cự kỹ thuật mạnh |
 | M3 — Chốt lãi mục tiêu chính | Đạt target trung hạn | Biên trên vùng giao dịch tháng / Fibonacci 61.8% | 20-30% | Mục tiêu kỹ thuật chính |
-| M4 — Mục tiêu trung hạn cao | Khi catalyst lớn materialize | Đỉnh quý / Fibonacci 78.6% / vùng tâm lý | Phần còn lại | Mục tiêu trung hạn |
+| M4 — Mục tiêu trung hạn cao | Khi catalyst lớn materialize | Đỉnh quý / VAH khung quý / vùng tâm lý | Phần còn lại | Mục tiêu trung hạn |
 
 **Tóm tắt R/R:**
 
@@ -521,7 +521,7 @@ MUA [TICKER] vùng [X] - [Y] đồng. Mua thăm dò [N1]% vị thế [thời đi
 **Tỷ suất kỳ vọng:** [+A-B%]
 **Hành vi kỳ vọng:** [vượt đỉnh cũ, định giá lại theo thesis variant perception]
 
-**KỊCH BẢN THẬN TRỌNG**
+**KỊCH BẢN TIÊU CỰC**
 
 **Trigger break-down:** [điều kiện cụ thể — ví dụ: gãy hỗ trợ X (đáy tháng / MA60) + dòng tiền tổ chức đảo chiều bán ròng + lo ngại còn yếu materialize]
 

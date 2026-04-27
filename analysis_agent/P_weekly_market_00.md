@@ -140,20 +140,24 @@ Lấy field: `name`, `value`, `unit`, `pct_change` (phiên gần nhất), `w_pct
 
 **Query DB:**
 
-1. `market_snapshot` (latest):
-   - `latest.price.close`, `pct_change`, `w_pct`, `m_pct`, `q_pct`, `y_pct`
-   - `latest.price.total_value` (GTGD phiên cuối tuần)
-   - `latest.money_flow_score.day_score`, `week_score`
+1. `market_snapshot` (1 doc duy nhất):
+   - `price.close` (VNINDEX), `price.pct_change`, `price.trading_value` (GTGD phiên cuối tuần)
+   - `change.w_pct`, `m_pct`, `q_pct`, `y_pct`
+   - `breadth.breadth_in/out/neu` (rổ FNXINDEX, không phải toàn HOSE — xem K_agent_db_01 mục D)
 
-2. `market_recent` slice 5 phiên:
-   - `recent_price[]` 5 phiên — tính GTGD trung bình tuần, biến động tuần
-   - `recent_score[]` 5 phiên — chuỗi day_score 5 phiên (đồng đều/dao động)
+2. `market_recent` slice 5 phiên (`recent_price[0..4]`):
+   - Tính GTGD trung bình tuần, biến động tuần từ `price.close`, `price.trading_value`
+   - **Lưu ý:** `market_recent` KHÔNG có `money_flow_score` (xem K_agent_db_01 mục D). Để có chuỗi 5 phiên dòng tiền cấp thị trường, dùng aggregate từ `industry_snapshot.money_flow_score.week_score` 24 ngành (cấp ngành) hoặc `group_snapshot.money_flow_score.day_score` 6 nhóm.
 
-3. `market_nntd` slice 5 phiên — net_value tuần, top mua/bán ròng tuần
+3. `industry_snapshot` (24 doc) — aggregate `money_flow_score.week_score` lấy mean/median làm proxy điểm dòng tiền thị trường tuần. Aggregate `money_flow_score.day_score` 24 ngành làm proxy điểm dòng tiền phiên cuối tuần.
 
-4. `data_briefing` block market — breadth_in/out toàn thị trường phiên cuối tuần
+4. `industry_recent` slice 5 phiên × 24 ngành — aggregate `series[i].money_flow_score.day_score` mean theo phiên để có chuỗi 5 phiên dòng tiền proxy thị trường.
 
-5. `other_data` filter group `macro.exchange_rate` + `macro.monetary` (lãi suất liên ngân hàng, OMO, tỷ giá VCB)
+5. `market_nntd` slice 5 phiên — net_value tuần, top mua/bán ròng tuần
+
+6. `data_briefing` block market — breadth_in/out toàn thị trường phiên cuối tuần
+
+7. `other_data` filter group `macro.exchange_rate` + `macro.monetary` (lãi suất liên ngân hàng, OMO, tỷ giá VCB)
 
 **Methodology aggregate NN/TD tuần:**
 
@@ -162,7 +166,7 @@ Tổng net_value 5 phiên gần nhất = NN net tuần. Top 5 mã NN mua ròng t
 **Output structured:**
 - VNINDEX: giá đóng, biến động tuần/tháng/quý
 - Thanh khoản: GTGD phiên cuối tuần + GTGD trung bình tuần + biến động vs trung bình tháng
-- Dòng tiền nội: week_score thị trường, chuỗi day_score 5 phiên (mô tả pattern: đồng đều dương / đồng đều âm / dao động / phục hồi cuối tuần)
+- Dòng tiền nội: điểm dòng tiền tuần thị trường (proxy aggregate 24 ngành), chuỗi điểm dòng tiền phiên 5 phiên (mô tả pattern: đồng đều dương / đồng đều âm / dao động / phục hồi cuối tuần)
 - Breadth phiên cuối tuần: số ngành tăng/giảm, số mã tăng/giảm toàn thị trường
 - NN/TD tuần: tổng mua/bán ròng + top 5 mỗi chiều
 - Tỷ giá VN, lãi suất liên ngân hàng các kỳ hạn, OMO
@@ -189,25 +193,7 @@ Tổng net_value 5 phiên gần nhất = NN net tuần. Top 5 mã NN mua ròng t
   - `commodities.chemical`: Urea Trung Đông, urea Trung Quốc, phốt pho vàng, nhựa PP/PVC/PET
   - `commodities.agriculture`: cà phê, hồ tiêu, cao su, gạo XK, đường, ngô, đậu tương, heo hơi, tôm thẻ
 
-**Mapping cơ chế chỉ số → ngành VN (tham chiếu khi có signal):**
-
-| Chỉ số biến động | Ngành VN bị tác động | Cơ chế |
-|---|---|---|
-| Dầu Brent, WTI | Dầu khí (PVS, PVD, BSR, PLX) | Giá dầu tăng → tích cực biên thượng nguồn |
-| Quặng sắt, HRC | Thép (HPG, HSG, NKG) | Giá quặng + HRC tăng → tích cực biên |
-| Than cốc | Thép | Than cốc tăng → áp lực chi phí, biên gộp giảm |
-| Urea Trung Đông, Trung Quốc | Phân bón (DCM, DPM, BFC) | Urea tăng → tích cực |
-| Phốt pho vàng, nhựa PP/PVC | Hoá chất (DGC, CSV) | Tăng → tích cực |
-| Lãi suất điều hành, liên ngân hàng | Ngân hàng | Lãi suất giảm/ổn định → tích cực NIM |
-| Lãi suất huy động, cho vay | Bất động sản | Lãi suất giảm → tích cực dòng tiền mua nhà |
-| USD/VND | Xuất khẩu (dệt may, thuỷ sản, gỗ) | USD/VND tăng → tích cực biên xuất khẩu |
-| USD/VND | Ngân hàng (gián tiếp) | USD/VND mất giá mạnh → áp lực thanh khoản, lãi suất |
-| Vàng thế giới | Trang sức (PNJ, DOJI) | Vàng tăng → tích cực mảng kinh doanh vàng |
-| Heo hơi VN | Nông nghiệp chăn nuôi (DBC, HAG) | Heo hơi tăng → tích cực |
-| Ngô, đậu tương | Chăn nuôi | Tăng → áp lực chi phí thức ăn |
-| Cao su Nhật Bản | Cao su (DRC, GVR) | Tăng → tích cực |
-| Đồng | Tài nguyên cơ bản | Tăng → tích cực |
-| Cà phê thế giới | Cà phê XK | Tăng → tích cực |
+**Mapping cơ chế chỉ số → ngành VN:** tham chiếu trực tiếp `K_agent_db_01` mục F "Sử dụng trong phân tích" (line 830-839) cho danh sách 9 mapping core (Dầu khí, Thép, Phân bón, Ngân hàng, BĐS, Xuất khẩu, Vàng/Bạc, Nông nghiệp, Tâm lý toàn cầu). Bổ sung từ `K_agent_db_00` mục 8 "Lăng kính phân tích cốt lõi" cho mapping hướng tác động (tích cực / tiêu cực) chi tiết hơn theo cơ chế biên gộp / chi phí đầu vào / dòng tiền tiêu dùng. Pack KHÔNG redefine bảng mapping — đọc trực tiếp K khi cần.
 
 **Định nghĩa "biến động đáng kể" (định tính):**
 
@@ -238,25 +224,27 @@ Mục đích sub-section 5.4: input trực tiếp cho phần 6 (đọc bảng ng
 
 **Query DB:**
 
-`industry_snapshot` (latest) toàn bộ 24 ngành:
+`industry_snapshot` (24 doc) toàn bộ 24 ngành:
 - `industry_name`
-- `latest.pct_change`, `latest.w_pct`, `latest.m_pct`
-- `latest.valuation.pe`, `pb`
-- `latest.money_flow_score.week_score`, `industry_rank`
-- (tuần trước) `industry_recent.series[-6:-1]` aggregate week_score và pe để tính delta tuần
+- `price.pct_change`, `change.w_pct`, `change.m_pct`
+- `money_flow_score.week_score`, `money_flow_score.industry_rank`
+
+`industry_finstats` (24 doc) cho định giá ngành — `valuation_ratios[]` lấy P/E và P/B median ngành (xem K_agent_db_01 mục B `industry_finstats`).
+
+`industry_recent` (24 doc) slice `series[1..5]` lấy 5 phiên trước đó để tính delta `money_flow_score.week_score` tuần này vs tuần trước (`series[0]` = phiên hiện tại đã ở snapshot).
 
 **Output structured:**
 
-Bảng 24 ngành sort theo `industry_rank` giảm dần, cột:
+Bảng 24 ngành sort theo xếp hạng ngành giảm dần, cột:
 
-| # | Ngành | Biến động tuần (%) | Biến động tháng (%) | P/E hiện tại | P/B hiện tại | week_score | industry_rank |
+| # | Ngành | Biến động tuần (%) | Biến động tháng (%) | P/E hiện tại | P/B hiện tại | Điểm dòng tiền tuần | Xếp hạng ngành |
 
 Diễn giải prose 4-6 dòng:
-- Top ngành rank cao + cross-check với sub-section 5.4 phần 5: ngành nào rank cao và đồng thời xuất hiện trong bảng tác động vĩ mô (hướng tích cực) = candidate dẫn dắt thật
+- Top ngành xếp hạng cao + cross-check với sub-section 5.4 phần 5: ngành nào xếp hạng cao và đồng thời xuất hiện trong bảng tác động vĩ mô (hướng tích cực) = candidate dẫn dắt thật
 - Phát hiện phân kỳ:
-  - Ngành biến động giá tuần dương rõ rệt nhưng week_score thấp hoặc rank tụt = nghi trụ kéo, cảnh giác (vài mã vốn hoá lớn kéo giá ngành, đa số mã không tham gia)
-  - Ngành biến động giá đi ngang hoặc nhẹ nhưng week_score cao và đồng thời được vĩ mô ủng hộ = đang tích luỹ chuẩn bị bứt
-- Ngành rank thấp + biến động giá âm + xuất hiện ở 5.4 với hướng áp lực = ngành cần thận trọng
+  - Ngành biến động giá tuần dương rõ rệt nhưng điểm dòng tiền tuần thấp hoặc xếp hạng tụt = nghi trụ kéo, cảnh giác (vài mã vốn hoá lớn kéo giá ngành, đa số mã không tham gia)
+  - Ngành biến động giá đi ngang hoặc nhẹ nhưng điểm dòng tiền tuần cao và đồng thời được vĩ mô ủng hộ = đang tích luỹ chuẩn bị bứt
+- Ngành xếp hạng thấp + biến động giá âm + xuất hiện ở 5.4 với hướng áp lực = ngành cần thận trọng
 
 ### 5.6. Phần 7 — Top dẫn dắt 2 góc nhìn
 
@@ -264,20 +252,20 @@ Diễn giải prose 4-6 dòng:
 
 1. **Top 10 mã theo biến động giá tuần** (5 tăng + 5 giảm):
    - `stock_highlight` collection — đã pre-compute top tăng/giảm theo nhóm
-   - Hoặc query `stock_snapshot` aggregate `latest.price.w_pct` sort desc/asc, filter `latest.price.total_value` ≥ 5 tỷ/phiên trung bình tuần (loại nhiễu penny)
+   - Hoặc query `stock_snapshot` aggregate `change.w_pct` sort desc/asc, filter `price.trading_value` ≥ 5 tỷ/phiên trung bình tuần (loại nhiễu penny)
    - Limit 5 mỗi chiều
 
 2. **Top 10 mã theo dòng tiền tuần**:
    - `stock_snapshot` sort `money_flow_score.week_score` desc
    - Filter thanh khoản trung bình tuần ≥ 5 tỷ/phiên (loại nhiễu penny, không phải analytic threshold)
-   - Tiebreak bằng thanh khoản trung bình tuần khi week_score bằng nhau
+   - Tiebreak bằng thanh khoản trung bình tuần khi điểm dòng tiền tuần bằng nhau
    - Limit 10
 
 **Edge case tuần thị trường yếu toàn diện:**
 
-Nếu top 10 dòng tiền chứa mã có week_score âm hoặc bằng 0:
+Nếu top 10 dòng tiền chứa mã có điểm dòng tiền tuần âm hoặc bằng 0:
 - Vẫn render bảng đầy đủ 10 mã
-- Ghi note honest dưới bảng: "Tuần thị trường yếu toàn diện, danh sách top 10 dòng tiền có mã week_score âm hoặc bằng 0 — đây là 'ít yếu nhất' chứ không phải dẫn dắt thực sự. Cross-check phần 7.3 cần đọc với cảnh báo này."
+- Ghi note honest dưới bảng: "Tuần thị trường yếu toàn diện, danh sách top 10 dòng tiền có mã điểm dòng tiền âm hoặc bằng 0 — đây là 'ít yếu nhất' chứ không phải dẫn dắt thực sự. Cross-check phần 7.3 cần đọc với cảnh báo này."
 
 **Methodology cross-check:**
 
@@ -288,7 +276,7 @@ Nếu top 10 dòng tiền chứa mã có week_score âm hoặc bằng 0:
 **Output structured:**
 
 Bảng top 5 tăng + top 5 giảm theo giá tuần: ticker, ngành, % tuần, GTGD trung bình tuần  
-Bảng top 10 dòng tiền: ticker, ngành, week_score, % tuần, GTGD  
+Bảng top 10 dòng tiền: ticker, ngành, điểm dòng tiền tuần, % tuần, GTGD  
 Note edge case nếu áp dụng (tuần yếu)  
 Note cross-check: liệt kê mã thuộc nhóm 1 (cả 2 list), nhóm 2 (gom kín), nhóm 3 (chạy nhanh không bền)
 
@@ -296,11 +284,11 @@ Note cross-check: liệt kê mã thuộc nhóm 1 (cả 2 list), nhóm 2 (gom kí
 
 **Query DB:**
 
-1. `news_history_feed` filter `published_date` trong tuần qua, `type: news_feed`:
-   - Filter `category: doanh_nghiep` → tin doanh nghiệp tuần
-   - Filter `category: trong_nuoc` → tin trong nước
-   - Filter `category: quoc_te` → tin quốc tế
-   - Filter `category: thong_cao` → thông cáo Chính phủ
+1. `news_history_feed` filter `created_at` trong tuần qua, `type: news_feed`:
+   - Filter `news_type: doanh_nghiep` → tin doanh nghiệp tuần
+   - Filter `news_type: trong_nuoc` → tin trong nước
+   - Filter `news_type: quoc_te` → tin quốc tế
+   - Filter `news_type: thong_cao` → thông cáo Chính phủ
    - Lấy `article_slug` để dẫn link finext.vn
 
 2. `news_history_feed` filter `type: report_feed` — báo cáo tổng hợp trong tuần
@@ -328,16 +316,18 @@ Mỗi tin có dẫn link `https://finext.vn/news/<slug>` hoặc URL web search.
 
 **Query DB:**
 
-`market_snapshot` (latest):
-- `latest.price.open, high, low, close`, `pct_change`, `w_pct`, `m_pct`, `q_pct`, `y_pct`
-- `latest.price.total_volume`, `total_value`, `vsi`
-- `latest.technical_indicator`: ma5, ma20, ma60, ma240
-- `latest.fibonacci.w/m/q/y`: f382, f500, f618 (hỗ trợ Fibonacci 4 khung)
-- `latest.volume_profile.w/m/q/y`: poc, val, vah
-- `latest.pivot`: r1, r2, r3, s1, s2, s3
-- `latest.range_position`: w_pos, m_pos, q_pos (vị thế trong biên độ)
+`market_snapshot` (1 doc):
+- `price.open, high, low, close, volume, trading_value, volume_strength_index, diff, pct_change`
+- `change.w_pct, m_pct, q_pct, y_pct`
+- `technical_indicator.ma`: ma5, ma20, ma60, ma120, ma240
+- `technical_indicator.fibonacci.{w|m|q|y}`: `f382, f500, f618` (Fibonacci 38.2/50/61.8% — K_01 chỉ có 3 mức này, không có 23.6/78.6)
+- `technical_indicator.volume_profile.{w|m|q|y}`: poc, val, vah
+- `technical_indicator.pivot.{w|m|q|y}`: pivot, r1, s1 (Classical Pivot — K_01 chỉ có pivot/r1/s1, không có r2/r3/s2/s3)
+- `technical_zone.overall.{w|m|q|y}`: zone đa khung (AAA/AA/A/B/C — chỉ dùng nội bộ, dịch khi output)
 
-`market_recent` slice 20 phiên — `recent_price` để xác nhận vận động giá + volume trend.
+**Lưu ý:** `market_snapshot` không có field `range_position`. Vị thế giá trong biên độ tuần/tháng/quý tự tính từ `price.close` và `technical_indicator.ohl.{w|m|q|y}.prev_high/prev_low`.
+
+`market_recent` slice 20 phiên (`recent_price[0..19]`) — xác nhận vận động giá + volume trend (KHÔNG có `money_flow_score`, có `recent_trend` riêng nhưng pack này cấm dùng trend).
 
 **KHÔNG query `market_snapshot.trend` và `market_recent.recent_trend` — pack này cấm dùng trend.**
 
@@ -347,9 +337,9 @@ Compose theo K_agent_db_04 phần C (Technical Zone & chỉ báo kỹ thuật) �
 
 3 kịch bản if-then trigger:
 
-- **Kịch bản cơ sở**: điều kiện hiện tại tiếp tục → vùng dao động dự kiến. Trigger duy trì: VNINDEX giữ trên POC/Fibonacci hỗ trợ tuần + day_score thị trường dao động giữa âm nhẹ và dương nhẹ
-- **Kịch bản tích cực**: trigger break-out cụ thể → mục tiêu kỹ thuật. Trigger ví dụ: đóng cửa trên kháng cự gần (high tuần / Fibonacci kháng cự) + volume > 1.2x trung bình + week_score thị trường dương 3 phiên
-- **Kịch bản tiêu cực**: trigger break-down cụ thể → vùng hỗ trợ sâu. Trigger ví dụ: đóng cửa dưới hỗ trợ kép (POC quý + MA60) + week_score thị trường âm 3 phiên + thanh khoản tăng phiên giảm
+- **Kịch bản cơ sở**: điều kiện hiện tại tiếp tục → vùng dao động dự kiến. Trigger duy trì: VNINDEX giữ trên POC/Fibonacci hỗ trợ tuần + điểm dòng tiền phiên proxy thị trường dao động giữa âm nhẹ và dương nhẹ
+- **Kịch bản tích cực**: trigger break-out cụ thể → mục tiêu kỹ thuật. Trigger ví dụ: đóng cửa trên kháng cự gần (high tuần / Fibonacci kháng cự) + volume > 1.2x trung bình + điểm dòng tiền phiên proxy thị trường dương 3 phiên
+- **Kịch bản tiêu cực**: trigger break-down cụ thể → vùng hỗ trợ sâu. Trigger ví dụ: đóng cửa dưới hỗ trợ kép (POC quý + MA60) + điểm dòng tiền phiên proxy thị trường âm 3 phiên + thanh khoản tăng phiên giảm
 
 **Mỗi kịch bản KHÔNG được gán % xác suất** (tuân K_agent_db_00 mục 4.3).
 
@@ -376,9 +366,9 @@ Sau khi compose xong phần 2-9, agent **không in ra báo cáo** mà compose 1 
 
 ### 6.1. Method regime classification (4 input)
 
-**Input 1 — Dòng tiền thị trường:**
-- `market_snapshot.money_flow_score.week_score` (số nguyên, dương/âm)
-- Chuỗi `market_recent.recent_score[-5:].day_score` 5 phiên (đồng đều dương / dao động / đồng đều âm / phục hồi cuối tuần)
+**Input 1 — Dòng tiền thị trường (proxy aggregate, vì `market_snapshot` không có `money_flow_score`):**
+- Mean/median `industry_snapshot.money_flow_score.week_score` 24 ngành — proxy điểm dòng tiền tuần thị trường (dương/âm)
+- Chuỗi 5 phiên: `industry_recent.series[0..4].money_flow_score.day_score` aggregate mean theo phiên qua 24 ngành (đồng đều dương / dao động / đồng đều âm / phục hồi cuối tuần)
 
 **Input 2 — Breadth:**
 - `data_briefing` block market: breadth_in/out (số mã tăng/giảm phiên cuối tuần)
@@ -413,7 +403,7 @@ Sau khi xác định regime, chọn sector bias từ phần 6 (bảng 24 ngành)
 **Ngành quan tâm** (số lượng flex theo regime — full 5 / selective 3-4 / defensive 2):
 - Ngành rank cao về dòng tiền + week_score dương rõ + (có thể có hoặc không có) tác động vĩ mô tích cực ở 5.4
 - Phân biệt dẫn dắt thật vs trụ kéo bằng đếm tỷ lệ mã trong ngành tăng giá tuần:
-  - Cách đếm: query `stock_snapshot` filter industry, count `latest.price.w_pct > 0` / total mã ngành
+  - Cách đếm: query `stock_snapshot` filter industry, count `change.w_pct > 0` / total mã ngành
   - **Đa số mã trong ngành cùng tăng giá tuần** = dẫn dắt thật
   - **Chỉ vài mã vốn hoá lớn tăng trong khi đa số đứng/giảm** = nghi trụ kéo, cảnh giác
   - **Phân hoá** (gần 50/50) = ngành đang trong giai đoạn rotation nội bộ, cần thêm context để phán đoán
@@ -478,11 +468,11 @@ Ví dụ wording cần tránh:
 **Query DB:**
 
 Cho mỗi ngành quan tâm (sector bias tích cực):
-- `stock_snapshot` filter industry, sort theo combo `week_score` + `market_rank_pct`
-- Filter điều kiện cơ bản: `technical_zone.overall.w` ∈ (A, AA, AAA), khối lượng phiên gần nhất tăng đáng kể so trung bình 5 phiên (vsi cao hơn rõ rệt so 1.0), thanh khoản trung bình tuần ≥ 5 tỷ/phiên (loại nhiễu penny)
+- `stock_snapshot` filter industry, sort theo combo `money_flow_score.week_score` + `money_flow_score.market_rank_pct`
+- Filter điều kiện cơ bản: `technical_zone.overall.w` ∈ (A, AA, AAA), khối lượng phiên gần nhất tăng đáng kể so trung bình 5 phiên (`price.volume_strength_index` cao hơn rõ rệt so 1.0), thanh khoản trung bình tuần ≥ 5 tỷ/phiên (loại nhiễu penny)
 
 Cho ngành cần thận trọng (sector bias tiêu cực):
-- `stock_snapshot` filter industry, lấy mã có market_rank_pct cao trong ngành nhưng ngành tổng thể yếu (mã vốn hoá lớn thường được nắm giữ rộng, có thể bị áp lực bán nếu ngành xấu hơn)
+- `stock_snapshot` filter industry, lấy mã có `money_flow_score.market_rank_pct` cao trong ngành nhưng ngành tổng thể yếu (mã vốn hoá lớn thường được nắm giữ rộng, có thể bị áp lực bán nếu ngành xấu hơn)
 
 **Output structured:**
 

@@ -121,6 +121,8 @@ Chi tiết từng checkpoint xem Phần 6. Giai đoạn 6 không có checkpoint 
 
 **Ghi chú numbering Tier:** Tier mapping không liên tục — không có "Tier 4" do giai đoạn 5 (deep-dive) đã được tách thành 3 sub-tier 5A/5B/5C ở refactor lịch sử. File con vẫn dùng "Tier 5A/5B/5C" giữ nguyên để tránh phá hệ thống cross-reference. Khi đọc file con, "Tier" là reference cụ thể; "Giai đoạn" là grouping high-level dùng trong master để mô tả workflow tổng.
 
+**Mapping Giai đoạn 6 → Tier:** "Giai đoạn 6 song song" trong master gồm 2 hoạt động chạy đồng thời sau khi có memo tier 5C — Tier 6 (`P_invest_memo_08` — Portfolio sizing + rebalance) và Tier 7 (`P_invest_memo_09` — Monitoring + Weekly Review Session). File 08 đặt tên "Tier 6", file 09 đặt tên "Tier 7", master gộp chung là "Giai đoạn 6". Khi cross-reference, dùng "Tier 6" hoặc "Tier 7" cho file cụ thể, "Giai đoạn 6" khi nói tổng quan portfolio + monitoring.
+
 ## 4. Flow chi tiết từng giai đoạn
 
 Phần này tóm tắt mục tiêu, input/output, và logic cốt lõi của mỗi giai đoạn. Spec kỹ thuật chi tiết (query DB, tiêu chí numeric, prompt, edge case) nằm trong file tier tương ứng.
