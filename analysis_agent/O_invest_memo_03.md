@@ -327,9 +327,9 @@ Khi user yêu cầu render portfolio plan:
 
 **Bước 13 — Render format cuối + present file.**
 
-## 5. Guide render docx [LEGACY]
+## 5. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 **Layout:**
 - Cover (trang 1): "Portfolio Plan — [ngày]" + regime badge + portfolio size
@@ -347,9 +347,9 @@ Khi user yêu cầu render portfolio plan:
 - Monospace style cho order block
 - Landscape page option cho bảng lớn
 
-## 6. Guide render pptx [LEGACY]
+## 6. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 **Layout 10-15 slide:**
 

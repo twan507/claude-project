@@ -396,9 +396,9 @@ Add (watchlist upgrade):
 
 **Bước 14 — Render + present.**
 
-## 5. Guide render docx [LEGACY]
+## 5. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Quarterly docx là **deliverable formal nhất** trong 3 loại monitoring — báo cáo cycle-level cho sếp/committee.
 
@@ -416,9 +416,9 @@ Quarterly docx là **deliverable formal nhất** trong 3 loại monitoring — b
 
 **Template:** đầy đủ tất cả style + landscape cho bảng lớn (BCTC 7-8 cột).
 
-## 6. Guide render pptx [LEGACY]
+## 6. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Quarterly pptx cho **review meeting cycle** — có thể là thời điểm quan trọng nhất của quan hệ với portfolio committee.
 

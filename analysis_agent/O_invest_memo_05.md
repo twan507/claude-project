@@ -387,9 +387,9 @@ Format checkbox như weekly:
 
 **Bước 13 — Render + present.**
 
-## 5. Guide render docx [LEGACY]
+## 5. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Monthly docx là **formal deliverable** quan trọng — user thường share sếp/committee.
 
@@ -405,9 +405,9 @@ Monthly docx là **formal deliverable** quan trọng — user thường share s�
 
 **Template cần có:** đầy đủ heading + table + chart placeholder + monospace + footer.
 
-## 6. Guide render pptx [LEGACY]
+## 6. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Monthly pptx dùng cho **review meeting** với sếp/portfolio committee.
 

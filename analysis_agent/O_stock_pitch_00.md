@@ -4,7 +4,7 @@ Spec render báo cáo khuyến nghị mua mã đơn lẻ gửi khách hàng (sto
 
 Reference: `P_stock_pitch_00` (workflow + methodology).
 
-> **Render binary out of scope:** Pack này dừng ở MD final. Render pptx/docx/xlsx là concern downstream, không thuộc scope. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài. Mục pptx/docx ở dưới (nếu có) là legacy spec, sẽ được dọn ở audit pass tiếp theo.
+> **Render binary policy:** MD final là source of truth, render mọi lần. Pptx (15-slide pitch deck — format chính cho gửi KH) và docx chỉ render khi user **explicit yêu cầu** + đã **confirm style** (xem `system_prompt.md` mục 4 "Render binary — workflow"). Agent KHÔNG tự render binary kể cả khi đoán user sẽ gửi KH. Body font chốt: **Roboto** (fallback Open Sans → Arial). Khi P pack abort ở checkpoint 1 hoặc 2, KHÔNG render binary (đã quy định trong kernel). Binary derive từ MD, không edit độc lập — sửa nội dung phải sửa MD trước rồi re-render.
 
 ## 1. Input từ P pack
 
@@ -520,11 +520,21 @@ Agent KHÔNG ghép checkpoint block vào MD final. Sau khi user confirm cả 2 C
 
 **Bước 15 — Present MD:** xuất nội dung MD trong message (Claude Desktop), user copy/save thủ công.
 
-**Bước 16 — Output cuối:** MD final đã đủ structured để consume bằng tool render bên ngoài. Pack này không tự render binary.
+**Bước 16 — Output cuối:** MD final là source of truth, đã đủ structured. Nếu user explicit yêu cầu pptx (format chính gửi KH) hoặc docx, chuyển sang Bước 17.
 
-## 5. Guide render pptx — 15 slide [LEGACY]
+**Bước 17 — Render binary (chỉ khi user explicit yêu cầu):**
+1. Confirm format đã chọn (pptx / docx)
+2. Confirm style: (a) default theo spec mục 5 (pptx 15-slide / docx) / (b) branded theo info pre-flight / (c) custom user nêu
+3. Apply font: body Roboto, heading Roboto Bold/Medium, monospace Roboto Mono — fallback Roboto → Open Sans → Arial
+4. Render từ MD final (chart YAML build thành chart thật)
+5. Tên file: `stock_pitch_<TICKER>_<YYYYMMDD>.<pptx|docx>`
+6. KHÔNG edit binary độc lập — sửa MD trước rồi re-render
 
-> **Legacy spec — sẽ dọn ở audit pass tiếp theo.** Render pptx out of scope pack này. Giữ lại spec dưới đây làm reference cho việc build tool render bên ngoài.
+Agent KHÔNG được tự render binary trước khi user explicit yêu cầu, kể cả audience cuối là KH.
+
+## 5. Guide render pptx — 15 slide
+
+> **Pptx là format chính cho gửi KH** — render khi user explicit yêu cầu. Workflow: confirm style (default / branded / custom) → apply font Roboto body → render từ MD final. Chi tiết ở `system_prompt.md` mục 4.
 
 Pptx là format gửi KH cuối cùng — render thực hiện downstream với MD final làm input.
 
@@ -563,11 +573,11 @@ Pptx là format gửi KH cuối cùng — render thực hiện downstream với 
 - **Slide 14 ba kịch bản:** không dùng từ "xác suất cao/vừa/thấp". Mỗi kịch bản dùng "Trigger" làm header con
 - **Variant perception:** highlighted với box riêng, có thể dùng quote style hoặc background nhạt
 
-**File output pptx:** `stock_pitch_<TICKER>_<YYYYMMDD>.pptx` (legacy reference).
+**File output pptx:** `stock_pitch_<TICKER>_<YYYYMMDD>.pptx`.
 
-## 6. Guide render docx (optional) [LEGACY]
+## 6. Guide render docx (optional)
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Docx ít dùng — chủ yếu khi user muốn archive formal hoặc gửi qua email với file đính kèm.
 
@@ -602,7 +612,7 @@ File output: `stock_pitch_<TICKER>_<YYYYMMDD>.docx`.
 - [ ] Số liệu định lượng đã quy đổi đơn vị (giá đồng, BCTC tỷ đồng, % thập phân nhân 100, tỷ đồng cho NN/TD)
 - [ ] Mỗi tin có dẫn link, mỗi claim quan trọng có nguồn
 - [ ] File save đúng tên `stock_pitch_<TICKER>_<YYYYMMDD>.md`
-- [ ] Đã hỏi user có cần render pptx không sau khi present MD
+- [ ] Đã present MD final trước; nếu user explicit yêu cầu pptx hoặc docx → đã confirm style (default / branded / custom) + apply font Roboto body trước khi render. KHÔNG tự render binary khi user chưa yêu cầu rõ.
 - [ ] Xuất nội dung MD trong message (Claude Desktop)
 
 ## 8. Output contract
@@ -611,4 +621,4 @@ O pack render structured content P pack sinh thành 1 file MD final theo structu
 
 Khi P pack abort ở checkpoint 1 hoặc 2, **O pack KHÔNG render file** — agent thông báo abort cho user và dừng. Mục đích: tránh sản phẩm half-baked có thể bị gửi nhầm cho KH.
 
-User explicit yêu cầu format khác (pptx / docx) → O pack render bổ sung theo guide mục 5-6. **MD luôn là source of truth** — pptx và docx render từ MD.
+User explicit yêu cầu format khác (pptx / docx) → O pack confirm style với user (default O pack spec mục 5-6 / branded theo info pre-flight / custom user nêu), apply font Roboto body, rồi render theo guide mục 5-6. Agent KHÔNG tự render binary trước khi user yêu cầu rõ. **MD luôn là source of truth** — pptx và docx render từ MD.

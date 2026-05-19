@@ -482,9 +482,9 @@ Khi user yêu cầu render stock memo (ví dụ "xuất memo VNM"):
 
 **Bước 9 — Present file cho user.**
 
-## 7. Guide render docx [LEGACY]
+## 7. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Khi format cuối là docx:
 
@@ -503,9 +503,9 @@ Khi format cuối là docx:
 - Footer có page number + "Memo [TICKER] v[X.Y] — [ngày]"
 - Header optional có logo
 
-## 8. Guide render pptx [LEGACY]
+## 8. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Khi format cuối là pptx (pitch deck 1 mã):
 

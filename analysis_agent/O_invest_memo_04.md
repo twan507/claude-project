@@ -255,9 +255,9 @@ Không có action bắt buộc tuần này. Review tiếp thứ Hai tuần sau.
 
 **Bước 11 — Render format cuối + present file.**
 
-## 5. Guide render docx [LEGACY]
+## 5. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Weekly docx ít dùng, chỉ khi cần archive formal hoặc share meeting thứ Hai.
 
@@ -271,9 +271,9 @@ Weekly docx ít dùng, chỉ khi cần archive formal hoặc share meeting thứ
 - Heading + body + table style (minimal)
 - Footer compact: page + "Weekly [ngày]"
 
-## 6. Guide render pptx [LEGACY]
+## 6. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Weekly pptx **rất hiếm** — monitor operational không pitch được. Chỉ build pptx khi user explicit yêu cầu cho meeting tuần.
 

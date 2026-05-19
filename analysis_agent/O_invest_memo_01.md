@@ -336,9 +336,9 @@ Khi user yêu cầu render market scan:
 
 **Bước 10 — Present file.**
 
-## 6. Guide render docx [LEGACY]
+## 6. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 **Layout:**
 - Cover (trang 1): Title "Market Scan — [ngày]" + logo + regime confirm
@@ -354,9 +354,9 @@ Khi user yêu cầu render market scan:
 - Footer: page number + "Market Scan [ngày]"
 - Header optional: logo
 
-## 7. Guide render pptx [LEGACY]
+## 7. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4 và `O_invest_memo_00.md` Nguyên tắc 1-2-3). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 **Slide layout đề xuất (12-18 slide tuỳ regime):**
 

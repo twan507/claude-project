@@ -70,6 +70,36 @@ Pack độc lập với `P_invest_memo` — user gọi lúc nào cũng được.
 
 **Status:** Active.
 
+### P_invest_strategy
+
+**Mục đích:** Sinh báo cáo **chiến lược đầu tư** VN theo 2 chu kỳ lồng nhau — báo cáo tháng (parent, đầu tháng, hình thành thesis) và báo cáo tuần (child, tracking trong tháng, đọc lại monthly để cập nhật). Horizon 1-3 tháng forward-looking. Khác `P_weekly_market` (đó là báo cáo tổng hợp thông tin); pack này là **định vị chiến lược** — thị trường VN đang ở đâu trong chu kỳ vĩ mô + chu kỳ thanh khoản + chu kỳ định giá, theme nào chi phối, sector nào ưu tiên, kịch bản nào dự phòng, mã nào đại diện theme.
+
+Khung tư duy 6 trục cốt lõi: (1) môi trường vĩ mô & tài chính, (2) định vị thị trường VN, (3) themes & narratives, (4) sector allocation, (5) kịch bản & risk map, (6) high-conviction watchlist. **Structure flex** — sub-section trong từng trục, độ sâu, số theme/sector/mã linh hoạt theo phát hiện thực tế. Không ép số rigid như `P_weekly_market`.
+
+**Chuẩn institutional output:** mỗi theme/sector/mã đều có **conviction level** (HIGH/MID/LOW) + **time horizon** (1m / 1-3m / 3-6m) + **disconfirming signals** ("what would change our mind" — reference field data cụ thể). Trục 4 có sector tilts consolidated table chuẩn buy-side. Trục 6 watchlist có ADV tháng cho liquidity awareness. Review N-1 có Best call / Worst call honesty attribution. Disclaimer có forward-looking statement chuẩn institutional.
+
+**User overlay (PM input):** user có thể inject view ở 3 channel — pre-flight, mid-flow (interrupt session), checkpoint override. Agent xử lý theo matrix 5 trạng thái (Confirm / Partial / Conflict / Flag / Out of scope), không silently override agent finding bằng view user. Báo cáo cuối có badge inline + User overlay log table trong metadata làm audit trail.
+
+**Stage 0 evaluation (đánh giá chiến lược cũ):** cả monthly và weekly mode có optional Stage 0 — agent đọc file báo cáo cũ (N-1 hoặc W-1) user upload, cross-check thesis với actual data từ `agent_db` (giá / dòng tiền / BCTC / vĩ mô), compose eval block 6 phần (monthly) hoặc 4 phần (weekly), present tại Checkpoint 0, user accept / refine / skip carry-forward trước khi build cycle mới. Lưu ý: DB không có collection storage cho báo cáo cũ — chỉ user upload file MD trong session.
+
+**Monthly mode:** workflow 4 stage + 2 checkpoint (Checkpoint 0 sau Stage 0 eval, Checkpoint 1 sau Stage 1 regime/themes). Output 8-12 trang.
+
+**Weekly update mode:** workflow 2 stage + HARD GATE pre-flight. HARD GATE bắt buộc: agent compute hôm nay → tuần thứ [N] của tháng [M/YYYY], hỏi user có monthly active đúng tháng chưa. **Không có monthly → REFUSE chạy weekly**, đề xuất 3 path (chạy monthly trước / dùng `P_weekly_market` / override với note decay). Header báo cáo bắt buộc ghi "Tuần [N] của tháng [M/YYYY]" + link file monthly tham chiếu. Mỗi trục có status Hold / Shift / Materialize; watchlist refresh 4 trạng thái (Hold / Watch closely / Out / Vào mới); 1-2 action item định tính. Output 3-5 trang.
+
+Wording observation/luận điểm, không command (mua/bán/giảm tỷ trọng/stop loss). Watchlist không entry/stop/target/size — chỉ luận điểm theme + signal theo dõi + disconfirming signal + ADV. Kịch bản if-then trigger, không % xác suất. Branding & disclaimer optional, render branded khi user cung cấp ở pre-flight.
+
+Pack độc lập với `P_invest_memo`, `P_weekly_market`, `P_stock_pitch` — không share state. Watchlist ở pack này là theme play observation, khác bản chất với portfolio deep-dive của `P_invest_memo`.
+
+**Master:** `P_invest_strategy_00`
+
+**Trigger:**
+- Monthly: "báo cáo chiến lược tháng", "monthly strategy", "outlook tháng [N]", "chiến lược đầu tư tháng", "định vị thị trường tháng [N]"
+- Weekly update: "update tuần [DD/MM] chiến lược", "weekly strategy update", "cập nhật tuần báo cáo tháng [N]", "weekly check chiến lược"
+
+**Depends:** `K_agent_db`.
+
+**Status:** Active.
+
 ## O — Output packs
 
 ### O_invest_memo
@@ -110,9 +140,21 @@ Khi P pack abort ở checkpoint 1 hoặc 2, O pack KHÔNG render file — tránh
 
 **Status:** Active.
 
-## Render binary — out of scope
+### O_invest_strategy
 
-Pack này dừng ở MD final. Render binary (pptx/docx/xlsx) là concern downstream, không thuộc scope. MD final do O pack xuất ra đã đủ structured (heading hierarchy + chart annotation YAML + citation + locale vi-VN) để consume bằng tool render bên ngoài.
+**Mục đích:** Render spec cho deliverable của pack `P_invest_strategy` — báo cáo chiến lược đầu tư VN, 2 mode (monthly parent + weekly update child). **Flex structure** thay vì rigid: 6 trục H2 cố định nhưng sub-section H3 và độ sâu flex theo phát hiện thực tế của tháng/tuần; trục Hold rút gọn 3-5 dòng, trục signal mạnh đào sâu không giới hạn. Quy định header (plain / branded), layout từng trục, format watchlist (observation only, không level giá), checkpoint block monthly, status badge weekly (Hold / Shift / Materialize), watchlist refresh 4 trạng thái, disclaimer 3 trường hợp (custom / default branded / plain), K hygiene, metadata mỗi mode.
+
+**Master:** `O_invest_strategy_00`
+
+**Trigger:** Activate cùng với `P_invest_strategy` khi user yêu cầu báo cáo chiến lược tháng hoặc weekly update.
+
+**Depends:** `P_invest_strategy`, `K_agent_db`.
+
+**Status:** Active.
+
+## Render binary (pptx / docx / xlsx)
+
+MD final là source of truth. Khi user yêu cầu render binary, agent chạy theo workflow ở `system_prompt.md` mục 4 "Render binary — workflow": xác định style qua (a) O pack render spec, (b) branding info pre-flight, (c) user explicit; nếu không rõ thì hỏi clarify. **Body font chốt: Roboto** (fallback Roboto → Open Sans → Arial). Binary derive từ MD final, không edit độc lập — sửa nội dung phải sửa MD trước rồi re-render.
 
 ## Naming convention tham chiếu
 

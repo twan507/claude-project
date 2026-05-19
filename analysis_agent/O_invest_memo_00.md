@@ -4,7 +4,7 @@ File master của pack `O_invest_memo`. Spec cách render output cho quy trình 
 
 **Pack dependency:** `O_invest_memo` phụ thuộc `P_invest_memo` (workflow produce content) và `K_agent_db` (K hygiene rule + citation pattern). O pack không produce analysis mới — chỉ render content từ state artifacts của P pack thành **MD final**.
 
-> **Render binary out of scope:** Pack này dừng ở MD final. Render pptx/docx/xlsx là concern downstream, không thuộc scope pack. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài. Mục pptx/docx render ở các file con là legacy spec, sẽ được dọn ở audit pass tiếp theo.
+> **Render binary policy:** MD final là source of truth. Pack support 3 format — MD (default, render mọi lần), docx và pptx (chỉ render khi user **explicit yêu cầu** + đã **confirm style** + đã chọn **template** nếu áp dụng). Agent KHÔNG tự render binary kể cả khi đoán user sẽ cần. Body font chốt: **Roboto** (fallback Open Sans → Arial). Chi tiết workflow xem `system_prompt.md` mục 4 "Render binary — workflow". MD và binary phải đồng nhất nội dung — sửa nội dung phải sửa MD trước, không edit binary độc lập.
 
 ## 1. Mục đích & scope
 
@@ -31,31 +31,43 @@ O pack tách **rendering** khỏi **analysis logic**. P pack produce content str
 
 **Nhóm 5 state file (audit log, lessons learned) không cover** — đây là internal doc, giữ dạng MD nội bộ theo P pack quy định, không cần render formal.
 
-## 2. Hai nguyên tắc operational bất biến
+## 2. Ba nguyên tắc operational bất biến
 
 Khác với P pack có default mode, O pack **không có default format, không có default template**. Rendering là user-facing, user phải control explicit.
 
-**Nguyên tắc 1 — Format không mặc định.**
+**Nguyên tắc 1 — Binary chỉ render khi user explicit yêu cầu.**
 
-Khi user yêu cầu produce 1 báo cáo, agent phải xác định format output trước khi render. 3 format supported: MD, docx, pptx.
+3 format supported: MD (default, render mọi lần), docx và pptx (chỉ khi user explicit yêu cầu).
 
-- Nếu user nói rõ ("xuất memo VNM dạng docx", "làm báo cáo tuần, MD thôi") → làm theo
-- Nếu user không nói format → **hỏi trước**, không tự quyết. Câu hỏi dạng ngắn: "Bạn muốn xuất ở format nào — MD, docx, hay pptx?"
-- Không có rule "loại báo cáo A default format X". Mỗi lần render là 1 lần hỏi hoặc 1 lần user chỉ định.
+- MD: render mặc định mỗi lần produce báo cáo — đây là source of truth, agent luôn output MD trước
+- Docx / Pptx: **chỉ render khi user yêu cầu cụ thể** ("xuất pptx cho memo VNM", "render docx báo cáo tuần"). Agent KHÔNG tự render binary, KHÔNG đoán "user chắc sẽ cần pptx vì gửi KH".
+- Nếu user chỉ yêu cầu báo cáo chung chung mà không nói format → render MD, sau đó hỏi: "Đã có MD. Bạn có cần thêm pptx hoặc docx không?"
 
-Lý do: cùng 1 báo cáo có thể user cần MD (copy vào Zalo) hoặc docx (gửi sếp) tuỳ tình huống. Agent không đoán được ý định.
+Lý do: render binary mất thêm thời gian + cần style confirm. Render thừa khi user không cần là lãng phí + có thể không đúng style. MD luôn enough cho 80% use case.
 
-**Nguyên tắc 2 — Template không mặc định.**
+**Nguyên tắc 2 — Style + template không mặc định, phải confirm trước render.**
 
-Khi format là docx hoặc pptx, agent phải hỏi user dùng template nào trong `templates/` folder. 
+Khi user yêu cầu docx hoặc pptx, agent **phải confirm style + template trước khi render**, không tự đoán.
 
-- Nếu user nói rõ ("dùng template_finext_memo_v2.docx") → làm theo
-- Nếu user không nói → **hỏi trước**. Có thể list các template có sẵn trong project knowledge nếu biết, hoặc hỏi: "Bạn muốn dùng template nào cho docx/pptx này?"
-- Không tự pick "template đầu tiên thấy" hoặc "template có tên gần nhất". Không tự build template từ scratch nếu user không chỉ định.
+- Nếu user nói rõ ("dùng template_finext_memo_v2.docx", "pptx style minimal") → làm theo
+- Nếu user không nói → **hỏi trước**, multi-choice 2-3 option:
+  - (a) Default theo file con O pack (vd `O_invest_memo_02` có pptx spec cho stock memo) — mô tả ngắn layout
+  - (b) Branded — recap branding info user đã cung cấp (nếu có pre-flight)
+  - (c) Custom — user nêu yêu cầu cụ thể (layout, màu, cover page, độ chi tiết)
+- KHÔNG tự pick "template đầu tiên thấy" hoặc "template có tên gần nhất". KHÔNG build template từ scratch nếu user không chỉ định.
 
-Lý do: sau này project sẽ có nhiều template brand khác nhau (public report, internal, client-specific). Agent không tự chọn được — user biết rõ audience cuối nên mới pick đúng template.
+Lý do: project có thể có nhiều template brand (public report, internal, client-specific). Agent không tự chọn được — user biết audience cuối.
 
-**Format MD không cần template** — render theo spec content trong file con của pack này là đủ.
+**Nguyên tắc 3 — Body font chốt: Roboto.**
+
+Mọi binary output (docx / pptx) áp font:
+- Body text: **Roboto** (chốt, không override trừ khi user explicit)
+- Heading: Roboto (Bold / Medium weight)
+- Monospace / code: Roboto Mono → Consolas (fallback)
+- Fallback chain nếu Roboto không có: Roboto → Open Sans → Arial
+- KHÔNG dùng Calibri / Times New Roman / system default trừ user explicit override
+
+**Format MD không cần template + không bị áp font rule** (MD là text thuần, font do reader chọn khi mở).
 
 ## 3. Workflow render output
 
@@ -71,9 +83,9 @@ Khi user yêu cầu produce báo cáo, agent thực hiện tuần tự:
 
 Nếu không rõ báo cáo nào → hỏi user clarify.
 
-**Bước 2 — Xác định format.** Theo Nguyên tắc 1. User chỉ định hoặc hỏi.
+**Bước 2 — Xác định format.** Theo Nguyên tắc 1. Default render MD trước; binary chỉ khi user explicit yêu cầu.
 
-**Bước 3 — Xác định template (chỉ docx/pptx).** Theo Nguyên tắc 2.
+**Bước 3 — Xác định style + template (chỉ khi user yêu cầu docx/pptx).** Theo Nguyên tắc 2. Style không rõ → hỏi clarify trước khi render. Font body luôn Roboto theo Nguyên tắc 3.
 
 **Bước 4 — Load state artifacts.** Đọc các file MD gốc mà báo cáo cần (xem bảng ở Phần 1). Nếu state file thiếu hoặc chưa confirmed → báo user, không tự render với data incomplete.
 
@@ -81,9 +93,17 @@ Nếu không rõ báo cáo nào → hỏi user clarify.
 
 **Bước 6 — Compose content MD.** Dù format cuối là gì, **luôn produce MD trước làm nguồn truth**. MD này chứa toàn bộ nội dung + chart annotation dạng YAML block (xem Phần 7). Nếu format cuối là MD → đây là output cuối, không cần render tiếp.
 
-**Bước 7 — Present MD cho user.** Trên Claude Desktop, xuất nội dung MD trong message để user copy/save thủ công. MD final là output cuối — render binary (docx/pptx) là concern downstream, không thuộc scope pack.
+**Bước 7 — Present MD cho user.** Trên Claude Desktop, xuất nội dung MD trong message để user copy/save thủ công. MD final là source of truth — luôn deliver MD trước.
 
-> **Legacy spec:** Phiên bản trước có Bước 7 (render docx/pptx qua skill `/mnt/skills/public/*`) + Bước 8 (`present_files` tool). Đã bỏ ở rev 6 — MD final là output cuối, các tool này không tồn tại trên Claude Desktop.
+**Bước 8 — Render binary (chỉ khi user explicit yêu cầu).** Nếu user yêu cầu pptx hoặc docx:
+1. Confirm format đã chọn (theo Nguyên tắc 1 mục 2)
+2. Confirm template (theo Nguyên tắc 2 mục 2) — nếu chưa có template, hỏi user list template available hoặc gợi ý dùng style chuẩn institutional với Roboto body
+3. Apply font: body Roboto, heading Roboto (Bold/Medium), monospace Roboto Mono — fallback chain Roboto → Open Sans → Arial. Không dùng Calibri / Times New Roman trừ override
+4. Render binary từ MD final (chart annotation YAML build thành chart thật, bảng MD render thành Word/PowerPoint table)
+5. Tên file: `<MD-base>.<docx|pptx>` cùng directory với MD
+6. KHÔNG edit binary độc lập với MD — nếu user yêu cầu thay đổi nội dung sau khi đã render binary, sửa MD trước rồi re-render binary
+
+Agent KHÔNG được tự render binary trước khi user explicit yêu cầu, dù đoán format sẽ phù hợp hơn cho audience cuối.
 
 ## 4. Audience & tone default
 

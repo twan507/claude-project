@@ -4,7 +4,7 @@ Spec render báo cáo tuần thị trường VN. **Rigid structure** — 12 ph�
 
 Reference: `P_weekly_market_00` (workflow + methodology).
 
-> **Render binary out of scope:** Pack này dừng ở MD final. Render pptx/docx/xlsx là concern downstream, không thuộc scope. MD final đã đủ structured (heading + chart YAML + citation + locale) để consume bằng tool render bên ngoài. Mục pptx/docx ở dưới (nếu có) là legacy spec, sẽ được dọn ở audit pass tiếp theo.
+> **Render binary policy:** MD final là source of truth, render mọi lần. Docx và pptx chỉ render khi user **explicit yêu cầu** + đã **confirm style** (xem `system_prompt.md` mục 4 "Render binary — workflow"). Agent KHÔNG tự render binary kể cả khi đoán user cần. Body font chốt: **Roboto** (fallback Open Sans → Arial). Binary derive từ MD, không edit độc lập — sửa nội dung phải sửa MD trước rồi re-render.
 
 ## 1. Input từ P pack
 
@@ -570,9 +570,9 @@ Disclaimer chỉ render ở phần 12, không lặp ở metadata footer. Metadat
 
 **Bước 10 — Present:** xuất nội dung MD trong message (Claude Desktop), user copy/save thủ công.
 
-## 5. Guide render docx [LEGACY]
+## 5. Guide render docx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Docx weekly market report ít dùng — chỉ khi user yêu cầu archive formal hoặc share qua email cho leadership.
 
@@ -589,9 +589,9 @@ Docx weekly market report ít dùng — chỉ khi user yêu cầu archive formal
 - Table style chuẩn
 - Cover page template
 
-## 6. Guide render pptx [LEGACY]
+## 6. Guide render pptx
 
-> Render binary out of scope. Section giữ làm reference cho tool render bên ngoài.
+> **Render khi user explicit yêu cầu + đã confirm style** (xem `system_prompt.md` mục 4). **Body font: Roboto** (fallback Open Sans → Arial). MD final là source of truth — binary derive từ MD, sửa nội dung phải sửa MD trước rồi re-render.
 
 Pptx weekly market hiếm dùng — chỉ khi user explicit yêu cầu cho meeting trình bày.
 
@@ -642,4 +642,4 @@ Pptx weekly market hiếm dùng — chỉ khi user explicit yêu cầu cho meeti
 
 O pack render structured content P pack sinh thành 1 file MD final theo structure rigid 12 phần. Không thêm/bớt nội dung, không tự ý insert section. Khi P pack flag phần rỗng (như phần 2 không có W-1), O pack render 1 dòng note thay phần đó, heading vẫn giữ.
 
-User explicit yêu cầu format khác (docx / pptx) → O pack render bổ sung theo guide mục 5-6. MD luôn là source of truth.
+User explicit yêu cầu format khác (docx / pptx) → O pack confirm style với user (default O pack spec mục 5-6 / branded theo info pre-flight / custom user nêu), apply font Roboto body, rồi render theo guide mục 5-6. Agent KHÔNG tự render binary trước khi user yêu cầu rõ. MD luôn là source of truth — binary derive từ MD.
