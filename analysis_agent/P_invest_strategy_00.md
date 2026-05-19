@@ -58,6 +58,35 @@ Pack 1 file. Toàn bộ workflow + khung tư duy + hướng tìm dữ liệu n�
 
 **Agent được phép merge / split / reorder trục theo phát hiện thực tế của tháng đó.** Khung này là gợi ý, không phải cấu trúc rigid 6 section.
 
+### Weight balance — Trọng số 3 tầng phân tích theo horizon
+
+Đây là rule quan trọng nhất của pack — quyết định signal nào driver chính, signal nào confirmation.
+
+**Monthly horizon (1-3 tháng / 3-6 tháng) — driver chính phải dài hơi:**
+
+| Tầng | Trọng số chỉ định | Loại signal | Lý do |
+|---|---|---|---|
+| **PRIMARY (~60-70%)** | Trục 1 + 3 + một phần Trục 4 | **Vĩ mô** (lãi suất / tỷ giá / FII flow / chu kỳ vĩ mô) + **Cơ bản** (BCTC, tăng trưởng EPS, ROE, biên, định giá vs lịch sử) + **Chính sách** (Nghị quyết / luật / quyết định bộ ngành / chính sách Fed-ECB-PBOC) + **Catalyst dài hơi** (M&A, niêm yết mới, upgrade FTSE/MSCI, mùa BCTC, dividend cycle, capacity online) | Đây là factor có time-to-play-out khớp horizon 1-3 tháng. Re-rating equity, sector rotation lớn, theme dominant tháng — đều dẫn dắt bởi nhóm này. |
+| **SECONDARY (~20-25%)** | Trục 2 + một phần Trục 4 | **Định vị thị trường** (P/E phân vị lịch sử, dòng tiền tuần aggregate 4 tuần, NN tháng/quý, breadth tổng thể, sentiment proxy) | Chu kỳ tâm lý + định vị flow định hướng dòng tiền chung. Trung gian giữa fundamental dài hơi và technical ngắn hạn. |
+| **TERTIARY (~10-15%)** | Một phần Trục 4 + Trục 5 confirmation | **Technical** (technical_zone đa khung, MA, Fibonacci, POC, breadth phiên, money_flow_score tuần đơn lẻ) | Chỉ làm **confirmation timing** cho thesis đã build từ fundamental. KHÔNG để technical làm primary trigger trong báo cáo tháng. |
+
+**Hệ quả thiết kế cho báo cáo tháng:**
+- Trục 5 kịch bản phải dùng trigger **vĩ mô / cơ bản / chính sách / catalyst** (vd "Fed cut 25bp + ECB dovish tone", "BCTC Q1 ngành ngân hàng beat consensus ≥10%", "Nghị quyết gói hỗ trợ tài khoá thông qua"). Technical chỉ confirmation phụ (vd "thêm xác nhận: VNINDEX đóng cửa trên POC quý").
+- Trục 6 watchlist signal theo dõi + disconfirming phải gồm **earnings / catalyst / chính sách / định giá** trước, technical sau.
+- Sector tilts disconfirming signal phải tham chiếu **cơ chế cơ bản** (vd "quặng sắt giảm >15% kéo 1 tháng → biên gộp Q2 ngành thép thu hẹp"), không chỉ technical/flow (vd "industry rank tụt").
+
+**Weekly horizon (tracking 1 tuần) — technical/flow được phép weight cao hơn:**
+
+| Tầng | Trọng số | Loại signal |
+|---|---|---|
+| PRIMARY (~50%) | Vĩ mô shift trong tuần (release CPI, FOMC, Fed speech, chính sách mới) + Catalyst materialize (BCTC release, M&A close, sự kiện trong tuần) |
+| SECONDARY (~30%) | Định vị thị trường shift (dòng tiền tuần, NN tuần, breadth) |
+| TERTIARY (~20%) | Technical (technical_zone shift đa khung, break/giữ vùng quan trọng) — weight cao hơn monthly vì tracking ngắn hạn cần signal nhanh |
+
+Weekly được phép lean technical hơn vì mục đích là track shift ngắn hạn — nhưng anchor vẫn là thesis monthly (vĩ mô/cơ bản/chính sách driver chính). Nếu technical shift mà thesis vĩ mô + cơ bản không thay đổi → status Hold, technical noise tạm thời.
+
+**Self-audit trọng số:** trước khi xuất báo cáo tháng, agent đếm — trong nội dung Trục 5 + 6 + sector tilts, % chỗ dùng signal vĩ mô/cơ bản/chính sách/catalyst so với % chỗ dùng signal technical/flow. Nếu technical > 30% trong báo cáo tháng → re-weight, đào sâu thêm fundamental.
+
 ### Trục 1 — Môi trường vĩ mô & tài chính
 
 **Câu hỏi cốt lõi:** môi trường lãi suất, thanh khoản, tỷ giá, dòng vốn đang **hỗ trợ** hay **siết** equity VN trong 1-3 tháng tới?
@@ -112,13 +141,22 @@ Pack 1 file. Toàn bộ workflow + khung tư duy + hướng tìm dữ liệu n�
 
 **Câu hỏi cốt lõi:** với regime vĩ mô + định vị thị trường + themes chốt được, **ngành nào nên quan tâm**, ngành nào trung tính, ngành nào cần thận trọng tháng/quý tới?
 
-**Lăng kính:**
-- Cross-check 3 trục trên: ngành ở giao của (vĩ mô hỗ trợ + định vị thuận lợi + có theme)
-- Dòng tiền ngành: `industry_snapshot.money_flow_score.week_score` tuần gần + xu hướng 4 tuần, `industry_rank`
-- Định giá ngành: `industry_finstats` P/E/P/B median so với median 3-5 năm — phân vị
-- Tăng trưởng cơ bản ngành: tăng trưởng EPS Q gần nhất, kỳ vọng Q tới (nếu có data)
-- Breadth nội bộ ngành: % mã trong ngành tăng tháng — phân biệt dẫn dắt thật vs trụ kéo
-- Crowding check: cross-reference `market_nntd` aggregate + `industry_snapshot.breadth` để biết ngành đang "consensus crowded" (NN positioning rất nặng, breadth nội bộ rất rộng) hay "contrarian" (ngược lại). Crowded long → rủi ro thoái lui mạnh khi thesis lệch.
+**Lăng kính (theo Weight balance mục 3 — PRIMARY: vĩ mô/chính sách/cơ bản, SECONDARY: định vị/flow, TERTIARY: technical):**
+
+**Lăng kính PRIMARY (đào sâu, là driver chính):**
+- **Cross-check 3 trục trên:** ngành ở giao của (vĩ mô hỗ trợ + chính sách hỗ trợ + có theme + earnings outlook tích cực) → ứng viên quan tâm
+- **Tăng trưởng cơ bản ngành:** `industry_finstats.financial_statements.quarterly` — tăng trưởng EPS / doanh thu / biên gộp Q gần nhất, xu hướng 4-8 quý, kỳ vọng Q tới (nếu data có hoặc web search consensus)
+- **Định giá ngành tương đối lịch sử:** `industry_finstats.valuation_ratios` P/E + P/B median so với median 3-5 năm — phân vị hiện tại (vd P/E ở phân vị 30% = rẻ tương đối, phân vị 80% = đắt). Re-rating opportunity hay risk?
+- **Chính sách / catalyst ngành cụ thể:** Nghị quyết / Luật / Quyết định bộ ngành mới (tham chiếu `news_history_feed` filter sector + web search), mùa BCTC quý nào sắp đến, dividend cycle, M&A pipeline, niêm yết mới
+- **Sensitivity vĩ mô (cross với Trục 1):** ngành nhạy gì (lãi suất / tỷ giá / commodity / chính sách thuế) — tham chiếu `K_agent_db_01` mục F mapping ngành
+
+**Lăng kính SECONDARY (cross-check, không quyết định độc lập):**
+- Dòng tiền ngành: `industry_snapshot.money_flow_score.week_score` tuần gần + xu hướng 4 tuần, `industry_rank` — confirmation cho thesis cơ bản, không quyết định độc lập
+- Breadth nội bộ ngành: `industry_snapshot.breadth` + count `stock_snapshot.change.m_pct > 0` — phân biệt dẫn dắt thật (đa số mã tăng) vs trụ kéo (vài mã lớn kéo)
+- Crowding check: cross-reference `market_nntd` aggregate + `industry_snapshot.breadth` để biết ngành đang "consensus crowded" hay "contrarian". Crowded long → rủi ro thoái lui khi thesis lệch.
+
+**Lăng kính TERTIARY (chỉ làm confirmation timing):**
+- Technical zone đa khung của ngành: `industry_snapshot.technical_zone.overall` — confirmation cho timing entry chứ không quyết định bias. Một ngành có cơ bản tốt + định giá rẻ nhưng technical yếu vẫn quan tâm (entry timing khác), không loại.
 
 **Output diễn giải:** phân tầng định tính (KHÔNG ép số ngành mỗi tầng):
 - **Ngành quan tâm:** cross check cả 3 trục thuận lợi, có theme dẫn dắt rõ
@@ -133,21 +171,25 @@ Mỗi ngành 1 dòng với: tên ngành | bias | conviction (HIGH/MID/LOW) | the
 
 ### Trục 5 — Risk scenarios & contingency
 
-**Câu hỏi cốt lõi:** kịch bản nào có thể **đảo ngược** thesis tháng, signal nào báo hiệu, phản ứng định tính ra sao?
+**Câu hỏi cốt lõi:** kịch bản nào có thể **đảo ngược** thesis tháng, signal **vĩ mô / cơ bản / chính sách / catalyst** nào báo hiệu, phản ứng định tính ra sao?
 
-**Lăng kính:**
+**Lăng kính — TRIGGER PHẢI LÀ MACRO/FUNDAMENTAL/POLICY/CATALYST, không phải break-out kỹ thuật** (theo Weight balance mục 3):
+
 - **3 kịch bản** (không gán % xác suất):
-  - Cơ sở: tiếp diễn xu hướng hiện tại, vùng VNINDEX/sector kỳ vọng
-  - Tích cực: trigger break-out cụ thể → mục tiêu kỹ thuật + theme củng cố
-  - Tiêu cực: trigger break-down cụ thể → vùng hỗ trợ + risk concentration
-- **Risk map** 3-7 rủi ro (flex theo bối cảnh):
-  - Rủi ro vĩ mô (chính sách thắt, tỷ giá shock, geopolitics)
-  - Rủi ro thanh khoản (FII bán ròng kéo dài, margin sale)
-  - Rủi ro sector-specific (commodity shock, chính sách đặc thù)
-  - Rủi ro thesis-specific (theme bị "priced-in" sớm, catalyst delayed)
-- **Mỗi rủi ro:** bản chất → signal materialize (cụ thể) → phản ứng định tính (giảm exposure sector X / chuyển sang defensive / đứng ngoài)
+  - **Cơ sở:** môi trường vĩ mô + chính sách + earnings hiện tại tiếp diễn → thesis tháng vận hành đúng. Vùng VNINDEX/sector kỳ vọng.
+  - **Tích cực:** trigger **vĩ mô/chính sách/catalyst tích cực** cụ thể materialize → re-rating + theme củng cố. Ví dụ trigger: "Fed cắt 25bp + ECB dovish tone tại FOMC tháng tới" / "BCTC Q1 ngành ngân hàng beat consensus ≥10% với NIM cải thiện ≥20bp" / "Nghị quyết gói hỗ trợ tài khoá X nghìn tỷ thông qua" / "FII chuyển sang mua ròng ≥X nghìn tỷ trong tháng sau khi đã bán ròng 3 tháng" / "Brent về dưới 70 USD/thùng kéo 1 tháng → biên gộp thép cải thiện". Technical (vd VNINDEX đóng cửa trên POC quý) chỉ là **confirmation phụ**, KHÔNG phải primary trigger.
+  - **Tiêu cực:** trigger **vĩ mô/chính sách/catalyst tiêu cực** cụ thể materialize → de-rating + theme invalidate. Ví dụ trigger: "Fed phát signal hawkish hơn dự kiến tại FOMC" / "BCTC Q1 nhiều mã top sector miss consensus" / "USD/VND vượt 26800 + NHNN can thiệp >2 tỷ USD" / "Chính sách thắt tín dụng BĐS mới ban hành" / "China stimulus bị delay quý sau". Technical chỉ confirmation.
 
-**Output diễn giải:** 3 kịch bản if-then trigger + risk map. Phục vụ trục 6 (weekly update tracking dùng signals này).
+- **Risk map** 3-7 rủi ro (flex theo bối cảnh), mỗi rủi ro phải **gắn cơ chế cơ bản/vĩ mô/chính sách** (không phải technical/flow đơn thuần):
+  - **Rủi ro vĩ mô:** lãi suất tăng ngoài kỳ vọng, tỷ giá shock, geopolitics, suy thoái Mỹ/EU, China hard-landing
+  - **Rủi ro chính sách:** thắt tín dụng đột ngột, chính sách thuế mới gây bất ngờ, đối thoại chính sách Mỹ-VN xấu đi
+  - **Rủi ro cơ bản:** mùa BCTC Q1 ngành Y miss consensus rộng, biên gộp ngành Z thu hẹp do commodity X
+  - **Rủi ro thanh khoản/flow (secondary):** FII bán ròng kéo dài 2+ tháng, margin call cấp sàn
+  - **Rủi ro thesis-specific:** theme bị "priced-in" sớm, catalyst chính sách delayed sang quý sau
+
+- **Mỗi rủi ro 4 thành phần:** (1) bản chất + cơ chế cơ bản, (2) signal materialize cụ thể (PREFER macro/fundamental signal: vd "CPI YoY tháng N+1 vượt 5%", "EPS Q1 ngành thép giảm >15% YoY") — chấp nhận technical signal làm secondary, (3) phản ứng định tính (giảm exposure / chuyển defensive / đứng ngoài), (4) theme bị invalidate nếu rủi ro materialize.
+
+**Output diễn giải:** 3 kịch bản if-then trigger (macro/fundamental/policy primary, technical confirmation) + risk map. Phục vụ trục 6 + weekly tracking.
 
 ### Trục 6 — High-conviction watchlist (theme play)
 
@@ -161,15 +203,20 @@ Mỗi ngành 1 dòng với: tên ngành | bias | conviction (HIGH/MID/LOW) | the
 **Output diễn giải mỗi mã** (bắt buộc 6 thành phần — chuẩn buy-side watchlist):
 
 1. **Ticker (ngành) — theme đại diện**
-2. **Conviction:** HIGH / MID / LOW (cùng định nghĩa Trục 3 theme — HIGH cần cross-check ≥2 trục đồng thuận + có catalyst rõ + dòng tiền & technical ủng hộ)
+2. **Conviction:** HIGH / MID / LOW (cùng định nghĩa Trục 3 theme — HIGH cần cross-check ≥2 trục đồng thuận + có catalyst cơ bản/chính sách rõ + định giá hợp lý + dòng tiền không ngược chiều)
 3. **Horizon:** 1m / 1-3m / 3-6m (theo timing catalyst materialize của theme)
-4. **Luận điểm** (1-2 câu, observation — không command): cơ chế theme → lý do mã hưởng lợi cụ thể
-5. **Signal theo dõi** (2-3 chỉ báo cụ thể để biết thesis valid): vd "BCTC Q1 tăng trưởng EPS > 20%", "dòng tiền tuần duy trì dương 4 tuần liên tiếp", "vùng kỹ thuật khung tuần giữ trên POC tháng X"
-6. **Disconfirming signal** (1 dòng cụ thể — điều gì invalidate thesis): vd "dòng tiền tuần âm 2 tuần liên tiếp", "vùng kỹ thuật khung tháng tụt khỏi A", "BCTC Q1 EPS growth < 5%"
+4. **Luận điểm** (1-2 câu, observation — không command): cơ chế theme → lý do mã hưởng lợi cụ thể về **cơ bản** (tăng trưởng / biên / chính sách hỗ trợ / catalyst), không chỉ technical
+5. **Signal theo dõi** (3-5 chỉ báo cụ thể — **PREFER cơ bản / catalyst / chính sách / định giá**, technical là phụ):
+   - **Cơ bản (must-have ≥1):** vd "BCTC Q1 EPS growth ≥ 20% YoY", "Biên gộp Q1 cải thiện ≥ 50bp QoQ", "ROE TTM mở rộng từ 15% lên ≥18%", "Doanh thu Q1 vượt consensus ≥ 8%"
+   - **Catalyst / chính sách (must-have ≥1):** vd "Dự án X capacity Y MW online Q2", "Nghị quyết về sector Z thông qua tháng 5", "M&A close công ty con tháng 6", "Ngày chốt cổ tức tiền mặt 7%", "Earnings call ngày DD/MM"
+   - **Định giá (recommended):** vd "P/E forward về 9x vs median 5Y là 13x", "P/B 1.1x vs ngành 1.6x"
+   - **Định vị/flow (secondary):** vd "Dòng tiền tuần duy trì dương ≥ 3/4 tuần", "FII mua ròng tháng"
+   - **Technical (tertiary, confirmation only):** vd "Vùng kỹ thuật khung tháng giữ A trở lên" — chỉ làm confirmation thêm, không phải primary
+6. **Disconfirming signal** (1-2 dòng cụ thể — **PREFER cơ bản / catalyst / chính sách**): vd "BCTC Q1 EPS growth < 5% hoặc miss consensus ≥ 10%", "Biên gộp Q1 thu hẹp ≥ 100bp QoQ", "Dự án X delay sang Q4", "Chính sách Y bị huỷ bỏ". Technical disconfirming chỉ phụ (vd "kèm vùng kỹ thuật khung tháng tụt khỏi A").
 
 **Bắt buộc kèm metadata cuối mỗi entry:** **ADV tháng** (average daily value — `stock_recent.series[0..19].price.trading_value` mean) — bắt buộc hiển thị để user biết liquidity tier (vd "ADV 28 tỷ" = mid-cap liquid; "ADV 6 tỷ" = small-cap sát ngưỡng filter).
 
-**KHÔNG có:** entry zone, stop, target giá, kích thước vị thế, ưu tiên thứ tự. Đây là watchlist quan sát, không phải lệnh.
+**KHÔNG có:** entry zone, stop, target giá, kích thước vị thế, ưu tiên thứ tự. Đây là watchlist quan sát chiến lược, không phải lệnh giao dịch ngắn hạn.
 
 ## 4. Hướng tìm dữ liệu
 
@@ -693,6 +740,7 @@ Chạy checklist trước khi render:
 ### Monthly mode
 1. 6 trục đầy đủ (trục lướt nhanh vẫn có 3-5 dòng kết luận)?
 1b. Nếu user chọn Stage 0 (eval N-1): có checkpoint 0 đã user phản hồi? Eval block đủ 6 phần (Regime/Themes/Sectors/Watchlist/Risk/Calibration)? Carry-forward đã feed vào Stage 1?
+1c. **Weight balance** (theo mục 3): trong nội dung Trục 5 + 6 + sector tilts, signal **vĩ mô/cơ bản/chính sách/catalyst** chiếm ≥ 65% tổng signal sử dụng? Technical/flow ≤ 30%? Nếu technical > 30% → re-weight, đào sâu thêm fundamental trước khi xuất.
 2. Checkpoint 1 regime + themes đã có user phản hồi (confirm/override)?
 3. Sector bias có cross-check 3 trục đầu (vĩ mô + định vị + theme)?
 4. Trục 3 — mỗi theme có đủ 5 thành phần (cơ chế / conviction / horizon / catalyst / disconfirming signals)?
@@ -755,6 +803,7 @@ Pack sinh structured content cho `O_invest_strategy_00` render. Ràng buộc:
 
 **Monthly mode:**
 - 6 trục đầy đủ (kể cả trục Hold không có gì đặc biệt vẫn có 3-5 dòng kết luận)
+- **Weight balance:** Trục 5 kịch bản + Trục 6 watchlist + sector tilts dùng signal vĩ mô/cơ bản/chính sách/catalyst làm PRIMARY (≥65%); technical/flow chỉ confirmation phụ (≤30%). Technical chiếm > 30% → vi phạm contract, re-weight trước khi xuất
 - Stage 0 evaluation (nếu user chọn chạy): có checkpoint 0 user phản hồi, eval block đủ 6 phần, carry-forward feed vào Stage 1
 - Checkpoint 1 regime + themes có user phản hồi trước khi vào Stage 2
 - Trục 3 themes — mỗi theme đủ 5 thành phần (cơ chế / conviction HIGH-MID-LOW / horizon 1m-1to3m-3to6m / catalyst trigger / disconfirming signals)
