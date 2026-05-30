@@ -105,7 +105,7 @@ Không dịch. Lý do: đã quen với giới đầu tư VN hoặc dịch sẽ l
 | Steelmanned (bear case) | term buy-side chuẩn, dịch awkward |
 | Framework | đã thành quy ước học thuật |
 | TP1 / TP2 / SL | viết tắt label trong table/callout |
-| Hold / Shift / Materialize | status keyword chuẩn hoá ở P_vbse_strategy weekly |
+| Hold / Shift | status keyword chuẩn hoá ở P_vbse_strategy weekly (Materialize đã có ở Nhóm B với dịch "hiện thực hoá" cho narrative; ở weekly status badge giữ EN) |
 | intact / partial / deteriorating / fail | status keyword Thesis verification ở quarterly review |
 | HIGH / MID / LOW | conviction tier label trong table |
 | Buy / Pass / Watch / Avoid | recommendation label nội bộ (audience KH → dịch, xem mục 6) |
@@ -127,7 +127,7 @@ Cụm 2+ từ phải lookup nguyên cụm (greedy longest match). Cụm có tron
 | Hard trigger / Soft trigger | Nhóm A — dịch "tín hiệu cứng / mềm" |
 | Time-stop / Take-profit / Stop-loss | Nhóm A (đã có) |
 | Cycle Top / Value Play / Value Trap / Growth at Premium | Nhóm B — dịch theo audience-aware mapping (xem mục 6) |
-| Position sizing | Nhóm A — dịch "định cỡ vị thế" (drop "position", dùng "sizing" nguyên hoặc gộp) |
+| Position sizing | Nhóm A — dịch "định cỡ vị thế" (dùng dịch của Sizing, KHÔNG lặp "vị thế" thêm lần) |
 | Cross-check | Nhóm A (đã có) |
 | Bear case steelmanned | heading section spec — giữ EN (mục 4) |
 
@@ -201,7 +201,7 @@ Viết tắt ratio/metric tài chính + market indicator + central bank: **giữ
 
 ## 6. Audience-aware override — O pack quản
 
-Khi audience cuối là KH (client-facing), một số term có dịch MỀM HƠN. O pack có K hygiene table riêng (vd `O_stock_report_00` mục 5) chốt mapping audience-aware. OUTPUT_MASTER chỉ list các pattern phổ biến để reference:
+Khi audience cuối là KH (client-facing), một số term có dịch MỀM HƠN. Mapping default dưới đây áp khi O pack không có K hygiene table riêng. O pack có table riêng (vd `O_stock_report_00` mục 5) → table đó override mapping này trong scope O pack.
 
 | Term nội bộ (analyst) | Audience KH |
 |---|---|
@@ -215,11 +215,15 @@ Khi audience cuối là KH (client-facing), một số term có dịch MỀM HƠ
 | Disconfirming signal | Tín hiệu cần theo dõi để xem xét lại |
 | Forensic flag | Vấn đề cần lưu ý từ BCTC |
 | Value Play / Value Trap / Growth at Premium / Cycle Top | Định giá hấp dẫn có cơ sở / Định giá hấp dẫn nhưng có rủi ro / Tăng trưởng cao có cơ sở / Định giá đỉnh chu kỳ |
-| TP1 / TP2 / SL số cụ thể | KHÔNG render — chỉ "Tín hiệu xem xét lại quan điểm" |
+| TP1 / TP2 / SL (giá số cụ thể) | KHÔNG render — chỉ "Tín hiệu xem xét lại quan điểm" |
 | Bucket 1/2/3 entry | KHÔNG render — ẩn bucket reference |
-| Bear / Bear case steelmanned | Kịch bản tiêu cực (wording mềm hơn, không "steelmanned") |
+| Bear case (và Bear case steelmanned) | Kịch bản tiêu cực (wording mềm hơn, không "steelmanned") |
 
-**Rule:** Mapping audience-aware là **O pack territory**, không phải OUTPUT_MASTER. OUTPUT_MASTER list pattern phổ biến để analyst reference; O pack có table riêng → áp table riêng đó.
+**Rule:**
+- O pack có K hygiene table riêng cho audience KH → **áp table riêng đó** (override OUTPUT_MASTER trong scope O pack).
+- O pack KHÔNG có table riêng + audience KH → **fall back bảng trên** làm default.
+- Audience nội bộ analyst (default mọi O pack) → **không áp** audience-aware mapping; dùng thẳng glossary Nhóm A/B/C.
+- Khi không rõ audience cuối → hỏi user clarify trước khi render (không tự đoán).
 
 ## 7. Conflict resolution
 

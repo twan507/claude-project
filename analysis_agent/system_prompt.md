@@ -131,13 +131,14 @@ Khi activate pack (K/P/O), **bắt buộc đọc file `_00` master trước khi 
 
 Khi render deliverable cuối (memo, weekly, stock report, strategy), áp glossary chốt ở `OUTPUT_MASTER.md`. File cover:
 
-- **Glossary 3 nhóm:** A dịch luôn (Ticker, Stock, Portfolio, Position, Watchlist, Entry/Exit, Screening, Long/Short, Trend, Signal, Volatility, Recovery, Consolidation, Zone, Take-profit, Stop-loss, Sizing, Allocation, Margin of safety, Cross-check, etc.); B dịch + ngoặc EN lần đầu (Thesis, Conviction, Bucket, Regime, Variant perception, Disconfirming signal, Benchmark, Breadth, Pullback, Materialize, Drawdown, Forensic flag, Red flag); C giữ EN (Memo, Catalyst, Exhaustion, Momentum, Rally, Bounce, Steelmanned, Framework, TP1/TP2/SL, status keyword Hold/Shift/Materialize, intact/partial/deteriorating/fail, HIGH/MID/LOW, Buy/Pass/Watch/Avoid)
+- **Glossary 3 nhóm:** A dịch luôn (Ticker, Stock, Portfolio, Position, Watchlist, Entry/Exit, Screening, Long/Short, Trend, Signal, Volatility, Recovery, Consolidation, Zone, Take-profit, Stop-loss, Sizing, Allocation, Margin of safety, Cross-check, Hard/Soft trigger, ADV, etc.); B dịch + ngoặc EN lần đầu (Thesis, Conviction, Bucket, Bucket entry, Regime, Horizon, Variant perception, Disconfirming signal, Benchmark, Breadth, Pullback, Materialize, Drawdown, Forensic flag, Red flag); C giữ EN (Memo, Catalyst, Exhaustion, Momentum, Rally, Bounce, Steelmanned, Framework, TP1/TP2/SL, status keyword Hold/Shift, intact/partial/deteriorating/fail, HIGH/MID/LOW, Buy/Pass/Watch/Avoid)
+- **Compound term — longest match:** cụm 2+ từ lookup nguyên cụm (vd `Bucket entry` → "nhóm ưu tiên (Bucket entry)", KHÔNG tách "Bucket" ra dịch riêng). Cụm không có trong glossary → giữ cả cụm EN.
 - **Polysemy** — giữ EN khi không phải nghĩa trading/finance (long-term, competitive position, Phase 1/2/3 portfolio, Tier 5C state file, field name DB)
 - **Heading section spec** — heading template chuẩn hoá (## Thesis core, ## Variant Perception, ## Catalysts, ## Bear case steelmanned, ## Exit triggers, etc.) giữ EN dù underlying term thuộc Nhóm A/B
-- **Finance abbreviation** giữ EN toàn bộ (P/E, ROE, NIM, NPL, TTM, YoY, FII, DXY, FOMC, BCTC, etc.)
+- **Finance abbreviation** giữ EN toàn bộ (P/E, ROE, NIM, NPL, TTM, YoY, FII, DXY, FOMC, BCTC, etc. — riêng ADV chuyển Nhóm A dịch "GTGD trung bình")
 - **Audience-aware override** — O pack có K hygiene table riêng cho audience KH (vd `O_stock_report_00` mục 5: Long → "Quan điểm tích cực", Conviction HIGH → "Quan điểm tích cực mạnh", Disconfirming signal → "Tín hiệu cần theo dõi để xem xét lại", TP1/TP2/SL → KHÔNG render) **override** OUTPUT_MASTER trong scope O pack đó
 
-**Thứ tự ưu tiên khi conflict:** O pack K hygiene riêng > heading section spec > polysemy exception > finance abbreviation > Nhóm A/B/C > giữ EN nếu không match.
+**Thứ tự ưu tiên khi conflict:** O pack K hygiene riêng > heading section spec > compound longest match > polysemy exception > finance abbreviation > Nhóm A/B/C > giữ EN nếu không match.
 
 Chỉ áp khi compose **output deliverable cuối** (file user đọc). Không áp K pack, P pack internal pipeline mô tả, code identifier, field name DB, backtick, YAML key.
 
