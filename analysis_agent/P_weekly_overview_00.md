@@ -13,31 +13,26 @@ File này là điểm vào tổng thể pack `P_weekly_overview` — broadcast t
 - (b) Đưa ra **regime call + sector bias + watchlist** cho tuần tới với conviction + horizon + disconfirming signal
 - (c) Format có thể đứng riêng, không cần thesis monthly hay file cũ làm parent
 
-### 1.1. Triết lý fundamental-driven (mượn philosophy từ `P_vbse_strategy_00`)
+### 1.1. Triết lý fundamental-driven supremacy
 
-Pack này adopt **fundamental supremacy** từ `P_vbse_strategy`:
+**Pack này được thiết kế để fundamental-driven nhất có thể.** Mọi quyết định chiến lược trong báo cáo weekly broadcast — regime call, sector bias, 3 kịch bản VNINDEX, risk map, watchlist — đều phải dẫn dắt bằng **vĩ mô / cơ bản / chính sách / catalyst**. Phân tích kỹ thuật (PTKT) **không có vai trò quyết định** trong các trục cốt lõi của báo cáo.
+
+Cụ thể áp dụng cho pack này:
 
 - **Trigger 3 kịch bản VNINDEX phần 9 + Risk map**: primary phải là **vĩ mô / cơ bản / chính sách / catalyst**. Technical chỉ confirmation phụ (≤30% nội dung phần 9).
 - **Sector bias phần 10**: driver chính là cơ bản + flow + catalyst. Technical KHÔNG quyết định bias.
 - **Watchlist phần 10**: luận điểm mã PREFER cơ bản/catalyst/định giá. Technical chỉ làm confirmation observation.
 - **Cap technical toàn báo cáo:** ≤ 15% (trừ phần 9.2 "Vùng giá tham chiếu" là vùng kỹ thuật pure render, không tính).
 
-### 1.2. Quan hệ với `P_vbse_strategy`
+Triết lý này đảo ngược pattern phổ biến của retail VN (technical-first, fundamental sau) — vốn là nguồn alpha leak lớn nhất khi horizon ≥ 1 tuần forward-looking.
 
-| Pack | Khi nào dùng |
-|---|---|
-| `P_weekly_overview` (pack này) | **Broadcast tuần độc lập** — không có thesis monthly, hoặc cần deliverable cho audience broad (KH/Sales), chạy mỗi tuần đều |
-| `P_vbse_strategy` weekly (`_08`) | **Deep tracking** thesis monthly đã chốt — chỉ chạy khi có monthly active, audience PM/analyst |
-
-**Khuyến nghị cross-route:** nếu user đã có monthly thesis active và yêu cầu weekly update deep → recommend dùng `P_vbse_strategy` weekly thay vì pack này.
-
-### 1.3. Wording chung cho cả 2 audience
+### 1.2. Wording chung cho cả 2 audience
 
 Dùng dạng observation/luận điểm phân tích, **không dùng từ command** (mua, bán, giảm tỷ trọng, stop loss). Sector bias diễn đạt "quan tâm / thận trọng". Watchlist mã đề xuất qua luận điểm + catalyst + flow, **không kèm level giá vào/ra/stop**. Cách này đảm bảo:
 - Nội bộ vẫn diễn dịch đủ thành action
 - KH đọc được như góc nhìn phân tích để tự cân nhắc
 
-### 1.4. Negative scope
+### 1.3. Negative scope
 
 - Không đọc state file của `P_invest_memo` (tier 6 portfolio, tier 7 weekly review)
 - Không đọc state file của `P_vbse_strategy` (monthly/weekly cycle)
@@ -74,7 +69,7 @@ Dùng dạng observation/luận điểm phân tích, **không dùng từ command
 
 ## 4. Weight balance — Rule trọng số (BẤT BIẾN)
 
-Mượn principle từ `P_vbse_strategy_00`, adapt cho weekly broadcast:
+Đây là rule quan trọng nhất của pack — quyết định signal nào là driver chính, signal nào chỉ confirmation. Áp dụng cho weekly broadcast horizon:
 
 | Tầng | Trọng số | Phần báo cáo | Loại signal |
 |---|---|---|---|
@@ -186,7 +181,7 @@ Pack có **1 checkpoint duy nhất** (Checkpoint 1), đặt giữa phần 9 và 
 **Quyền override + audit trail:**
 - User có quyền override regime, sector bias, hoặc bổ sung view
 - Override ghi inline note trong phần liên quan của báo cáo cuối
-- Mention trong **User overlay log** ở metadata cuối (mirror `P_vbse_strategy_09`)
+- Mention trong **User overlay log** ở metadata cuối (block ngắn 1-3 dòng tóm tắt view user inject + trạng thái xử lý: confirm / partial confirm / decline + lý do)
 - Pack KHÔNG dùng file `audit_overrides.md` riêng
 
 ## 8. Hướng dẫn dùng trong Claude project

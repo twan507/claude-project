@@ -331,7 +331,7 @@ Length: 0.5-1 trang.
 
 ## 4. Variant Perception rule per depth mode
 
-Đã giải thích concept ở `P_stock_report_00` mục 4 nguyên tắc 8. Apply rule:
+Đã giải thích concept ở `P_stock_report_00` mục 3 nguyên tắc 8. Apply rule:
 
 | Mode | VP requirement | Nếu không có VP |
 |---|---|---|
@@ -479,11 +479,11 @@ Em đã compose draft báo cáo đầy đủ ở phần dưới. Anh:
 (c) Reject — quay lại Stage 2 với hướng khác
 ```
 
-## 8. Bear case strict reject rule (cross-pack convention)
+## 8. Bear case strict reject rule
 
-Áp dụng nguyên tắc 5 của `P_invest_memo` cho pack này:
+Pack áp dụng nguyên tắc: **khi mã có dòng tiền đang mạnh nhưng catalyst ngành/mã đã chuyển tiêu cực (tin xấu chính thức, chính sách siết chặt, hàng hoá đầu vào tăng cấu trúc) → dòng tiền đang priced-in (tin đã phản ánh vào giá) thứ gì đó chưa lộ, hoặc là late money (dòng tiền vào muộn, thường là retail đuổi theo khi đà tăng đã gần hết) sẽ kẹt. Đây là tình huống bẫy retail phổ biến nhất ở thị trường VN. Quy tắc: loại thẳng, không override bằng lý do "dòng tiền mạnh hẳn biết điều gì đó tốt".**
 
-**Nếu pattern "dòng tiền dương + catalyst tiêu cực" → strict reject Long.**
+**Cụ thể trong pack: pattern "dòng tiền dương + catalyst tiêu cực" → strict reject Long.**
 
 - Cụ thể: Stage 1c week_score > 0 + Stage 1g/1h có catalyst tiêu cực material (HIGH impact nhưng dịch sang "tác động mạnh")
 - → Auto downgrade Long thành Watch (không cho phép Long với pattern này)

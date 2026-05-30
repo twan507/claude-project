@@ -67,7 +67,7 @@ Chạy checklist trước khi render. Vi phạm câu nào sửa rồi mới rend
 6. **Cap technical Trục 4 ≤ 5%?** Bảng sector tilts KHÔNG có cột technical_zone làm decision factor?
 7. **Cap technical Trục 5 = 0%?** Mọi trigger 3 kịch bản + risk map là macro/fundamental/policy/catalyst? Technical chỉ confirmation phụ (nếu có)?
 8. **Cap technical Phase 1 Screen Trục 6 = 0%?** Không có mã nào bị loại universe vì technical yếu?
-9. **Phase 2 Bucket entry Trục 6 dùng đúng định nghĩa từ `P_invest_memo_03` mục 5?** Bucket KHÔNG nâng/giảm conviction theme?
+9. **Phase 2 Bucket entry Trục 6 dùng đúng định nghĩa pack-internal ở `_06` mục 4.1?** Bucket KHÔNG nâng/giảm conviction theme? Tier 2 KHÔNG có mã ở Bucket 1?
 
 ### 2.3. Whitelist 18 ngành (Nguyên tắc 3 master)
 
@@ -82,7 +82,14 @@ Chạy checklist trước khi render. Vi phạm câu nào sửa rồi mới rend
 15. Trục 3 — mỗi theme có đủ 5 thành phần (cơ chế / conviction / horizon / catalyst / disconfirming signals)?
 16. Trục 4 — bảng sector tilts tổng hợp với conviction + driver + disconfirming signal mỗi ngành?
 17. Trục 5 — 3 kịch bản dùng if-then trigger, **không có % xác suất**? Risk map mỗi rủi ro đủ 4 thành phần (bản chất / signal materialize / phản ứng định tính / theme bị invalidate)?
-18. Trục 6 — watchlist 5-12 mã, mỗi mã đủ 6 thành phần + ADV tháng + Bucket entry? Không có level giá vào/ra/stop?
+18. Trục 6 — watchlist 20 mã (10 Tier 1 + 10 Tier 2 mặc định; điều chỉnh theo regime), mỗi mã đủ 6 thành phần + Tier marker + ADV tháng + Bucket entry? Không có level giá vào/ra/stop?
+18a. **Tier 1** (10 mã, hoặc 8 Bear regime / 6 quá mua): cơ bản strong + catalyst rõ với ngày + ADV ≥ 5 tỷ + Variant Perception statement mỗi mã?
+18b. **Tier 2** (10 mã, hoặc 12 Bear regime / 14 quá mua): cơ bản clean + technical bottom-fishing setup + ADV ≥ 3 tỷ? KHÔNG có Bucket 1?
+18c. **Negative catalyst gates** áp đúng — HARD reject (audit qualified/adverse, suspended, lãnh đạo sai phạm, BCTC restate material, regulatory action ban kinh doanh) loại hẳn? SOFT reject (BCTC miss 1 quý, chính sách siết một phần, regulatory observation) cap LOW + flag + chỉ Tier 2?
+18d. **Conviction CAP rules** áp đúng — contradict regime → LOW; không catalyst ngày → MID; evidence < 2 trục → MID; consensus crowded → MID; penny stock → LOW + chỉ Tier 2; newly listed → MID?
+18e. **Bear regime mode** (nếu Trục 1 macro negative + Trục 2 định vị "phân phối/suy yếu") — Tier 1 = 8 mã, ≥40% defensive sectors, ADV Tier 1 ≥ 8 tỷ, conviction CAP MID toàn pack, bear case mandatory mỗi Tier 1 mã?
+18f. **Sector diversification** — không > 30% mã/sector ở mỗi tier; Tier 2 đa dạng ≥5 sectors?
+18g. **Risk materialize auto-action** (`_05` mục 4.1): nếu ≥2 risks materialize trong cycle → conviction toàn pack downgrade 1 bậc + flag Executive Summary?
 
 ### 2.5. Review + user overlay
 
@@ -140,7 +147,7 @@ Chạy checklist trước khi render. Vi phạm câu nào sửa rồi mới rend
 
 ### 4.2. Weekly update mode
 
-- **HARD GATE — không có monthly active:** REFUSE chạy weekly, đề xuất 3 path (monthly trước / dùng `P_weekly_overview` / override). Tuyệt đối không silently chạy weekly độc lập — pack không build weekly không có parent thesis.
+- **HARD GATE — không có monthly active:** REFUSE chạy weekly, đề xuất 2 path (monthly trước / override). Tuyệt đối không silently chạy weekly độc lập — pack không build weekly không có parent thesis.
 - **HARD GATE — monthly active của tháng khác:** flag rõ, present 2 path. Nếu user chọn override với monthly cũ, header báo cáo cuối có note "Thesis carry-over từ tháng M-1, đã decay [X] tuần, conviction tổng thể giảm 1 bậc so monthly gốc".
 - **Tuần 1 của tháng (vừa chạy monthly):** không có W-1 → tự động skip Stage 0 eval. Weekly chạy nhẹ vì thesis tươi.
 - **Stage 0 eval phát hiện trục có shift lớn ở W-1 nhưng tuần [N] không tiếp diễn:** ghi rõ "shift W-1 đã reverse, không carry-forward; quay lại baseline monthly".
@@ -156,9 +163,9 @@ Chạy checklist trước khi render. Vi phạm câu nào sửa rồi mới rend
 - **Vi phạm cap technical phát hiện ở self-audit:** re-write trục vi phạm, đào sâu fundamental, KHÔNG render với note "technical hơi cao chấp nhận được". Cap là cap.
 - **User inject view ở tier ngoài 6 trục:** xử lý theo matrix "Out of scope" mục 1.2, đề xuất pack/workflow khác phù hợp.
 
-### 4.4. Trùng pack
+### 4.4. Standalone
 
-- Có thể chạy song song với `P_invest_memo` và `P_weekly_overview`. Independent, không share state. Watchlist của pack này khác bản chất với portfolio của invest_memo (theme play + bucket entry observation vs deep-dive picks có entry/stop/target).
+- Pack standalone — kích hoạt pack này thì dùng pack này thôi, không cross-reference pack khác. Watchlist của pack này dừng ở theme play + bucket entry observation, không cover entry/stop/target/size.
 
 ## 5. Output contract — Monthly mode
 
@@ -172,7 +179,8 @@ Pack sinh structured content cho `O_vbse_strategy_00` render. Ràng buộc bắt
 - **Trục 3 themes** — mỗi theme đủ 5 thành phần (cơ chế / conviction HIGH-MID-LOW / horizon 1m-1to3m-3to6m / catalyst trigger / disconfirming signals)
 - **Trục 4 sector** — bảng tilts tổng hợp 18 ngành với conviction + driver + disconfirming signal mỗi ngành
 - **Trục 5** — 3 kịch bản if-then trigger (macro/fundamental/policy ONLY), không % xác suất; risk map 3-7 rủi ro với theme invalidation cross-link
-- **Trục 6 watchlist 5-12 mã** — mỗi mã 6 thành phần Phase 1 (ticker-ngành-theme / conviction / horizon / luận điểm / signal theo dõi / disconfirming) + ADV tháng + Bucket entry (1/2/3); observation only, không entry/stop/target/size
+- **Trục 6 watchlist 20 mã (10 Tier 1 + 10 Tier 2, điều chỉnh theo regime: Bear 8/12, quá mua 6/14)** — mỗi mã 6 thành phần Phase 1 (ticker-ngành-theme / conviction / horizon / luận điểm / signal theo dõi / disconfirming) + Tier marker + ADV tháng + Bucket entry (1/2/3, Tier 2 không Bucket 1); Tier 1 mandatory Variant Perception; observation only, không entry/stop/target/size
+- **Caution mechanisms áp tự động:** negative catalyst gate (HARD/SOFT), conviction CAP rules, risk materialize auto-action (`_05` mục 4.1), Bear regime mode (`_06` mục 5) khi Trục 1 + Trục 2 đồng thuận bearish
 - **Review N-1** (nếu có) có best call / worst call
 - **User overlay** (nếu có): mỗi view có badge trạng thái xử lý + integrate đúng matrix; metadata có User overlay log
 - **Executive summary** viết cuối, 3-6 bullet, mention user overlay HIGH-conviction hoặc Conflict nếu có

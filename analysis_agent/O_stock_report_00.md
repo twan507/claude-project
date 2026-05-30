@@ -716,6 +716,3 @@ Agent check trước Stage 3 finalize:
 | `K_agent_db_00` mục 5 | K hygiene rules — apply cho mọi render |
 | `K_agent_db_00` mục 6 | Unit conversion rules — apply cho bảng số liệu |
 | System prompt mục 7 | Citation 4 nhóm — apply cho mọi claim |
-| `O_invest_memo_00` | Pattern reference cho render spec memo deep-dive |
-| `O_weekly_overview_00` | Pattern reference cho render spec disclaimer 3 mode |
-| `O_vbse_strategy_00` | Pattern reference cho render spec flex section |

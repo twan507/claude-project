@@ -83,8 +83,6 @@ Số lượng ngành cần thận trọng: 2-3 (flex theo bối cảnh).
 
 Bảng mapping cơ chế chỉ số vĩ mô / commodity → ngành VN trong scope whitelist 18. Pack sử dụng bảng này khi compose phần 5 (sub-section 5.4) và phần 6 (cross-check ngành).
 
-Tham khảo bảng tương tự ở `P_vbse_strategy_04` mục 2.1.e cho consistency cross-pack.
-
 | Chỉ số vĩ mô / Commodity | Ngành whitelist 18 nhạy chính | Hướng tác động |
 |---|---|---|
 | Lãi suất điều hành NHNN | NGANHANG, BDS, CHUNGKHOAN, BANLE | Lãi suất giảm: tích cực ngân hàng (NIM), BĐS (cầu vay), tiêu dùng (sức mua), chứng khoán (margin) |
@@ -113,7 +111,7 @@ Tham khảo bảng tương tự ở `P_vbse_strategy_04` mục 2.1.e cho consist
 
 ## 4. Technical-as-noise rule (cho watchlist + sector bias)
 
-Mượn từ `P_vbse_strategy_00` mục 4.3 + `_08` mục 4. Adapt cho weekly broadcast context:
+Rule pack-internal cho weekly broadcast context — hệ quả của triết lý fundamental-driven supremacy (master mục 1.1):
 
 **Rule:** trong báo cáo weekly_overview, KHI technical signal duy nhất (không kèm signal vĩ mô/cơ bản/chính sách) xuất hiện như lý do để:
 - Upgrade/downgrade sector bias
@@ -186,20 +184,14 @@ Skip phần 2, ghi 1 dòng "Tuần đầu cycle, chưa có dữ liệu review". 
 
 Sau khi xuất block Checkpoint 1, agent dừng. Không tự chuyển Stage 2. Đợi user phản hồi trong session sau cũng được — pack không có timeout.
 
-### 6.6. Trùng pack với `P_invest_memo` / `P_vbse_strategy`
-
-Agent có thể đang trong session đã activate pack khác. Khi user trigger weekly overview report, activate thêm `P_weekly_overview` song song. Pack độc lập, không share state, không conflict — chỉ chia sẻ `K_agent_db`.
-
-**Lưu ý cross-route:** nếu user đã có thesis monthly active của `P_vbse_strategy` và muốn deep tracking → recommend dùng `P_vbse_strategy_08` weekly thay vì pack này. Pack này phục vụ broadcast standalone (xem `P_weekly_overview_00` mục 1.2).
-
-### 6.7. Tuần thị trường yếu toàn diện
+### 6.6. Tuần thị trường yếu toàn diện
 
 Nếu top 10 dòng tiền phần 7 chứa mã có điểm dòng tiền tuần âm hoặc bằng 0:
 - Vẫn render bảng đầy đủ 10 mã
 - Ghi note honest: "Tuần thị trường yếu toàn diện, danh sách top 10 dòng tiền có mã điểm dòng tiền âm hoặc bằng 0 — đây là 'ít yếu nhất' chứ không phải dẫn dắt thực sự."
 - Phần 7.x cảnh báo trap setup vẫn render nếu detect được
 
-### 6.8. Ngành whitelist 18 thay đổi giữa cycle
+### 6.7. Ngành whitelist 18 thay đổi giữa cycle
 
 User thêm/bỏ ngành trong whitelist: áp dụng từ tuần kế tiếp, không retroactive trong báo cáo hiện tại. Ghi rõ trong metadata "whitelist update [DD/MM]".
 

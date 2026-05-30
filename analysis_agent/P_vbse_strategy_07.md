@@ -98,7 +98,7 @@ Agent parse file MD N-1, extract đầy đủ:
 - Sector bias (quan tâm / trung tính / thận trọng — kèm conviction từng ngành)
 - 3 kịch bản VNINDEX (trigger từng kịch bản)
 - Risk map (3-7 rủi ro + signal materialize)
-- Watchlist 5-12 mã (luận điểm + signal theo dõi + disconfirming signal + ADV tại thời điểm N-1)
+- Watchlist 20 mã (10 Tier 1 + 10 Tier 2, có thể 8/12 hoặc 6/14 nếu Bear regime hoặc quá mua — luận điểm + signal theo dõi + disconfirming signal + ADV tại thời điểm N-1)
 
 **Bước 2 — Query actual data tháng N-1 từ agent_db:**
 
@@ -214,7 +214,7 @@ Compose trục 4 (sector allocation, detail → `P_vbse_strategy_04`) cross-chec
 1. List 18 ngành whitelist (xem `P_vbse_strategy_00` Nguyên tắc 3 + `K_agent_db_01` Section B) — đọc bảng cross-section (dòng tiền rank, biến động tháng, định giá)
 2. Highlight ngành ở giao của (vĩ mô thuận lợi + định vị thuận lợi + có theme) → ứng viên quan tâm
 3. Highlight ngành ngược lại (vĩ mô áp lực + định vị xấu + không theme) → ứng viên thận trọng
-4. Kiểm tra dẫn dắt thật vs trụ kéo (đếm % mã trong ngành tăng giá tháng) — quy tắc giống `P_weekly_overview_04` mục 2.2 (đa số mã tăng = dẫn dắt thật, vài mã lớn kéo = trụ kéo, gần 50/50 = rotation nội bộ)
+4. Kiểm tra dẫn dắt thật vs trụ kéo (đếm % mã trong ngành tăng giá tháng) — đa số mã tăng = dẫn dắt thật, vài mã lớn kéo = trụ kéo, gần 50/50 = rotation nội bộ
 5. Phân tầng cuối: quan tâm / trung tính / cần thận trọng (số ngành flex theo regime — environment thuận lợi rộng thì 4-6 ngành quan tâm, môi trường khó thì 2-3 ngành defensive)
 
 **Risk framework flow:**
@@ -226,11 +226,13 @@ Compose trục 4 (sector allocation, detail → `P_vbse_strategy_04`) cross-chec
 
 **Watchlist:**
 
-Watchlist build qua 2 phase: Phase 1 Screen cơ bản-only, Phase 2 Bucket entry — chi tiết `P_vbse_strategy_06`. Stage 3 monthly chỉ orchestrate, không lặp lại spec.
+Watchlist build qua 2-tier × 2-phase: Tier 1 Priority (10 mã, cơ bản strong + catalyst rõ + ADV ≥5 tỷ) + Tier 2 Standby (10 mã, cơ bản clean + technical bottom-fishing + ADV ≥3 tỷ). Phân bổ Bear regime mode (8/12) hoặc Trục 2 quá mua (6/14). Chi tiết `P_vbse_strategy_06`. Stage 3 monthly chỉ orchestrate, không lặp lại spec.
 
-Cho mỗi ngành quan tâm + theme đại diện, screen mã:
-- `stock_snapshot` filter industry, sort theo combo `money_flow_score.week_score` + `technical_zone.overall.w/m` ∈ (A, AA, AAA) + thanh khoản ≥ 5 tỷ/phiên trung bình tháng
-- Top 1-3 mã/ngành, total 5-12 mã
+Cho mỗi ngành quan tâm + theme đại diện, screen mã theo 2-tier filter:
+- **Tier 1:** `stock_snapshot` + `stock_finstats` filter industry, ưu tiên cơ bản strong (EPS YoY ≥15% / doanh thu YoY ≥10% / biên cải thiện / ROE ngành) + catalyst rõ với ngày + thanh khoản ≥ 5 tỷ/phiên + negative catalyst gate clean
+- **Tier 2:** `stock_snapshot` + `stock_finstats` filter industry, cơ bản clean (no red flag) + technical bottom-fishing setup (zone q/y tích cực + w/m pullback) + thanh khoản ≥ 3 tỷ/phiên + negative catalyst gate clean
+
+Đa dạng sector cả 2 tier (không > 30% mã/sector). Áp Conviction CAP rules + Variant Perception mandatory Tier 1 + Bear regime mode nếu trigger.
 
 Mỗi mã 2-4 dòng theo spec trục 6 (`P_vbse_strategy_06`).
 

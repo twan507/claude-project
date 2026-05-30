@@ -2,7 +2,7 @@
 
 File này cover compose **phần 6-9** của báo cáo `weekly_overview`. Dependency: master `P_weekly_overview_00` cho philosophy (fundamental-driven supremacy) + weight balance + Nguyên tắc 1 (fundamental trigger bắt buộc). Phần 2-5 ở `_01`, checkpoint + phần 10-12 + phần 1 ở `_03`, methodology ở `_04`. Render qua `O_weekly_overview_00`.
 
-> **CRITICAL CALLOUT — Phần 9 trigger:** 3 kịch bản VNINDEX **BẮT BUỘC trigger primary là vĩ mô / cơ bản / chính sách / catalyst**. Technical chỉ confirmation phụ (≤30% nội dung phần 9.3). Mirror `P_vbse_strategy_05`. Vi phạm = re-write trước khi render. Đây là khác biệt cốt lõi so với pack `P_weekly_market` cũ.
+> **CRITICAL CALLOUT — Phần 9 trigger:** 3 kịch bản VNINDEX **BẮT BUỘC trigger primary là vĩ mô / cơ bản / chính sách / catalyst**. Technical chỉ confirmation phụ (≤30% nội dung phần 9.3). Vi phạm = re-write trước khi render. Đây là khác biệt cốt lõi so với pack `P_weekly_market` cũ.
 
 ## 1. Phần 6 — Biến động 18 ngành whitelist
 
@@ -209,7 +209,7 @@ Bảng kháng cự + hỗ trợ 4 khung (tuần / tháng / quý / năm), mỗi k
 
 ### 4.6. Sub-section 9.3 — Ba kịch bản tuần tới (REWRITE fundamental-driven)
 
-**Trigger primary BẮT BUỘC là macro / fundamental / policy / catalyst** (theo Nguyên tắc 1 master + mirror `P_vbse_strategy_05`). Technical chỉ confirmation phụ ≤30% nội dung phần này.
+**Trigger primary BẮT BUỘC là macro / fundamental / policy / catalyst** (theo Nguyên tắc 1 master). Technical chỉ confirmation phụ ≤30% nội dung phần này.
 
 #### Kịch bản cơ sở
 - **Trigger primary (macro/fundamental/policy):** vd "Fed giữ rates + lãi suất liên ngân hàng VN ổn định 4.5-5% + không có shock chính sách + tin trong nước trung tính + flow FII đi ngang"
@@ -241,7 +241,7 @@ Bảng kháng cự + hỗ trợ 4 khung (tuần / tháng / quý / năm), mỗi k
 - **Phản ứng định tính:** [vd "giảm exposure ngành X" / "chuyển defensive" / "đứng ngoài chờ" — KHÔNG dùng từ command trực tiếp]
 - **Theme/sector bị invalidate (cross-link Phần 10):** [list nếu có — đây là dòng MỚI, cross-link với phần 10 sector bias + watchlist]
 
-3-7 rủi ro tổng. Mirror `P_vbse_strategy_05` mục 4.
+3-7 rủi ro tổng (flex theo bối cảnh, không ép số). Mỗi rủi ro PHẢI gắn cơ chế cơ bản / vĩ mô / chính sách (không phải technical/flow đơn thuần). 5 nhóm rủi ro tham chiếu: rủi ro vĩ mô (lãi suất, FX, geopolitics, suy thoái Mỹ/EU, China hard-landing); rủi ro chính sách (thắt tín dụng đột ngột, thuế mới, đối thoại Mỹ-VN xấu đi); rủi ro cơ bản (mùa BCTC miss, biên gộp ngành thu hẹp do commodity); rủi ro thanh khoản/flow (FII bán ròng kéo dài 2+ tháng, margin call cấp sàn); rủi ro thesis-specific (theme priced-in sớm, catalyst chính sách delay).
 
 ### 4.8. Cap technical phần 9
 

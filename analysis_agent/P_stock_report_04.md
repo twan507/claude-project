@@ -210,7 +210,7 @@ Dưới ngưỡng pass → quay lại Bước 1 hoặc 2 Stage 2.
 ### 2.7. ETF / Quỹ / Mã không phải doanh nghiệp đơn
 
 **Handling rule:** REFUSE phân tích — pack chỉ hỗ trợ single-stock equity. Đề xuất user:
-- ETF VN30 → đề xuất phân tích theo `P_weekly_overview` market-level
+- ETF VN30 → cần công cụ phân tích market-level riêng (ngoài scope pack)
 - Quỹ mở / ETF ngành → đề xuất search sell-side reports + IR factsheet quỹ
 
 ### 2.8. Penny stock / Mã rất nhỏ
@@ -463,15 +463,12 @@ stock_report_HPG_20260530_deep.md
 stock_report_VCBvsACB_20260530_pair_standard.md
 ```
 
-## 5. Cross-pack interaction summary
+## 5. Dependencies summary
 
 | Pack | Quan hệ với P_stock_report |
 |---|---|
 | **K_agent_db** | Mandatory dependency — schema + query patterns + methodology + K hygiene |
 | **K_sector_framework** | Recommended dependency — pull cho Phần 3 (industry context) + Phần 2 (sub-type context) |
-| **P_invest_memo** Tier 5C | Complement — pack này dùng pre-screening hoặc pitch nhanh, Tier 5C dùng full conviction memo cycle |
-| **P_vbse_strategy** Trục 6 watchlist | Pack này có thể reference các mã trong watchlist khi user hỏi standalone |
-| **P_weekly_overview** Phần 7/10 | Pack này có thể được cite trong weekly nếu có sẵn report về mã top dẫn dắt / watchlist |
 | **O_stock_report** | Mandatory dependency ở Stage 3 — render spec |
 
 ## 6. Limitations + Honest disclosure
@@ -486,5 +483,5 @@ Pack có giới hạn cố hữu:
 6. **Sector framework chỉ cover 12/18 ngành whitelist trực tiếp** — 6 ngành còn lại dùng universal framework (xem `K_sector_framework`)
 7. **Web search có thể timeout / partial result** — agent note rõ trong audit trail
 8. **Forensic depth phụ thuộc PDF quality** — PDF scan-only OCR có thể miss số liệu
-9. **Pack độc lập với DCF chuyên sâu** — nếu user cần valuation DCF chi tiết, dùng `P_invest_memo_06` Tier 5B Valuation Modeling
+9. **Pack độc lập với DCF chuyên sâu** — pack không cover valuation DCF chi tiết, chỉ valuation multiples + peer compare
 10. **Audience giả định analyst nội bộ hoặc KH có background đầu tư** — không phục vụ retail thuần chưa có chứng chỉ

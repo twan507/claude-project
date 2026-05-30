@@ -511,7 +511,13 @@ Bảng kháng cự + hỗ trợ 4 khung:
 
 ### 10.4. Bucket entry (OPTIONAL — chỉ render khi user request)
 
-[Nếu user yêu cầu "thêm bucket entry cho watchlist", thêm cột Bucket (1/2/3) cho mỗi mã 10.2 + 10.3 với định nghĩa theo `P_invest_memo_03` mục 5. Default OFF — không render trừ khi explicit request.]
+[Nếu user yêu cầu "thêm bucket entry cho watchlist", thêm cột Bucket (1/2/3) cho mỗi mã 10.2 + 10.3 theo định nghĩa sau. Default OFF — không render trừ khi explicit request.]
+
+| Bucket | Điều kiện | Observation |
+|---|---|---|
+| **1 — Vào ngay được** | zone w ∈ {A, AA, AAA} VÀ zone m ∈ {A, AA, AAA} VÀ week_score ≥ 6 | Momentum đa khung đồng thuận. |
+| **2 — Chờ xác nhận (pullback)** | zone q ∈ {A, AA, AAA} HOẶC zone y ∈ {A, AA, AAA} NHƯNG zone w HOẶC m ∈ {B, C} | Uptrend dài hạn còn nguyên, ngắn hạn pullback. |
+| **3 — Watchlist (chưa sẵn)** | zone q ∈ {A, AA, AAA} HOẶC zone y ∈ {A, AA, AAA} NHƯNG zone w VÀ m ĐỀU ∈ {C} | Pullback sâu, chờ phục hồi. |
 
 **Wording rules toàn phần 10:**
 - KHÔNG dùng từ command: "mua / bán / giảm tỷ trọng / stop loss / target"

@@ -12,11 +12,11 @@ File này là điểm vào tổng thể của pack `P_vbse_strategy` — quy tr�
 - Chốt 2-5 themes & narratives chi phối tháng/quý tới
 - Đề xuất sector allocation (ngành quan tâm / trung tính / cần thận trọng)
 - Build risk framework đa kịch bản với trigger signal cụ thể
-- Đưa watchlist 5-12 mã đại diện theme — kèm **bucket entry timing** (observation, không level giá)
+- Đưa watchlist **20 mã** đại diện theme (10 Priority Tier 1 + 10 Standby Tier 2) — kèm **bucket entry timing** (observation, không level giá)
 
-**Khác biệt cốt lõi với `P_weekly_overview`:** pack này KHÔNG phải báo cáo tổng quan thị trường tuần. Đây là báo cáo **định vị chiến lược** — VN đang ở đâu trong chu kỳ, theme nào chi phối, sector nào ưu tiên, kịch bản nào dự phòng, mã nào đại diện theme.
+**Scope cốt lõi:** pack này là báo cáo **định vị chiến lược** — VN đang ở đâu trong chu kỳ, theme nào chi phối, sector nào ưu tiên, kịch bản nào dự phòng, mã nào đại diện theme. Pack standalone — kích hoạt pack này thì dùng pack này, không cross-reference pack khác.
 
-**Khác biệt với `P_invest_memo`:** invest_memo build deep-dive memo 7 phần cho từng mã trước khi vào position (có target giá, exit trigger, sizing). Pack này dừng ở mức **watchlist quan sát chiến lược** — luận điểm theme, signals theo dõi, bucket entry timing; không có entry/stop/target/size.
+**Scope dừng ở watchlist quan sát chiến lược:** luận điểm theme, signals theo dõi, bucket entry timing. KHÔNG cover entry/stop/target/size — đó là phạm vi khác, không nằm trong pack này.
 
 ### 1.1. Triết lý fundamental-driven supremacy
 
@@ -52,8 +52,8 @@ Khung tư duy tổng quát, structure flex theo phát hiện thực tế của t
 
 ### 1.5. Negative scope
 
-- Không phải báo cáo tổng quan thị trường tuần — đó là job của `P_weekly_overview`.
-- Không phải pipeline screen + deep-dive mã cụ thể cho portfolio — đó là job của `P_invest_memo`. Watchlist ở pack này dừng ở mức luận điểm theme + bucket entry (5-12 mã observation), không có entry/stop/target/size.
+- Không phải báo cáo tổng quan thị trường tuần.
+- Không phải pipeline screen + deep-dive mã cụ thể cho portfolio. Watchlist ở pack này dừng ở mức luận điểm theme + bucket entry (20 mã observation, chia 2 tier), không có entry/stop/target/size.
 - Không khuyến nghị giao dịch ngắn hạn (intraday, T+) — horizon 1-3 tháng forward.
 - Không gán % xác suất kịch bản (tuân `K_agent_db_00` mục 4.3).
 - Không dùng từ command (mua/bán/giảm tỷ trọng/stop loss) — diễn đạt qua observation/luận điểm.
@@ -77,12 +77,18 @@ Khung tư duy tổng quát, structure flex theo phát hiện thực tế của t
 | **Conviction** | HIGH / MID / LOW — mức tự tin về theme/sector/mã. HIGH = cơ chế rõ + catalyst materialize + cross-check ≥2 trục đồng thuận. |
 | **Sector tilt** | Phân tầng định tính ngành: quan tâm / trung tính / cần thận trọng. Không dùng "overweight/underweight" để tương thích cả audience nội bộ và KH. |
 | **Whitelist 18 ngành** | Pack chỉ phân tích 18 ngành trong scope (xem `K_agent_db_00` mục 4.5 + `K_agent_db_01` Section B). Các ngành ngoài whitelist không xuất hiện trong báo cáo. |
-| **Watchlist 5-12 mã** | Output Trục 6 — mã đại diện theme & sector bias. Observation only, không entry/stop/target. |
-| **Phase 1 Screen** | Bước chọn universe watchlist — **cơ bản + catalyst + thanh khoản only, cấm PTKT**. |
-| **Phase 2 Bucket entry** | Bước phân entry timing cho mã đã chọn — **PTKT đa khung làm tiêu chí** (Bucket 1 vào ngay / Bucket 2 chờ pullback / Bucket 3 watchlist). Tham khảo `P_invest_memo_03` mục 4 cho định nghĩa bucket. |
-| **Bucket 1** | Technical_zone w/m ∈ (A, AA, AAA) + dòng tiền tuần tích cực → vào ngay khi catalyst materialize. |
+| **Watchlist 20 mã (2 tier)** | Output Trục 6 — mã đại diện theme & sector bias. Chia Tier 1 (10 Priority) + Tier 2 (10 Standby). Observation only, không entry/stop/target. |
+| **Tier 1 — Priority picks** | 10 mã ưu tiên cao. Cơ bản strong + catalyst rõ với ngày + ADV ≥ 5 tỷ. Conviction HIGH/MID. Bucket 1/2/3 áp dụng đầy đủ. |
+| **Tier 2 — Standby picks** | 10 mã chờ thời cơ. Cơ bản clean (no red flag) + KHÔNG catalyst tiêu cực + ADV ≥ 3 tỷ + technical setup bottom-fishing. Conviction MID/LOW (cap MID). KHÔNG có Bucket 1. |
+| **Phase 1 Screen** | Bước chọn universe watchlist — Tier 1: cơ bản strong + catalyst + thanh khoản. Tier 2: cơ bản clean + no negative catalyst + technical bottom-fishing setup. |
+| **Phase 2 Bucket entry** | Bước phân entry timing cho mã đã chọn — **PTKT đa khung làm tiêu chí** (Bucket 1 vào ngay / Bucket 2 chờ pullback / Bucket 3 watchlist). Định nghĩa pack-internal ở `P_vbse_strategy_06` mục 4.1. |
+| **Bucket 1** | Technical_zone w/m ∈ (A, AA, AAA) + dòng tiền tuần tích cực → vào ngay khi catalyst materialize. **Chỉ Tier 1.** |
 | **Bucket 2** | Technical_zone q/y tốt nhưng w/m đang B/C → chờ pullback xác nhận. |
 | **Bucket 3** | Chỉ q/y tích cực, w/m yếu → watchlist, chưa vào, đợi technical bật. |
+| **Bear regime mode** | Mode đặc biệt Trục 6 khi Trục 1 macro negative + Trục 2 định vị "phân phối/suy yếu" (chỉ dùng vĩ mô, không PTKT). Tier 1 giảm 8 mã (≥40% defensive), Tier 2 mở 12 mã. Conviction cap MID toàn pack. Bear case mandatory mỗi Tier 1 mã. |
+| **Negative catalyst gate** | HARD reject (loại hẳn): audit qualified/adverse/disclaimer, suspended, lãnh đạo sai phạm, BCTC restate material > 30%, regulatory action ban kinh doanh. SOFT reject (cap LOW + flag + chỉ Tier 2): BCTC miss 1 quý < 20%, chính sách siết một phần, regulatory observation, commodity tiêu cực ngắn hạn, kế toán bất thường 1 lần. |
+| **Conviction CAP rules** | Bộ rule cấu trúc chống HIGH conviction inflation: contradict regime → LOW; không catalyst ngày → MID; evidence < 2 trục → MID; consensus crowded → MID; penny stock → LOW + chỉ Tier 2; newly listed → MID; Bear regime → MID toàn pack. |
+| **Variant Perception** | Mandatory chỉ Tier 1: mỗi mã 1 dòng "consensus đang nghĩ X" + "thesis này khác ở Y". Consensus trùng → flag "consensus crowded" + cap MID. Tier 2 không bắt buộc. |
 | **6 trục cốt lõi** | Spine báo cáo: Vĩ mô / Định vị / Themes / Sector / Risk / Watchlist (chi tiết `P_vbse_strategy_01` đến `06`). |
 | **Weight balance** | Rule trọng số signal theo tầng PRIMARY (vĩ mô/cơ bản/chính sách/catalyst) ≥ SECONDARY (định vị/flow) > TERTIARY (technical). Mục 4 dưới đây. |
 | **Checkpoint (CP)** | Điểm dừng bắt buộc — agent xuất block ngắn, user confirm/override trước khi qua stage kế. Monthly có CP0 + CP1; Weekly có CP0. |
@@ -161,7 +167,7 @@ RENDER SPEC (O_vbse_strategy_00) — output MD final
 | `P_vbse_strategy_03` | Trục 3 Themes — 5 thành phần mỗi theme, web search heavy | Build Trục 3 |
 | `P_vbse_strategy_04` | Trục 4 Sector — PRIMARY cross 3 trục + BCTC + định giá + catalyst, SECONDARY flow, **bỏ TERTIARY technical**. Whitelist 18 ngành integration. | Build Trục 4 |
 | `P_vbse_strategy_05` | Trục 5 Risk — 3 kịch bản if-then (trigger macro/fundamental/policy ONLY) + risk map 3-7 rủi ro | Build Trục 5 |
-| `P_vbse_strategy_06` | Trục 6 Watchlist 2 phase — Phase 1 Screen (cơ bản-only) + Phase 2 Bucket entry (PTKT-driven). Bucket 1/2/3 reference invest_memo_03. | Build Trục 6 |
+| `P_vbse_strategy_06` | Trục 6 Watchlist 2-tier 20 mã — Tier 1 Priority (10) + Tier 2 Standby (10). Phase 1 Screen (cơ bản + negative catalyst gate) + Phase 2 Bucket entry (PTKT-driven). Bear regime mode khi market xấu. Bucket 1/2/3 định nghĩa pack-internal. | Build Trục 6 |
 | `P_vbse_strategy_07` | Workflow Monthly — Pre-flight, Stage 0 eval N-1, CP0, Stage 1-3, CP1, render | Chạy monthly cycle |
 | `P_vbse_strategy_08` | Workflow Weekly Update — HARD GATE pre-flight, Stage 0 eval W-1, Stage 1 tracking 6 trục với technical-as-noise rule, render | Chạy weekly cycle |
 | `P_vbse_strategy_09` | User overlay (3 channel + matrix 5 trạng thái) + Self-audit (16 item monthly / 8 item weekly với cap technical siết) + Edge cases + Output contract | Trước render + khi user inject view |
@@ -176,7 +182,7 @@ RENDER SPEC (O_vbse_strategy_00) — output MD final
 | 3 — Themes | 2-5 câu chuyện lớn nào chi phối 1-3 tháng tới? | Chính sách + sự kiện vĩ mô + mùa BCTC + M&A + commodity cycle | `news_history_feed` + web search heavy |
 | 4 — Sector | Ngành nào quan tâm / trung tính / thận trọng (whitelist 18)? | Cross 3 trục + BCTC ngành + định giá phân vị + catalyst | `industry_finstats`, `industry_snapshot`, `industry_recent`, `news_history_feed` |
 | 5 — Risk | Kịch bản nào đảo ngược thesis? Trigger nào báo hiệu? | Macro / fundamental / policy trigger **only** | `other_data` + `industry_finstats` + `news_history_feed` + web |
-| 6 — Watchlist | 5-12 mã đại diện theme. Phase 1 Screen (cơ bản) + Phase 2 Bucket (PTKT timing) | Phase 1: cơ bản + catalyst + ADV. Phase 2: technical_zone đa khung | `stock_snapshot`, `stock_finstats`, `stock_recent`, `stock_nntd`, `news_history_feed` |
+| 6 — Watchlist | 20 mã đại diện theme (10 Tier 1 + 10 Tier 2). Phase 1 Screen 2-tier + Phase 2 Bucket (PTKT timing) + Bear regime mode | Tier 1: cơ bản strong + catalyst + ADV ≥5 tỷ. Tier 2: cơ bản clean + technical bottom-fishing + ADV ≥3 tỷ. Phase 2: technical_zone đa khung | `stock_snapshot`, `stock_finstats`, `stock_recent`, `stock_nntd`, `news_history_feed` |
 
 ### 5.4. Bảng tóm tắt 2 workflow
 
@@ -214,6 +220,17 @@ Mỗi theme (Trục 3), mỗi sector tilt (Trục 4), mỗi mã watchlist (Trụ
 **Nguyên tắc 6 — Mỗi stage kết thúc bằng checkpoint, agent không tự chuyển stage.**
 
 Monthly: CP0 sau Stage 0 eval (nếu chạy), CP1 sau Stage 1 build thesis. Weekly: CP0 sau Stage 0 eval (nếu chạy). User confirm/override/refine trước khi qua stage kế. Override ghi inline note trong trục liên quan của báo cáo cuối.
+
+**Nguyên tắc 7 — Caution mechanisms khi market xấu (bắt buộc).**
+
+Pack có 4 cơ chế caution structural để chống bias buy/HIGH conviction khi thị trường xấu:
+
+1. **Negative catalyst gate (Trục 6 mục 2.2.e + 2.3.d-e):** HARD reject (audit qualified/adverse, suspended, lãnh đạo sai phạm, BCTC restate material, regulatory action) → loại hẳn. SOFT reject (BCTC miss 1 quý, chính sách siết một phần, regulatory observation) → cap LOW + flag + chỉ Tier 2.
+2. **Conviction CAP rules (Trục 3 mục 3 + Trục 4 mục 4.1 + Trục 6 mục 3):** contradict regime → LOW; không catalyst ngày → MID; evidence < 2 trục → MID; consensus crowded → MID + flag; penny stock → LOW; newly listed → MID.
+3. **Risk materialize auto-action (Trục 5 mục 4.1):** ≥2 risks materialize trong cycle → auto downgrade conviction toàn pack 1 bậc. ≥3 risks → recommend chạy lại monthly cycle mid-month.
+4. **Bear regime mode (Trục 6 mục 5):** trigger khi Trục 1 macro negative + Trục 2 định vị "phân phối/suy yếu" (chỉ dùng vĩ mô, không PTKT). Tier 1 giảm 8 mã (≥40% defensive sectors), Tier 2 mở 12 mã, conviction CAP MID toàn pack, ADV Tier 1 ≥8 tỷ, bear case mandatory mỗi Tier 1 mã.
+
+Các cơ chế này áp tự động, không cần user enable. Self-audit `P_vbse_strategy_09` check đầy đủ.
 
 ## 7. Cơ chế checkpoint review
 

@@ -5,11 +5,11 @@ File này detail Trục 4 của framework 6 trục. Dependency: `P_vbse_strategy
 **Master weight balance áp dụng cho Trục 4:**
 - Trục 4 thuộc tầng **PRIMARY** (cross 3 trục đầu + BCTC + định giá + catalyst) + một phần SECONDARY (flow)
 - **Cap technical: ≤ 5% nội dung trục** — gần như 0
-- **TERTIARY technical zone ngành: BỎ HOÀN TOÀN** so với pack invest_strategy cũ — sector bias KHÔNG bị technical quyết
+- **TERTIARY technical zone ngành: BỎ HOÀN TOÀN** — sector bias KHÔNG bị technical quyết
 
-> ## ⚠️ FUNDAMENTAL-FIRST OVERRIDE — BỎ TECHNICAL CONFIRMATION
+> ## ⚠️ FUNDAMENTAL-FIRST — KHÔNG TECHNICAL CONFIRMATION
 >
-> Trong pack `P_invest_strategy` cũ, Trục 4 có lăng kính TERTIARY "technical zone đa khung của ngành" làm confirmation timing. **Pack này BỎ HOÀN TOÀN lăng kính đó.**
+> Trục 4 **KHÔNG** dùng lăng kính TERTIARY "technical zone đa khung của ngành" làm confirmation timing.
 >
 > Sector bias (quan tâm / trung tính / cần thận trọng) chỉ chốt bằng:
 > 1. Cross 3 trục đầu (vĩ mô + định vị + theme)
@@ -127,7 +127,7 @@ Cross-reference `market_nntd` aggregate + `industry_snapshot.breadth`:
 
 **Lý do bỏ:**
 1. Technical timing là job của Trục 6 Phase 2 Bucket entry cho mã cụ thể, không phải sector bias
-2. Pack invest_strategy cũ có rule "ngành có cơ bản tốt + định giá rẻ nhưng technical yếu vẫn quan tâm" — đã ngầm thừa nhận technical không quyết định. Pack này làm rule đó explicit bằng cách bỏ hẳn lăng kính.
+2. Ngành có cơ bản tốt + định giá rẻ nhưng technical yếu vẫn vào "ngành quan tâm" — technical không quyết định sector bias. Pack này làm rule đó explicit bằng cách bỏ hẳn lăng kính.
 3. Sector bias horizon 1-3 tháng. Technical zone w/m biến động nhanh hơn timeline đó nhiều — không phù hợp.
 
 **Ngoại lệ ≤5%:** chỉ ghi nhận technical zone ngành trong **disconfirming signal** nếu thực sự cần (vd "technical zone đa khung ngành tụt từ AAA → C trong 2 tuần liên tiếp KÈM dòng tiền âm 3 tuần liên tiếp" — đây là technical + flow signal combo, không phải technical đơn độc).
@@ -169,6 +169,13 @@ Conviction theo mức cross-check:
 - **HIGH:** cả 4 trục thuận + định giá phân vị < 40% + có catalyst ngày cụ thể
 - **MID:** 3/4 trục thuận + định giá phân vị 40-60% + catalyst rõ nhưng chưa có ngày
 - **LOW:** 3/4 trục thuận, không có catalyst rõ ngày cụ thể
+
+**Conviction CAP rules sector — áp tuyệt đối:**
+- Sector contradicting Trục 1 macro regime → cap LOW (vd lãi tăng nhanh → BĐS cap LOW dù BCTC ngành tốt)
+- Sector có ≥1 disconfirming signal đã trigger 1 phần (xem `_05` mục 4.1 partial materialize) → auto-downgrade 1 bậc
+- Sector "consensus crowded" (FII mua dồn + breadth rộng + rally mạnh) → cap MID + flag "alpha limited"
+- Bear regime mode active (xem `_06` mục 5: Trục 1 macro negative + Trục 2 định vị "phân phối/suy yếu") → cap MID toàn pack
+- Sector chỉ "trung tính" (mục 4.2) → mã thuộc sector này khi vào Trục 6 watchlist cap MID (không HIGH)
 
 ### 4.2. Ngành trung tính
 

@@ -51,6 +51,25 @@ Mỗi rủi ro phải **gắn cơ chế cơ bản/vĩ mô/chính sách** (không
 
 **Whitelist scope cho sector-level risk:** khi rủi ro gắn ngành cụ thể (vd "biên gộp ngành thép thu hẹp"), chỉ tham chiếu trong scope **18 ngành whitelist** của `K_agent_db_01 Section B`. Ngành ngoài whitelist không xuất hiện trong risk map cấp pack.
 
+### 4.1. Risk materialize auto-action (BẮT BUỘC)
+
+Trong weekly cycle, agent track từng rủi ro trong risk map → xác định trạng thái: **Pending / Partial / Materialized**.
+
+**Action rules khi rủi ro materialize:**
+
+| Số rủi ro materialize trong cycle | Auto-action |
+|---|---|
+| 0 rủi ro | Không action, render thesis như cycle trước |
+| 1 rủi ro materialize | Flag inline trong weekly Executive Summary + theme bị invalidate đánh dấu "thesis review needed" |
+| **≥2 rủi ro materialize** | **Auto downgrade conviction toàn pack 1 bậc** (HIGH → MID, MID → LOW) + flag rõ ở Executive Summary "≥2 risks materialize, thesis tổng thể weakened" |
+| **≥3 rủi ro materialize** | Recommend chạy lại **monthly cycle mid-month** (không chờ đầu tháng) + flag "risk map invalidated, cycle refresh required" |
+
+**Partial materialize** (vd Fed cắt 25bp như dự kiến nhưng ECB chưa dovish) = 0.5 rủi ro cho mục đích đếm. Cần 2 partial = 1 materialize.
+
+**Trigger Bear regime mode Trục 6:** nếu ≥2 rủi ro vĩ mô (lãi suất, FX, geopolitics, suy thoái) materialize + Trục 2 định vị "phân phối/suy yếu" → trigger Bear regime mode Trục 6 (xem `_06` mục 5). KHÔNG dùng PTKT làm trigger.
+
+Self-audit weekly: bắt buộc check status của mỗi rủi ro + apply auto-action tương ứng trước khi render.
+
 ## 5. Hướng tìm dữ liệu
 
 | Nguồn | Mục đích | Ghi chú |

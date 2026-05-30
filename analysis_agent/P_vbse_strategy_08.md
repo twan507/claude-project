@@ -66,7 +66,7 @@ Hôm nay [DD/MM/YYYY] — đây là tuần [N] của tháng [M/YYYY].
 | User chọn | Action |
 |---|---|
 | (a) Có file đúng tháng | Tiếp Bước 3, chạy bình thường |
-| (b) Chưa có monthly | **REFUSE weekly mode**. Reply: "Để chạy weekly update tháng [M/YYYY] cần có thesis monthly làm parent. Đề xuất 3 hướng: (i) Chạy monthly cycle cho tháng [M/YYYY] trước, sau đó weekly update — recommended. (ii) Nếu chỉ cần tracking 1 tuần ad-hoc không gắn với thesis tháng, gợi ý dùng `P_weekly_overview` (báo cáo tổng quan thị trường tuần). (iii) Override — vẫn muốn chạy weekly độc lập, không có parent thesis, không recommended vì sẽ thiếu context để track shift/materialize." Hỏi user chọn hướng nào. |
+| (b) Chưa có monthly | **REFUSE weekly mode**. Reply: "Để chạy weekly update tháng [M/YYYY] cần có thesis monthly làm parent. Đề xuất 2 hướng: (i) Chạy monthly cycle cho tháng [M/YYYY] trước, sau đó weekly update — recommended. (ii) Override — vẫn muốn chạy weekly độc lập, không có parent thesis, không recommended vì sẽ thiếu context để track shift/materialize." Hỏi user chọn hướng nào. |
 | (c) Có monthly tháng khác | Hỏi: "File monthly của tháng M-1 đã chạy được [X] tuần qua mốc 1 tháng — thesis có thể đã decay. Đề xuất 2 hướng: (i) Chạy monthly cycle cho tháng [M] hiện tại trước. (ii) Override — vẫn dùng monthly cũ làm parent, ghi rõ trong báo cáo 'thesis từ tháng M-1 carry-over, có thể bị decay sau [X] tuần'. Bạn chọn?" |
 
 **Bước 3 — Pre-flight các câu còn lại (chỉ chạy nếu Bước 2 chọn (a) hoặc override):**
@@ -153,7 +153,7 @@ Confirm hay refine trước khi tiếp Stage 1 tracking tuần [N]?
 - Sector bias (quan tâm / trung tính / thận trọng)
 - 3 kịch bản VNINDEX (trigger từng kịch bản)
 - Risk map (3-7 rủi ro + signal materialize)
-- Watchlist (5-12 mã + signals theo dõi từng mã)
+- Watchlist 20 mã (10 Tier 1 + 10 Tier 2 mặc định; điều chỉnh theo regime Bear 8/12 hoặc quá mua 6/14 — signals theo dõi từng mã + tier marker + bucket entry)
 
 Hệ thống signals này là "spine" để tuần này tracking.
 

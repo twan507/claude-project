@@ -152,10 +152,13 @@ Confirm/Override/Bổ sung trước khi tiếp phần 10-12?
 
 Pack default KHÔNG render bucket entry. User có thể request "thêm bucket entry cho watchlist" để agent thêm cột Bucket (1/2/3) cho mỗi mã 10.2 + 10.3.
 
-Định nghĩa bucket theo `P_invest_memo_03` mục 5:
-- **Bucket 1:** zone w + zone m ∈ {A,AA,AAA} + week_score ≥ 6 — sẵn sàng lệnh khi catalyst
-- **Bucket 2:** zone q hoặc y ∈ {A,AA,AAA} nhưng w hoặc m ∈ {B,C} — chờ pullback xác nhận
-- **Bucket 3:** zone q/y tích cực nhưng w VÀ m ∈ {C} — chờ technical phục hồi
+Định nghĩa bucket (inline pack-internal):
+
+| Bucket | Điều kiện | Observation |
+|---|---|---|
+| **1 — Vào ngay được** | zone w ∈ {A, AA, AAA} VÀ zone m ∈ {A, AA, AAA} VÀ week_score ≥ 6 | Momentum đa khung đồng thuận. Sẵn sàng cho lệnh. |
+| **2 — Chờ xác nhận (pullback)** | zone q ∈ {A, AA, AAA} HOẶC zone y ∈ {A, AA, AAA} NHƯNG zone w HOẶC m ∈ {B, C} | Uptrend dài hạn còn nguyên, ngắn hạn pullback. |
+| **3 — Watchlist (chưa sẵn)** | zone q ∈ {A, AA, AAA} HOẶC zone y ∈ {A, AA, AAA} NHƯNG zone w VÀ m ĐỀU ∈ {C} | Pullback sâu, chờ phục hồi. |
 
 Bucket KHÔNG nâng/giảm conviction — chỉ entry timing observation.
 

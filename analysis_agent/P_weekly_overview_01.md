@@ -4,7 +4,7 @@ File này cover Pre-flight 3 câu + compose phần 2-5 của báo cáo `weekly_o
 
 ## 1. Pre-flight — hỏi user trước khi vào Stage 1
 
-Pack `P_weekly_overview` là **broadcast tuần độc lập** — KHÔNG yêu cầu monthly thesis active (khác `P_vbse_strategy_08` weekly cycle, vốn đòi state monthly đã chốt). Agent có thể chạy pack này bất cứ tuần nào user trigger, không cần parent thesis.
+Pack `P_weekly_overview` là **broadcast tuần độc lập** — KHÔNG yêu cầu thesis monthly hoặc parent state nào. Agent có thể chạy pack này bất cứ tuần nào user trigger, không cần state file ngoài.
 
 Agent hỏi 1 turn 3 câu, user trả lời rồi mới chạy:
 

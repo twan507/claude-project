@@ -24,6 +24,13 @@ Mỗi theme có tên gọi rõ ràng (vd "Sóng đầu tư công Q2", "Margin ng
    - **HIGH** = cơ chế rõ + catalyst đã hoặc đang materialize + cross-check ≥2 trục khác đồng thuận
    - **MID** = cơ chế rõ + catalyst chưa rõ thời điểm, hoặc 1 trục khác chưa đồng thuận
    - **LOW** = early thesis, signals còn yếu, mang tính "watch list" theme
+
+   **Conviction CAP rules — áp tuyệt đối (chống bias HIGH conviction inflation):**
+   - Theme contradicting Trục 1 macro regime → cap LOW
+   - Theme không có catalyst với ngày cụ thể trong horizon → cap MID (HIGH yêu cầu ngày)
+   - Theme evidence chỉ từ < 2 trục → cap MID
+   - Theme = consensus crowded (sell-side đã call rộng + media coverage cao) → cap MID + flag "alpha limited, consensus crowded"
+   - Bear regime mode active (xem `_06` mục 5: Trục 1 macro negative + Trục 2 định vị "phân phối/suy yếu") → cap MID toàn pack, không HIGH bất kể trục đồng thuận
 3. **Time horizon** — 1 tháng / 1-3 tháng / 3-6 tháng (theo timing catalyst materialize)
 4. **Catalyst trigger** — sự kiện / mức số / chính sách cụ thể đã hoặc sắp xảy ra; nếu có ngày dự kiến, ghi ngày
 5. **Disconfirming signals** — 2-3 chỉ báo cụ thể (reference data field) mà nếu xuất hiện sẽ invalidate theme. Vd "Industry rank ngành thép tụt khỏi top 8 trong 2 tuần liên tiếp", "USD/VND vượt 26500 + can thiệp NHNN", "Brent về dưới 65 USD/thùng kéo 1 tháng". Đây là "what would change our mind" — chuẩn institutional research.
