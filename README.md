@@ -51,7 +51,7 @@ Khi sửa `system_prompt.md` của agent nào → paste lại vào ô Custom Ins
 
 ### 2.3. MongoDB connection
 
-`analysis_agent` và `db_agent` đều giả định có quyền read MongoDB database tên `agent_db`. Tools để query DB không nằm trong project knowledge — phải được provide qua Claude Desktop integration / MCP server cấu hình bên ngoài. Schema 23 collection và query patterns được document trong `agent_db_01.md` (db_agent) và `K_agent_db_01.md` (analysis_agent).
+`analysis_agent` và `db_agent` đều giả định có quyền read MongoDB database tên `agent_db`. Tools để query DB không nằm trong project knowledge — phải được provide qua Claude Desktop integration / MCP server cấu hình bên ngoài. Schema 25 collection và query patterns được document trong `agent_db_01.md` (db_agent) và `K_agent_db_01.md` (analysis_agent).
 
 ### 2.4. Behavioral guidelines (`CLAUDE.md`)
 
@@ -75,13 +75,13 @@ Pack vận hành theo kiến trúc module 3 layer:
 
 | Pack | Files | Mục đích |
 |---|---|---|
-| `K_agent_db` | 6 (`_00` master + `_01` đến `_05`) | Knowledge MongoDB `agent_db` chứng khoán VN |
+| `K_agent_db` | 6 (`_00` master + `_01` đến `_05`) | Knowledge MongoDB `agent_db` chứng khoán VN (25 collection) |
 | `P_invest_memo` | 10 (`_00` master + `_01` đến `_09`) | Quy trình đầu tư cá nhân, horizon 1-6 tháng, long only, portfolio < 1 triệu USD |
-| `P_weekly_market` | 1 (`_00`) | Báo cáo thị trường tuần 12 phần |
-| `P_stock_pitch` | 1 (`_00`) | Báo cáo khuyến nghị MUA mã đơn lẻ gửi KH 13-16 mục flex |
+| `P_weekly_overview` | 5 (`_00` master + `_01` đến `_04`) | Broadcast tổng quan thị trường tuần 12 phần fundamental-driven, audience nội bộ + KH |
+| `P_vbse_strategy` | 10 (`_00` master + `_01` đến `_09`) | Chiến lược đầu tư VBSE deep nội bộ, 2 cycle (monthly parent + weekly child), 6 trục, 2-phase watchlist |
 | `O_invest_memo` | 7 (`_00` master + `_01` đến `_06`) | Render spec cho 6 deliverables của `P_invest_memo` |
-| `O_weekly_market` | 1 (`_00`) | Render spec báo cáo tuần |
-| `O_stock_pitch` | 1 (`_00`) | Render spec khuyến nghị mã |
+| `O_weekly_overview` | 1 (`_00`) | Render spec broadcast tuần 12 phần rigid + 3 mode branding |
+| `O_vbse_strategy` | 1 (`_00`) | Render spec chiến lược 2 mode (monthly + weekly) flex 6 trục |
 
 ### 3.3. `P_invest_memo` — workflow tóm tắt
 
@@ -111,53 +111,65 @@ Giai đoạn 6 (song song):
 5. Dòng tiền dương + catalyst tiêu cực → loại
 6. Mỗi giai đoạn kết bằng checkpoint, không tự chuyển tier
 
-### 3.4. `P_weekly_market` — 12 phần
+### 3.4. `P_weekly_overview` — 12 phần fundamental-driven
 
 ```
 Pre-flight: hỏi file W-1 + context + branding info
 
 Stage 1: Compose phần 2-9
-  Phần 2  Review tuần trước
+  Phần 2  Review tuần trước (3 scorecard tables)
   Phần 3  Bối cảnh quốc tế
-  Phần 4  Thị trường Việt Nam
-  Phần 5  Vĩ mô & hàng hoá — yếu tố dẫn dắt ngành
-  Phần 6  Biến động ngành
-  Phần 7  Top dẫn dắt — 2 góc nhìn
-  Phần 8  Tin tức & catalyst
-  Phần 9  Phân tích kỹ thuật VNINDEX + 3 kịch bản + Risk map
+  Phần 4  Thị trường Việt Nam (aggregate 18 ngành whitelist)
+  Phần 5  Vĩ mô & hàng hoá (institutional table 5 cột: Magnitude + Persistence)
+  Phần 6  Biến động 18 ngành whitelist + earnings beat candidate
+  Phần 7  Top dẫn dắt 2 góc nhìn + cảnh báo trap setup
+  Phần 8  Tin tức & catalyst (+ conviction impact)
+  Phần 9  Định vị VNINDEX + 3 kịch bản fundamental-driven + Risk map
 
-CHECKPOINT 1: Regime + Sector bias
+CHECKPOINT 1: Regime + Sector bias (conviction + disconfirming bắt buộc)
 
 Stage 2: Compose phần 10-12 + Phần 1
-  Phần 10  Watchlist — Mã đáng chú ý
+  Phần 10  Watchlist tách 2 hướng (cơ hội + cảnh báo)
   Phần 11  Lịch sự kiện tuần tới
   Phần 12  Tuyên bố miễn trừ trách nhiệm
-  Phần 1   Tóm tắt điều hành (viết cuối)
+  Phần 1   Tóm tắt điều hành (Key calls / Watch / Risk) — viết cuối
 ```
 
 **Constraint chính:**
-- KHÔNG dùng chỉ báo trend (`market_snapshot.trend`, `industry_snapshot.trend`, `*_recent.recent_trend`) — methodology nội bộ, audience cuối (KH) không hiểu. Trend chỉ dành cho `P_invest_memo` (audience analyst nội bộ).
-- Wording observation, không command (mua/bán/giảm tỷ trọng)
-- Không gán xác suất % cho kịch bản
-- Watchlist không kèm level giá vào/ra/stop
+- Whitelist 18 ngành default (xem `K_agent_db_01` Section B); override khi user yêu cầu cụ thể
+- 3 kịch bản phần 9 trigger primary là vĩ mô/cơ bản/chính sách/catalyst (technical chỉ confirmation phụ ≤30%)
+- Cap technical toàn báo cáo ≤15%
+- Mỗi call (regime, sector bias, watchlist mã) có conviction HIGH/MID/LOW + horizon 1-2 tuần / 2-4 tuần + 1-2 disconfirming signal
+- KHÔNG dùng chỉ báo trend nội bộ
+- Wording observation, không command
+- Rank ngành tự tổng hợp theo `week_score` (DB không lưu industry_rank tĩnh)
 
-### 3.5. `P_stock_pitch` — 13-16 mục flex
+### 3.5. `P_vbse_strategy` — Monthly parent + Weekly child, 6 trục flex
 
-Workflow 5 stage, 2 checkpoint:
-- Pre-flight: ticker / memo tier 5C có sẵn (optional) / branding info
-- Stage 1: Foundation (mục 3-4: hồ sơ + dữ liệu giao dịch)
-- Stage 2: Thesis & Variant Perception (mục 5-10, 4-7 luận điểm flex) → CP1
-- Stage 3: Execution (mục 11-12: cấu trúc mua + chốt lời)
-- Stage 4: Steelman Bear Case (mục 13: 5-7 lo ngại + 1-2 còn yếu honest) → CP2
-- Stage 5: Closing (mục 1, 2, 14, 15)
+Pack chia 10 file:
 
-**ABORT possible** ở CP1/CP2 nếu thesis yếu hoặc conviction không đủ — không gửi KH sản phẩm half-baked.
+```
+_00  Master (philosophy fundamental supremacy + weight balance + 4 nguyên tắc)
+_01  Trục 1 — Vĩ mô & tài chính
+_02  Trục 2 — Định vị thị trường VN (fundamental-first)
+_03  Trục 3 — Themes & narratives
+_04  Trục 4 — Sector allocation (whitelist 18)
+_05  Trục 5 — Risk scenarios (trigger macro/fundamental/policy ONLY)
+_06  Trục 6 — Watchlist 2-phase (Phase 1 Screen cơ bản + Phase 2 Bucket entry PTKT)
+_07  Workflow Monthly (Pre-flight + Stage 0 eval + CP0 + Stage 1-3 + CP1)
+_08  Workflow Weekly (HARD GATE + Stage 0 + tracking với technical-as-noise rule + rebucket)
+_09  User overlay + Self-audit + Edge cases + Output contract
+```
 
-**Numbering flex:** 4 luận điểm = 13 mục, 5 = 14, 6 = 15 (default), 7 = 16. Section sau (cấu trúc mua, chốt lãi, bear, kịch bản, disclaimer) shift theo số luận điểm.
+**Constraint chính:**
+- Fundamental supremacy: PTKT chỉ tồn tại ở Phase 2 Bucket entry Trục 6 (entry timing). Cap technical ≤15% toàn báo cáo (trừ Phase 2 Bucket)
+- Trục 5 Risk: trigger macro/fundamental/policy ONLY, cấm technical primary
+- Whitelist 18 ngành áp dụng default; user override được phép
+- Weekly HARD GATE: không có monthly active → REFUSE
+- Conviction + horizon + disconfirming bắt buộc mỗi theme/sector/mã
+- Watchlist Phase 1: cơ bản + catalyst + thanh khoản (cấm PTKT filter). Phase 2: technical_zone đa khung → Bucket 1/2/3
 
-**Constraint:** chỉ MUA, không BÁN/GIỮ/short/derivative. Không xác suất %. Không dùng trend.
-
-### 3.6. Triết lý flex+downgrade (xuyên suốt P_invest_memo + P_stock_pitch)
+### 3.6. Triết lý flex+downgrade (xuyên suốt P_invest_memo + P_vbse_strategy)
 
 Khi gate (Variant Perception, Bear Case, R/R) không pass strict, **agent KHÔNG tự reject** mã. Thay vào đó:
 - Flag cảnh báo cụ thể (lý do gate yếu)
@@ -272,7 +284,7 @@ Use case điển hình:
 |---|---|
 | `system_prompt.md` | Meta-rules (paste vào Custom Instructions) — 88 dòng, simpler analysis_agent system_prompt |
 | `agent_db_00.md` | Master: mục đích, scope, manifest, domain rules, K hygiene, quy đổi đơn vị |
-| `agent_db_01.md` | Schema 23 collection + URL pattern finext.vn |
+| `agent_db_01.md` | Schema 25 collection + URL pattern finext.vn |
 | `agent_db_02.md` | Query patterns 12 workflow A-L |
 | `agent_db_03.md` | Anti-patterns + case study lỗi quá khứ |
 | `agent_db_04.md` | Methodology diễn giải chỉ báo + PTCB 4 type doanh nghiệp |
@@ -317,12 +329,12 @@ Content của 6 file `agent_db_*` (db_agent) gần **identical 99%** với 6 fil
 ```
 
 **Workflow điển hình end-to-end:**
-1. User mở `analysis_agent` project, request "viết khuyến nghị mua VNM gửi KH"
-2. analysis_agent chạy P_stock_pitch workflow 5 stage 2 checkpoint, xuất MD final structured
+1. User mở `analysis_agent` project, request "viết báo cáo tổng quan tuần [DD/MM]" hoặc "báo cáo chiến lược tháng [N]"
+2. analysis_agent chạy pack tương ứng (`P_weekly_overview` 2 stage 1 checkpoint hoặc `P_vbse_strategy` 4 stage 2 checkpoint), xuất MD final structured
 3. User copy MD → mở `template_agent` project → paste vào chat
 4. template_agent detect skip-normalize (input đã match contract) → hỏi pick brand
-5. User pick VBSE → template_agent render pptx 15-18 slide branded
-6. User download pptx, gửi KH
+5. User pick VBSE → template_agent render pptx/docx branded
+6. User download file, gửi audience
 
 **db_agent dùng song song khi cần tra cứu nhanh** trong quá trình:
 - "VNM giá đóng cửa hôm qua bao nhiêu?" → db_agent trả lời inline 1 câu, không cần qua workflow
@@ -369,21 +381,23 @@ Bảng dịch đầy đủ ở `K_agent_db_00` mục 5 (analysis_agent) hoặc `
 - `tier5C_<TICKER>_<YYYYMMDD>_confirmed.md` (memo deep-dive per-stock)
 - `tier6_portfolio_<YYYYMMDD>_confirmed.md`
 - `tier7_weekly_<YYYYMMDD>.md` / `tier7_monthly_<YYYYMM>.md` / `tier7_quarterly_<YYYY_Q>.md`
-- `weekly_market_<YYYYMMDD>.md` (ngày cuối tuần — Chủ Nhật)
-- `stock_pitch_<TICKER>_<YYYYMMDD>.md`
+- `weekly_overview_<YYYYMMDD>.md` (ngày cuối tuần — Chủ Nhật)
+- `vbse_strategy_monthly_<YYYYMM>.md` (tháng báo cáo chiến lược)
+- `vbse_strategy_weekly_<YYYYMMDD>.md` (ngày cuối tuần update chiến lược)
 
 **template_agent:**
 - MD chuẩn hoá: theo `report_type` + ngày/ticker (xem `WORKFLOW.md` mục 9)
 - Binary: `<report_type>_<id>_<YYYYMMDD>_<brand>.pptx` với `<brand>` = `vbse` hoặc `finext`
 
-### 7.6. Constraint cốt lõi (audience cuối là KH)
+### 7.6. Constraint cốt lõi (audience cuối có thể là KH)
 
-Pack `P_weekly_market` và `P_stock_pitch` (audience KH) tuân chặt:
-- **Không dùng chỉ báo trend nội bộ** (KH không hiểu methodology)
+Pack `P_weekly_overview` và `P_vbse_strategy` (có mode branded gửi KH) tuân chặt:
+- **Không dùng chỉ báo trend nội bộ** (`*.trend`, `*_recent.recent_trend`) khi render branded — audience cuối không hiểu methodology
 - **Không command** (mua/bán/giảm tỷ trọng) — diễn đạt observation
 - **Không xác suất % cho kịch bản** — dùng if-then trigger objective
-- **Không level giá vào/ra/stop trong watchlist tuần** (chỉ luận điểm)
-- **Honest steelman bear case** — bắt buộc 1-2 lo ngại còn yếu sau phản biện, không "all win"
+- **Không level giá vào/ra/stop trong watchlist** (chỉ luận điểm + signal theo dõi + disconfirming)
+- **Conviction + horizon + disconfirming** bắt buộc mỗi call (chuẩn institutional)
+- **Whitelist 18 ngành default, override khi user yêu cầu** — rank ngành tự tổng hợp theo `week_score`
 
 `P_invest_memo` (audience analyst nội bộ) được dùng trend, target giá modeling, scoring framework cụ thể.
 

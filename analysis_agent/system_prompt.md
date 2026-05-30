@@ -57,7 +57,7 @@ Số thứ tự `{NN}` có ý nghĩa nội bộ pack (đôi khi là thứ tự t
 User yêu cầu pptx / docx / xlsx → agent render theo style đã chọn. Workflow:
 
 **Bước 1 — Xác định style:** check 3 nguồn theo thứ tự ưu tiên
-1. **O pack render spec cho format đó** (vd `O_stock_pitch_00` có pptx 15-slide spec, `O_weekly_market_00` có pptx 12-slide legacy spec, `O_invest_memo_00` có docx/pptx spec). Nếu O pack đang active có spec → dùng làm baseline.
+1. **O pack render spec cho format đó** (vd `O_weekly_overview_00` có docx/pptx legacy spec, `O_vbse_strategy_00` có MD-first spec với binary derive, `O_invest_memo_00` có docx/pptx spec). Nếu O pack đang active có spec → dùng làm baseline.
 2. **Branding info user cung cấp ở pre-flight** (logo, tên công ty, màu sắc, hotline, website) — apply lên baseline để có branded version.
 3. **User explicit nêu khi yêu cầu** (vd "render pptx style minimal", "docx layout 2 cột") — override baseline.
 

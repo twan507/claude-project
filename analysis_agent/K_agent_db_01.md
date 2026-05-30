@@ -1,6 +1,6 @@
 # K_agent_db_01 — Collections Schema
 
-Tài liệu mô tả schema đầy đủ của 23 collection trong `agent_db`. Mỗi mục có: cấu trúc doc, giải nghĩa field, cách agent nên dùng, và cảnh báo nếu có.
+Tài liệu mô tả schema đầy đủ của 25 collection trong `agent_db`. Mỗi mục có: cấu trúc doc, giải nghĩa field, cách agent nên dùng, và cảnh báo nếu có.
 
 Chi tiết về cách **diễn giải** chỉ báo (ngưỡng percentile, kịch bản, PTCB theo 4 type, pitfalls) xem ở `K_agent_db_04`. File này tập trung vào schema và công thức gốc.
 
@@ -49,9 +49,19 @@ Rank dựa trên `week_score` giảm dần, có filter thanh khoản tối thi�
 - `rank_pct = 0.9` → mã xếp top 10% (vượt 90% còn lại)
 - `rank_pct = 0` → không xếp hạng (thanh khoản quá thấp) hoặc xếp cuối — bỏ qua khi screening
 
-### money_flow_score.industry_rank (cấp ngành)
+### Xếp hạng ngành — KHÔNG có rank tĩnh trong DB, phải tự tổng hợp
 
-Số nguyên 1-24, sort theo `week_score` ngành giảm dần. Rank 1 = ngành có dòng tiền tuần mạnh nhất.
+**DB không lưu xếp hạng ngành-so-ngành tĩnh.** Khi cần biết "ngành nào dòng tiền mạnh nhất" hoặc rank theo bất kỳ tiêu chí ngành nào, agent phải **tự tổng hợp theo scope phân tích hiện tại** (default: 18 ngành whitelist; override: tuỳ user yêu cầu):
+
+1. Query `industry_snapshot.money_flow_score.week_score` (= **dòng tiền tuần** — đây là field chuẩn để rank ngành) cho toàn bộ ngành trong scope
+2. Self-sort giảm dần (rank cao = dòng tiền tuần mạnh nhất)
+3. Re-rank trong-flight (vd 1..18 cho whitelist, 1..N cho danh sách custom)
+
+**Field rank ngành mặc định:** `money_flow_score.week_score` (dòng tiền tuần). Các tiêu chí khác (biến động giá `change.w_pct`, breadth, BCTC growth từ `industry_finstats`) chỉ rank khi user yêu cầu rõ.
+
+**Lý do design:** rank ngành phụ thuộc scope analysis (whitelist 18 vs override). Nếu DB lưu rank tĩnh 1..24, mọi báo cáo phải re-compute lại để khớp scope — rủi ro sai. Tự tổng hợp đảm bảo rank luôn align với danh sách theo dõi user.
+
+Reference field rank stock-level vẫn còn (`industry_rank_pct`, `market_rank_pct` ở `stock_snapshot`) — đây là percentile của mã trong ngành / thị trường, khác với rank ngành-vs-ngành đã bị bỏ.
 
 ### trend (ở cấp ngành, nhóm, thị trường)
 
@@ -344,46 +354,53 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
 
 ---
 
-### `stock_highlight` — Top tăng/giảm theo nhóm
-
-**Số lượng:** 30 doc (3 marketcap + 3 money_flow + 24 industry)
-**Cập nhật:** realtime + EOD
-**Dùng khi:** hỏi "top gainer ngành X", "top loser nhóm LargeCap hôm nay".
-
-```json
-{
-  "type": "industry",           // hoặc "marketcap", "money_flow"
-  "name": "Bán lẻ Tiêu dùng",    // hoặc "LargeCaps", "Dòng tiền Vượt trội"...
-  "top_gain": [
-    {
-      "ticker": "MWG",
-      "open": 82.6, "high": 86.9, "low": 82.5, "close": 86.9,
-      "diff": 5.6, "pct_change": 0.0689,
-      "day_score": 68.9, "week_score": 11.62,
-      "industry_rank_pct": 0.8, "market_rank_pct": 0.897
-    },
-    ...
-  ],
-  "top_loss": [
-    { ..., "pct_change": -0.033, "day_score": -34.2, ... }
-  ]
-}
-```
-
-**Logic filter:**
-- Đã lọc mã thanh khoản thấp (volume > 100,000 VÀ trading_value > 1 tỷ).
-- `top_gain` chỉ chứa mã `pct_change > 0`, tối đa 10 mã, sort giảm dần theo `pct_change`.
-- `top_loss` chỉ chứa mã `pct_change < 0`, tối đa 10 mã, sort tăng dần (giảm mạnh nhất trước).
-- Ngành ít mã tăng hoặc ít mã giảm sẽ có array ít hơn 10 phần tử (hoặc rỗng `[]`).
-
-**Giá trị khả dĩ của `name`:**
-- `type: marketcap` → "LargeCaps", "MidCaps", "SmallCaps"
-- `type: money_flow` → "Dòng tiền Vượt trội", "Dòng tiền Ổn định", "Dòng tiền Sự kiện"
-- `type: industry` → 24 tên ngành đầy đủ, ví dụ "Ngân hàng", "Bán lẻ Tiêu dùng", "Bất động sản Dân dụng"...
-
----
-
 ## B. Khối ngành
+
+> ### ⚠️ WHITELIST 18 NGÀNH PHÂN TÍCH — DEFAULT SCOPE, USER OVERRIDE ĐƯỢC PHÉP
+>
+> DB lưu **24 ngành** (số doc của `industry_info`, `industry_snapshot`, `industry_recent`, `industry_finstats`, `history_industry`). **Mặc định khi user không nói gì cụ thể, phân tích chỉ dùng 18 ngành trong whitelist dưới đây** để so sánh, xếp hạng, aggregate, và build báo cáo. Các ngành ngoài whitelist (vd "Bảo hiểm", "Y tế Dược phẩm"…) **không xuất hiện** trong báo cáo / nhận định / xếp hạng / aggregate tổng quát.
+>
+> **NHƯNG khi user yêu cầu cụ thể** ngành ngoài whitelist (vd "phân tích ngành Bảo hiểm", "so sánh BVH vs VNM", "dữ liệu BCTC ngành Y tế Dược phẩm Q1"), agent **vẫn query được và trả lời bình thường** — dữ liệu 24 ngành đầy đủ vẫn có trong DB. Khi đó:
+> - Query thẳng `industry_*` collection theo `industry_name` cụ thể user yêu cầu (không apply $in whitelist filter)
+> - Ghi note rõ trong output: "Ngành [X] nằm ngoài scope whitelist mặc định — trả lời theo yêu cầu cụ thể của anh/chị, không tự động đưa vào báo cáo tổng quát"
+> - KHÔNG tự ý so sánh với các ngành khác trong whitelist trừ khi user yêu cầu rõ
+> - Mã thuộc ngành ngoài whitelist vẫn phân tích đơn lẻ được nếu user hỏi đích danh ticker
+>
+> | Mã ngắn (user nhập) | Tên chuẩn trong DB (`industry_name` ở khối ngành / `industry` ở `stock_info`) |
+> |---|---|
+> | BANLE | Bán lẻ Tiêu dùng |
+> | BDS | Bất động sản Dân dụng |
+> | CHUNGKHOAN | Công ty Chứng khoán |
+> | CONGNGHE | Công nghệ Viễn thông |
+> | CONGNGHIEP | Thiết bị Công nghiệp |
+> | DAUKHI | Dịch vụ Dầu khí |
+> | DETMAY | Dệt may Xuất khẩu |
+> | HOACHAT | Hóa chất Phân bón |
+> | KCN | Bất động sản Khu công nghiệp |
+> | KHOANGSAN | Tài nguyên cơ bản |
+> | KIMLOAI | Kim loại công nghiệp |
+> | NGANHANG | Tài chính ngân hàng |
+> | NONGNGHIEP | Nông nghiệp Chăn nuôi |
+> | THUCPHAM | Thực phẩm Đồ uống |
+> | THUYSAN | Chế biến Thủy sản |
+> | TIENICH | Hạ tầng Tiện ích |
+> | VANTAI | Vận tải Kho bãi |
+> | XAYDUNG | Thi công Xây dựng |
+>
+> **Cách áp dụng khi query — DEFAULT mode (user không nói gì cụ thể):**
+> - Mọi `find` / `aggregate` trên `industry_info`, `industry_snapshot`, `industry_recent`, `industry_finstats`, `history_industry` phải kèm `$match: { industry_name: { $in: [<18 tên chuẩn>] } }`.
+> - Khi screen mã từ `stock_snapshot` / `stock_info` theo ngành (cross-section watchlist, sector tilts), filter `industry` ∈ 18 tên chuẩn — mã thuộc ngành ngoài whitelist bị loại khỏi xếp hạng theme/sector (vẫn được phân tích đơn lẻ nếu user hỏi đích danh ticker).
+>
+> **Cách áp dụng khi query — OVERRIDE mode (user yêu cầu ngành cụ thể ngoài whitelist):**
+> - Query thẳng theo `industry_name` user yêu cầu, KHÔNG apply `$in` whitelist filter
+> - Ghi note "ngoài scope whitelist mặc định" trong output để user biết
+> - Vẫn cung cấp đầy đủ data như ngành trong whitelist
+>
+> **Ảnh hưởng tới aggregate cấp thị trường:** mean/median `money_flow_score`, breadth ngành dùng proxy thị trường (xem `K_agent_db_04`, `P_vbse_strategy_02` Trục 2) **phải tính trên 18 ngành whitelist**, không phải 24.
+>
+> **Xếp hạng ngành tự tổng hợp:** DB **không lưu** `industry_rank` ngành-vs-ngành — khi báo cáo cần rank (vd "ngành nào dòng tiền mạnh nhất"), agent tự query `week_score` cho 18 ngành whitelist (default mode) hoặc danh sách user yêu cầu (override mode), sort, re-rank 1..N. Chi tiết ở mục "Xếp hạng ngành" đầu file.
+>
+> **Khi user nhập mã ngắn** (vd "phân tích ngành DAUKHI", "so sánh NGANHANG vs CHUNGKHOAN"): map sang tên chuẩn DB ở cột phải để query. Khi xuất báo cáo cho user dùng tên đầy đủ (vd "Dịch vụ Dầu khí"), không lộ mã ngắn.
 
 ### `industry_info` — Tổng quan ngành
 
@@ -421,8 +438,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
   "price": { ... },
   "money_flow_score": {
     "day_score": -1.88,
-    "week_score": 11.74,
-    "industry_rank": 7
+    "week_score": 11.74
   },
   "breadth": { "breadth_in": 6, "breadth_out": 7, "breadth_neu": 2 },
   "change": { "w_pct": 0.022, "m_pct": 0.039, "q_pct": 0.027, "y_pct": 0.284 },
@@ -437,7 +453,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
 **Khác biệt so với stock_snapshot:**
 - Có thêm `breadth` (độ rộng trong nội bộ ngành).
 - Có thêm `trend` (tỷ lệ mã trong ngành có giá trên trend line = midpoint range của khung; xem công thức ở đầu file).
-- `money_flow_score` có `industry_rank` (xếp hạng tuyệt đối trong 24 ngành, 1 = mạnh nhất).
+- `money_flow_score` **KHÔNG có** `industry_rank` (DB không lưu rank ngành-vs-ngành — phải tự tổng hợp theo scope phân tích, xem mục "Xếp hạng ngành" ở đầu file).
 - **Không có** `technical_indicator` (ohl/ma/fibonacci/volume_profile/pivot).
 
 ---
@@ -454,7 +470,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
     {
       "date": "2026-04-17",
       "price": { ... },
-      "money_flow_score": { "day_score": ..., "week_score": ..., "industry_rank": ... },
+      "money_flow_score": { "day_score": ..., "week_score": ... },
       "trend": { "w_trend": ..., "m_trend": ..., "q_trend": ..., "y_trend": ... }
     },
     ...
@@ -660,7 +676,89 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
 
 ---
 
-## E. Khối tin tức
+## E. Khối lịch sử (History)
+
+Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho query on-demand khi cần chart dài hạn, phân tích cycle, backtest, hoặc so sánh giai đoạn — KHÔNG dùng cho phân tích realtime/EOD ngắn hạn (các collection `*_recent` đã cover 20 phiên gần nhất).
+
+**Schema item chung** (áp dụng cho cả 3 collection history):
+
+```json
+{
+  "date": "YYYY-MM-DD",
+  "price": {
+    "open": ..., "high": ..., "low": ..., "close": ...,
+    "volume": ..., "pct_change": ...
+  },
+  "change": {"w_pct": ..., "m_pct": ..., "q_pct": ..., "y_pct": ...}
+}
+```
+
+**Lưu ý chung:**
+- `series` chứa toàn bộ lịch sử có sẵn — số lượng phần tử lớn (vài trăm đến vài nghìn phiên). **Luôn projection + `$slice` hoặc filter theo date range** khi query.
+- Item thiếu dữ liệu phiên cụ thể → field `null`.
+- Cấu trúc đơn giản hơn `*_recent`: KHÔNG có `money_flow_score`, `trend`, `technical_zone`, `volume_strength_index`.
+
+### `history_index` — Lịch sử chỉ số thị trường
+
+**Số lượng:** 1 doc (hiện tại chỉ `VNINDEX`)
+**Cập nhật:** EOD (append phiên mới)
+**Dùng khi:** chart VNINDEX nhiều năm, phân tích chu kỳ thị trường, so sánh giai đoạn, backtest macro.
+
+```json
+{
+  "index": "VNINDEX",
+  "series": [
+    {
+      "date": "YYYY-MM-DD",
+      "price": {"open", "high", "low", "close", "volume", "pct_change"},
+      "change": {"w_pct", "m_pct", "q_pct", "y_pct"}
+    }
+  ]
+}
+```
+
+**Lưu ý:** `volume` index thường là `0` hoặc `NaN` (index là tính toán). Dùng `close` để chart trend dài hạn.
+
+---
+
+### `history_industry` — Lịch sử 24 ngành
+
+**Số lượng:** ~24 doc (skip ngành không có data)
+**Cập nhật:** EOD
+**Dùng khi:** chart ngành nhiều năm, phân tích chu kỳ ngành, so sánh ngành qua giai đoạn dài.
+
+```json
+{
+  "industry_name": "Ngân hàng",
+  "series": [ ... item theo schema chung ... ]
+}
+```
+
+**Whitelist 18 ngành áp dụng:** khi query lịch sử cho phân tích pack, filter `industry_name ∈ 18 whitelist` (xem mục B đầu khối ngành).
+
+---
+
+### `history_stock` — Lịch sử ~500 mã
+
+**Số lượng:** ~500 doc (skip ticker không có data)
+**Cập nhật:** EOD
+**Dùng khi:** chart mã nhiều năm, phân tích pattern dài hạn, backtest, kiểm tra biến động qua các giai đoạn lớn (vd 2020 covid, 2022 sụp, 2023 phục hồi).
+
+```json
+{
+  "ticker": "VCB",
+  "series": [ ... item theo schema chung ... ]
+}
+```
+
+**Lưu ý quan trọng về performance:**
+- Tổng dung lượng collection lớn (~500 mã × vài trăm phiên/mã). KHÔNG `find({})` không projection.
+- Luôn filter theo `ticker` cụ thể.
+- Khi query nhiều mã song song, dùng `$in` + projection + `$slice` để giới hạn output.
+
+---
+
+## F. Khối tin tức
 
 ### `news_today_feed` — Tin hôm nay (metadata)
 
@@ -779,7 +877,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 
 ---
 
-## F. Khối vĩ mô & hàng hoá quốc tế
+## G. Khối vĩ mô & hàng hoá quốc tế
 
 ### `other_data` — Chỉ số vĩ mô, hàng hoá, thị trường quốc tế
 
@@ -846,7 +944,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 
 ---
 
-## G. Khối briefing
+## H. Khối briefing
 
 ### `data_briefing` — Toàn cảnh thị trường 6 block
 
@@ -947,8 +1045,12 @@ Market-level:
   market_nntd (standalone)
   market_itd (standalone)
 
+History (lịch sử dài hạn — query on-demand):
+  history_index    (VNINDEX toàn bộ lịch sử)
+  history_industry (24 ngành lịch sử)
+  history_stock    (~500 mã lịch sử)
+
 Cross-level aggregates:
-  stock_highlight (top tăng/giảm theo nhóm vốn hoá/dòng tiền/ngành)
   data_briefing   (tổng quan thị trường + ngành + nhóm + vĩ mô + report)
 
 Macro / international:

@@ -544,7 +544,7 @@ Ngoài các thuật ngữ trong bảng, một số thuật ngữ viết tắt th
 
 **Bước 8 — Soạn output theo nguyên tắc K hygiene.** Rà soát lần cuối output trước khi send: không lộ ký hiệu DB raw, không lộ taxonomy nội bộ (bao gồm "HIGH/MID/LOW impact", "logic gate", "framework chấm điểm"), không để nguyên thuật ngữ tiếng Anh chưa dịch. Mô tả trực tiếp tác động, cơ chế, hành động bằng ngôn ngữ tự nhiên. Format output theo layer style đang active (O pack nếu có, hoặc Default của Kernel theo system prompt mục 6).
 
-**Dẫn link nguồn khi cần:** khi output liệt kê nhiều tin/báo cáo dạng bảng hoặc cite claim cụ thể, bổ sung URL bài gốc bên cạnh mỗi entry để user verify. Pattern: `https://finext.vn/news/{article_slug}` cho tin thường, `https://finext.vn/reports/{report_slug}` cho báo cáo tổng hợp. Khi user explicit yêu cầu "dẫn link" hoặc "cho link bài báo", bắt buộc đưa URL đầy đủ. Chi tiết pattern và K hygiene exception xem `K_agent_db_01` section E.
+**Dẫn link nguồn khi cần:** khi output liệt kê nhiều tin/báo cáo dạng bảng hoặc cite claim cụ thể, bổ sung URL bài gốc bên cạnh mỗi entry để user verify. Pattern: `https://finext.vn/news/{article_slug}` cho tin thường, `https://finext.vn/reports/{report_slug}` cho báo cáo tổng hợp. Khi user explicit yêu cầu "dẫn link" hoặc "cho link bài báo", bắt buộc đưa URL đầy đủ. Chi tiết pattern và K hygiene exception xem `K_agent_db_01` section F (Khối tin tức).
 
 Sau khi chạy đủ 8 bước, agent đưa ra kết luận có cấu trúc gồm ba thành phần: (1) tác động thực tế của tin tới nhóm cổ phiếu nào theo cơ chế gì, (2) khuyến nghị hành động cụ thể kèm điều kiện, (3) các yếu tố rủi ro hoặc dấu hiệu cần theo dõi trong các phiên tiếp theo để xác nhận hoặc bác bỏ kết luận ban đầu.
 

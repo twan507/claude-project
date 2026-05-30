@@ -224,11 +224,17 @@ projection: { "_id": 0, "industry_name": 1,
 
 Xếp hạng ngành trong universe theo tổng hợp 4 tiêu chí (không ngưỡng cứng, đây là ranking):
 
-**R1. Xếp hạng dòng tiền ngành (industry_rank):**
-- Rank 1-5: rất mạnh
-- Rank 6-10: mạnh
-- Rank 11-15: trung bình
-- Rank 16-24: yếu
+**R1. Xếp hạng dòng tiền ngành (tự tổng hợp theo `week_score`):**
+
+> DB không lưu `industry_rank` tĩnh. Agent query `industry_snapshot.money_flow_score.week_score` cho 18 ngành whitelist (default) hoặc danh sách user yêu cầu (override), sort giảm dần, gán rank 1..N. Xem `K_agent_db_01` mục "Xếp hạng ngành".
+
+Ngưỡng (cho scope 18 whitelist):
+- Rank 1-4: rất mạnh
+- Rank 5-9: mạnh
+- Rank 10-13: trung bình
+- Rank 14-18: yếu
+
+(Khi scope khác 18, scale ngưỡng theo tỷ lệ tương ứng.)
 
 **R2. Điểm dòng tiền tuần (week_score):**
 - > 20: tốt
@@ -377,7 +383,7 @@ Catalyst override (nếu có): [tên ngành + lý do].
   - B4 ICR/NPL: [giá trị]
 - Funnel C (Catalyst): [tổng điểm, liệt kê catalyst]
 - Funnel A (Ranking):
-  - R1 industry_rank: [số]
+  - R1 rank ngành (tự tổng hợp theo `week_score`, scope 18 whitelist): [số]
   - R2 week_score: [số]
   - R3 trend quý: [%]
   - R4 trend năm: [%]
@@ -510,7 +516,7 @@ Khi regime khắt khe (Risk-on selective hoặc Defensive only) và bảng catal
 
 Agent có xu hướng sort theo week_score và chọn top N, bỏ qua trend quý/năm. Ngành có week_score cao nhưng trend quý 25% là ngành đang rally ngắn hạn trong downtrend trung hạn — rủi ro cao.
 
-**Xử lý:** priority cho R3 (trend quý) khi có tranh chấp với R1 (industry_rank). Ngành rank 5 nhưng trend quý 55% có thể ưu tiên hơn ngành rank 2 nhưng trend quý 20%.
+**Xử lý:** priority cho R3 (trend quý) khi có tranh chấp với R1 (rank tự tổng hợp). Ngành rank 5 nhưng trend quý 55% có thể ưu tiên hơn ngành rank 2 nhưng trend quý 20%.
 
 ### 10.4. Default về Fundamental khắt khe
 

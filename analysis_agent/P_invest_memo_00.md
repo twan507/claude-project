@@ -145,7 +145,7 @@ Phần này tóm tắt mục tiêu, input/output, và logic cốt lõi của m�
 
 **Universe filter (loại thẳng):** Funnel B (Fundamental — growth, biên, P/E so median 3Y) ∩ Funnel C (Catalyst — điểm ≥ 3 từ tier 0).
 
-**Ranking filter (xếp hạng, không loại):** Funnel A (Flow + kỹ thuật — industry_rank, điểm dòng tiền tuần, trend quý+năm). Chọn top 3-5 trong universe.
+**Ranking filter (xếp hạng, không loại):** Funnel A (Flow + kỹ thuật — rank ngành tự tổng hợp theo `week_score`, điểm dòng tiền tuần, trend quý+năm). Chọn top 3-5 trong universe.
 
 **Exception:** catalyst override — 1 ngành/chu kỳ có thể lọt dù không đạt B nếu catalyst score = 6 và xu hướng 20 phiên bật từ đáy.
 

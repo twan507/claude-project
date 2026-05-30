@@ -33,7 +33,7 @@ Pack dùng 2 nguồn song song:
 Pack có 5 file con reference (số hiệu là reference index, không phải thứ tự thực thi):
 
 **`K_agent_db_01` — Collections schema**
-23 collection trong `agent_db`. Tra khi cần hiểu cấu trúc document trước khi query.
+25 collection trong `agent_db`. Tra khi cần hiểu cấu trúc document trước khi query.
 
 **`K_agent_db_02` — Query patterns**
 12 workflow pipeline (ký hiệu A đến L). Dùng làm template, thay placeholder. Không tự sáng chế pipeline phức tạp khi đã có template phù hợp.
@@ -93,6 +93,19 @@ Khuyến nghị phải:
 - Ghi cuối: "Quyết định cuối vẫn do anh/chị cân nhắc"
 - Không hứa hẹn lợi nhuận, không dùng "chắc chắn tăng/giảm", "không thể lỗ"
 
+### 4.5. Whitelist 18 ngành phân tích — Default scope + User override
+
+**Default mode (user không nói gì cụ thể):** DB lưu **24 ngành** nhưng pack **mặc định chỉ phân tích 18 ngành** trong whitelist. Mọi query / aggregate / ranking / báo cáo cấp ngành filter theo whitelist này; các ngành ngoài whitelist không xuất hiện trong báo cáo. Mã thuộc ngành ngoài whitelist vẫn phân tích đơn lẻ được nếu user hỏi đích danh ticker, nhưng không vào watchlist theme / sector tilts.
+
+**Override mode (user yêu cầu cụ thể ngành ngoài whitelist):** vd "phân tích ngành Bảo hiểm", "so sánh BVH vs VNM", "BCTC ngành Y tế Dược phẩm Q1" — agent **vẫn query được và trả lời bình thường** (dữ liệu 24 ngành đầy đủ trong DB). Khi đó:
+- Query thẳng theo `industry_name` user yêu cầu, không apply whitelist filter
+- Ghi note "ngoài scope whitelist mặc định" trong output để user biết
+- Không tự ý so sánh với các ngành whitelist trừ khi user yêu cầu rõ
+
+Danh sách 18 mã ngắn (user nhập) ↔ tên DB chuẩn (`industry_name` / `industry`) + cách áp dụng filter (cả Default + Override mode) và xử lý re-rank: xem **`K_agent_db_01`** đầu Section B "Khối ngành".
+
+Khi user nhập mã ngắn (vd "DAUKHI", "NGANHANG"): map sang tên chuẩn DB để query; xuất báo cáo dùng tên đầy đủ, không lộ mã ngắn.
+
 ## 5. K hygiene — ký hiệu cần dịch trước khi output
 
 Rule K hygiene ở system prompt mục 5.5 bắt buộc dịch ký hiệu raw và taxonomy nội bộ sang ngôn ngữ tự nhiên. Pack này định nghĩa 3 nhóm cần dịch và bảng dịch tương ứng.
@@ -100,7 +113,7 @@ Rule K hygiene ở system prompt mục 5.5 bắt buộc dịch ký hiệu raw v�
 ### 5.1. Ba nhóm ký hiệu
 
 **Nhóm 1 — Ký hiệu DB raw:**
-`vsi`, `VSI`, `day_score`, `week_score`, `zone` với giá trị `A/AA/AAA/B/C`, `f382`/`f500`/`f618`, `poc`/`val`/`vah`, `r1`/`s1`, `period: "2025_4"`, `m_pct`/`w_pct`/`q_pct`/`y_pct`, `w_trend`/`m_trend`/`q_trend`/`y_trend`, `rank_pct`, `industry_rank`, `market_rank_pct`.
+`vsi`, `VSI`, `day_score`, `week_score`, `zone` với giá trị `A/AA/AAA/B/C`, `f382`/`f500`/`f618`, `poc`/`val`/`vah`, `r1`/`s1`, `period: "2025_4"`, `m_pct`/`w_pct`/`q_pct`/`y_pct`, `w_trend`/`m_trend`/`q_trend`/`y_trend`, `rank_pct`, `industry_rank_pct`, `market_rank_pct`.
 
 **Nhóm 2 — Taxonomy nội bộ methodology (từ file 04, 05):**
 - Tên kịch bản trend đa khung: "Kịch bản A/B/C/D/E/F/G"
@@ -121,7 +134,7 @@ Viết tắt thông dụng có thể giữ nguyên: Fed, FOMC, CPI, NFP, PCE, PM
 
 **Exception — Slug trong URL finext.vn:**
 
-`article_slug` và `report_slug` thuộc Nhóm 1 (ký hiệu DB raw), cấm lộ dạng trần trong output (ví dụ không viết `article_slug: vnm-bao-cao-q1`). Tuy nhiên khi ghép vào URL đầy đủ `https://finext.vn/news/{article_slug}` hoặc `https://finext.vn/reports/{report_slug}`, đây là output user-facing hợp lệ — URL công khai, không phải ký hiệu nội bộ DB. Chi tiết pattern xem `K_agent_db_01` section E (URL pattern — Dẫn link finext.vn).
+`article_slug` và `report_slug` thuộc Nhóm 1 (ký hiệu DB raw), cấm lộ dạng trần trong output (ví dụ không viết `article_slug: vnm-bao-cao-q1`). Tuy nhiên khi ghép vào URL đầy đủ `https://finext.vn/news/{article_slug}` hoặc `https://finext.vn/reports/{report_slug}`, đây là output user-facing hợp lệ — URL công khai, không phải ký hiệu nội bộ DB. Chi tiết pattern xem `K_agent_db_01` section F (URL pattern — Dẫn link finext.vn).
 
 ### 5.2. Bảng dịch ký hiệu DB sang ngôn ngữ tự nhiên
 
@@ -136,9 +149,9 @@ Viết tắt thông dụng có thể giữ nguyên: Fed, FOMC, CPI, NFP, PCE, PM
 | `day_score: 68` | điểm dòng tiền ngày 68 |
 | `week_score: -18` | dòng tiền tuần âm 18, đang rút ra |
 | `breadth_in: 127, breadth_out: 171` | 127 mã tăng, 171 mã giảm, bên bán thắng thế |
-| `industry_rank_pct: 0.9` | top 10% mạnh nhất ngành |
-| `market_rank_pct: 0.95` | top 5% mạnh nhất thị trường |
-| `industry_rank: 1` | dẫn đầu 24 ngành về dòng tiền |
+| `industry_rank_pct: 0.9` | top 10% mạnh nhất ngành (percentile mã trong ngành) |
+| `market_rank_pct: 0.95` | top 5% mạnh nhất thị trường (percentile mã trong thị trường) |
+| Rank ngành-vs-ngành | DB không lưu — tự tổng hợp sort `week_score` (dòng tiền tuần) qua 18 ngành whitelist; xem `K_agent_db_01` mục "Xếp hạng ngành" |
 | `fibonacci.w.f382: 1763` | hỗ trợ Fibonacci 38.2% khung tuần quanh 1763 |
 | `volume_profile.w.poc: 1750` | vùng giá tập trung giao dịch quanh 1750 |
 | `volume_profile.w.val / vah` | biên dưới / biên trên vùng giá chấp nhận |

@@ -24,7 +24,7 @@ Knowledge base duy nhất là bộ file `agent_db_NN` (6 file). Mọi schema, me
 Knowledge base gồm 6 file:
 
 - `agent_db_00` — Master: mục đích, nguồn dữ liệu, manifest, domain rules, K hygiene, quy đổi đơn vị, output rules
-- `agent_db_01` — Schema 23 collection + URL pattern finext.vn
+- `agent_db_01` — Schema 25 collection + URL pattern finext.vn
 - `agent_db_02` — Query patterns 12 workflow (A-L)
 - `agent_db_03` — Anti-patterns, case study lỗi quá khứ
 - `agent_db_04` — Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone, PTCB 4 type doanh nghiệp)
@@ -64,7 +64,7 @@ Không lộ 3 nhóm ký hiệu ra output user-facing: (a) DB raw (`vsi`, `day_sc
 
 Bảng dịch đầy đủ tại `agent_db_00` mục 5 (3 nhóm và bảng tương ứng).
 
-**Exception:** `article_slug` / `report_slug` khi ghép thành URL đầy đủ `https://finext.vn/news/{slug}` hoặc `https://finext.vn/reports/{slug}` là output hợp lệ. Chi tiết tại `agent_db_01` section E.
+**Exception:** `article_slug` / `report_slug` khi ghép thành URL đầy đủ `https://finext.vn/news/{slug}` hoặc `https://finext.vn/reports/{slug}` là output hợp lệ. Chi tiết tại `agent_db_01` section F (Khối tin tức).
 
 ## 5. Self-audit trước khi send
 

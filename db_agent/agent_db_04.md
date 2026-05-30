@@ -1011,7 +1011,7 @@ Các tình huống agent dễ đọc sai. Mỗi pitfall có chẩn đoán và c�
 
 ### F4. Market_rank_pct cao nhưng ngành yếu
 
-**Tình huống:** mã có market_rank_pct = 0.85 (top 15% thị trường), nhưng ngành nó thuộc có industry_rank = 23/24 (gần cuối) và trend ngành < 0.3.
+**Tình huống:** mã có market_rank_pct = 0.85 (top 15% thị trường), nhưng ngành nó thuộc xếp gần cuối khi tự tổng hợp rank theo `week_score` qua 18 ngành whitelist (vd rank 17/18) và trend ngành < 0.3.
 
 **Diễn giải sai:** "Mã mạnh, mua."
 

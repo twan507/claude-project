@@ -201,17 +201,35 @@ Collection chỉ có 1 doc, không cần filter.
 
 ## 3. Top N theo tiêu chí
 
-### 3.1. Top tăng/giảm trong 1 nhóm / ngành (đã pre-compute)
+### 3.1. Top tăng/giảm trong 1 ngành — tự aggregate từ `stock_snapshot`
 
-Query `stock_highlight` nhanh hơn tự aggregate:
+> Collection `stock_highlight` (pre-compute) đã bị loại bỏ khỏi schema. Top tăng/giảm trong ngành tự aggregate từ `stock_snapshot` filter theo `industry`.
+
+Top 10 tăng mạnh nhất trong 1 ngành (volume + thanh khoản lọc tối thiểu):
 
 ```
-collection: stock_highlight
-filter: { "type": "industry", "name": "<tên ngành>" }
-projection: { "_id": 0 }
+collection: stock_snapshot
+pipeline: [
+  { "$match": { "industry": "<tên ngành>",
+                "price.volume": { "$gt": 100000 },
+                "price.trading_value": { "$gt": 1 },
+                "price.pct_change": { "$gt": 0 } } },
+  { "$project": { "_id": 0, "ticker": 1,
+                  "close": "$price.close", "pct_change": "$price.pct_change",
+                  "volume": "$price.volume", "trading_value": "$price.trading_value",
+                  "day_score": "$money_flow_score.day_score",
+                  "week_score": "$money_flow_score.week_score",
+                  "industry_rank_pct": "$money_flow_score.industry_rank_pct" } },
+  { "$sort": { "pct_change": -1 } },
+  { "$limit": 10 }
+]
 ```
 
-Các `type` khác: `marketcap`, `money_flow`.
+Top 10 giảm mạnh nhất: đổi `pct_change: { "$gt": 0 }` thành `{ "$lt": 0 }` và `sort: { "pct_change": 1 }`.
+
+**Filter ngành whitelist 18 áp dụng:** khi screen cho phân tích pack, `industry` phải ∈ 18 ngành whitelist (xem `K_agent_db_01` Section B).
+
+Top theo nhóm vốn hoá / nhóm dòng tiền: dùng `group_snapshot` filter `group_name` hoặc query `stock_snapshot` join qua `stock_info.marketcap` / `stock_info.category`.
 
 ### 3.2. Top tăng/giảm toàn thị trường (không pre-compute — phải tự sort)
 
@@ -285,21 +303,27 @@ pipeline: [
 
 Top bán ròng: `$sort: 1`.
 
-### 3.6. Ngành mạnh nhất / yếu nhất theo điểm dòng tiền
+### 3.6. Ngành mạnh nhất / yếu nhất theo điểm dòng tiền — TỰ TỔNG HỢP RANK
+
+> DB **không lưu** `industry_rank` ngành-vs-ngành. Agent tự sort theo `week_score` (dòng tiền tuần) qua scope phân tích (default: 18 ngành whitelist).
 
 ```
 collection: industry_snapshot
 pipeline: [
+  { "$match": { "industry_name": { "$in": [<18 tên chuẩn whitelist>] } } },   // default mode; bỏ $match khi override
   { "$project": { "_id": 0, "industry_name": 1,
                   "day_score": "$money_flow_score.day_score",
                   "week_score": "$money_flow_score.week_score",
-                  "rank": "$money_flow_score.industry_rank",
                   "pct_change": "$price.pct_change",
                   "breadth_in": "$breadth.breadth_in",
                   "breadth_out": "$breadth.breadth_out" } },
-  { "$sort": { "day_score": -1 } }
+  { "$sort": { "week_score": -1 } }   // rank theo dòng tiền tuần — field chuẩn để rank ngành
 ]
 ```
+
+Agent gán rank 1..N trong-flight theo thứ tự sort. Rank 1 = ngành dòng tiền tuần mạnh nhất trong scope.
+
+Khi user yêu cầu rank theo tiêu chí khác (vd biến động giá), đổi `"$sort": { "pct_change": -1 }` hoặc field tương ứng.
 
 ---
 
@@ -861,7 +885,6 @@ pipeline: [
             "industry_name": "$$i.industry_name",
             "day_score": "$$i.money_flow_score.day_score",
             "week_score": "$$i.money_flow_score.week_score",
-            "rank": "$$i.money_flow_score.industry_rank",
             "pct_change": "$$i.price.pct_change",
             "zone_w": "$$i.technical_zone.overall.w",
             "breadth_in": "$$i.breadth.breadth_in",
@@ -1103,7 +1126,7 @@ Phần này mô tả chuỗi query cần thiết cho các phân tích hay gặp.
                  "series": { "$slice": 10 } }
    ```
 4. `industry_finstats` lấy valuation và BCTC kỳ gần nhất (xem 6.3 version ngành).
-5. `stock_highlight` với `type: "industry"` cho top tăng/giảm trong ngành (xem 3.1).
+5. Top tăng/giảm trong ngành: aggregate từ `stock_snapshot` filter `industry` (xem 3.1).
 6. Top 3-5 mã đầu ngành: query song song `stock_snapshot` với `$in` (xem 5.1).
 7. Tin ngành: `news_history_feed` với `tickers $in full_ticker_list` (xem 8.6).
 8. Nếu ngành nhạy vĩ mô: thêm chỉ số `other_data` liên quan (xem Workflow I).
