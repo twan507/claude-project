@@ -136,14 +136,16 @@ Cho High conviction. Mô tả ngắn gọn:
 - **Value chain position:** upstream/downstream, pricing power
 - **Key customers/suppliers:** concentration risk
 - **Regulatory environment:** gần đây có thay đổi gì relevant
+- **Industry-level lens (tuỳ chọn):** 1-2 đoạn ngắn theo khung DD/MP/SI/PM/ESG từ `K_sector_framework` — pull 3-5 câu most material cho ngành/mã đang phân tích (vd Banking: NIM trend + CASA ratio + digital adoption; Real Estate: land bank + pre-sales velocity + financing access). Mục tiêu: đặt firm vào bối cảnh ngành chứ không lặp lại số liệu tài chính. Áp K hygiene — không lộ tên dimension "DD/MP/SI/PM/ESG" ra output, viết bằng ngôn ngữ tự nhiên.
 
 Nguồn:
 - stock_info overview + business_area
 - industry_info.value_chain
 - BCTN từ tier 5A
+- `K_sector_framework` mục 5 per-sector quick-ref (nếu ngành có CFA cover) hoặc mục 3 universal framework (ngành ngoài cover)
 - Web search bổ sung (báo cáo ngành, annual report)
 
-Độ dài: 0.5-1 trang.
+Độ dài: 0.5-1 trang (1 trang nếu có industry-level lens).
 
 ### Phần 4 — Financial Analysis + Valuation
 

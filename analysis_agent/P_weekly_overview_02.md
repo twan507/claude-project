@@ -51,6 +51,14 @@ Nếu không có ngành nào pass: ghi đúng câu "**Tuần này không có ear
 
 Bảng + diễn giải prose tập trung cơ bản (định giá + EPS) + flow (week_score + rank). Không có cột `technical_zone` trong bảng quyết định bias. Vùng kỹ thuật ngành chỉ minh hoạ tối thiểu nếu thực sự cần.
 
+### 1.6. Structural watch (exception, không default)
+
+**Mặc định KHÔNG dùng `K_sector_framework`** ở phần này — broadcast tuần ưu tiên ngắn gọn 9-11 trang, không cần industry deep-dive mỗi tuần.
+
+**Exception:** khi 1 ngành có biến động bất thường tuần này (vd dòng tiền tuần top 1 hoặc bottom 1, hoặc có catalyst lớn material) → có thể pull 1 dòng "Structural watch" từ `K_sector_framework` mục 5.X tương ứng (1 driver cấu trúc dominant 3-5 từ). Không quá 1 dòng/ngành. Không quá 2 ngành/tuần.
+
+Format ví dụ trong bảng 18 ngành: thêm cột "Structural watch" chỉ render khi exception, để trống cho ngành không exception. Hoặc note rời 1-2 dòng dưới bảng.
+
 ## 2. Phần 7 — Top dẫn dắt 2 góc nhìn + Cảnh báo trap
 
 ### 2.1. Query DB

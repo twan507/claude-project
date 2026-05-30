@@ -141,12 +141,15 @@ Cross-reference `market_nntd` aggregate + `industry_snapshot.breadth`:
 | Chính sách / catalyst ngành | `news_history_feed` filter sector + web search | `news_type` + body content | PRIMARY |
 | Mùa BCTC / consensus | Web search | — | PRIMARY |
 | Sensitivity vĩ mô mapping | `K_agent_db_00` mục 8 + bảng mục 2.1.e trên | — | PRIMARY |
+| Industry structure + competitive dynamics + ESG hotspots | `K_sector_framework` mục 5 per-sector quick-ref | DD/MP/SI/PM/ESG drivers cốt lõi cho mỗi ngành whitelist (nếu có CFA cover) hoặc universal framework mục 3 | PRIMARY (định tính) |
 | Dòng tiền ngành tuần + xu hướng 4 tuần | `industry_snapshot` (18 doc) + `industry_recent` | `money_flow_score.week_score`; rank tự tổng hợp 1..18 theo `week_score` | SECONDARY |
 | Breadth nội bộ ngành | `industry_snapshot` (18 doc) + `stock_snapshot` filter industry | `breadth.breadth_in/out/neu`, `change.m_pct` count | SECONDARY |
 | Crowding | `market_nntd` aggregate + `industry_snapshot.breadth` | net flow tháng/quý + breadth | SECONDARY |
 | Rotation large/mid/small | `group_snapshot` (6 nhóm vốn hoá) | so sánh nhóm vs nhóm | SECONDARY |
 
-**Trọng số nguồn ước:** ~80% DB + ~15% web search + ~5% file user upload.
+**Trọng số nguồn ước:** ~75% DB + ~15% web search + ~5% `K_sector_framework` lens + ~5% file user upload.
+
+**Cách dùng `K_sector_framework`:** không phải pull mỗi ngành dù trục đó là Hold — chỉ pull khi sector tilt là Quan tâm hoặc Cần thận trọng (mục 4.1 và 4.3), cần 1 dòng "Structural lens" 3-5 từ trong bảng tilts tổng hợp (mục 5). Vd: NGANHANG Quan tâm → "Digital banking + credit growth recovery"; BDS Thận trọng → "Affordability cycle + financing tightening". Nguồn: mục 5.X SI bullets ngành tương ứng.
 
 ## 4. Output diễn giải — 3 tầng
 
@@ -190,15 +193,16 @@ Conviction theo mức cross-check:
 
 Single-page scannable, chuẩn buy-side. Mỗi ngành 1 dòng:
 
-| Ngành | Bias | Conviction | Theme/driver chính | Signal hỗ trợ | Disconfirming signal |
-|---|---|---|---|---|---|
-| NGANHANG | Quan tâm | HIGH | Margin cải thiện cuối chu kỳ hạ lãi suất | EPS Q1/26 +18% YoY (consensus), P/B 1.4x phân vị 28% | NIM Q2 thu hẹp ≥20bp QoQ; chính sách thắt tín dụng mới |
-| ... | ... | ... | ... | ... | ... |
+| Ngành | Bias | Conviction | Theme/driver chính | Structural lens | Signal hỗ trợ | Disconfirming signal |
+|---|---|---|---|---|---|---|
+| NGANHANG | Quan tâm | HIGH | Margin cải thiện cuối chu kỳ hạ lãi suất | Digital banking + credit growth recovery | EPS Q1/26 +18% YoY (consensus), P/B 1.4x phân vị 28% | NIM Q2 thu hẹp ≥20bp QoQ; chính sách thắt tín dụng mới |
+| ... | ... | ... | ... | ... | ... | ... |
 
 **Quy tắc:**
 - Render đủ 18 ngành whitelist (kể cả ngành trung tính ghi 1 dòng ngắn)
 - Signal hỗ trợ kèm **số cụ thể** (không "tốt", "cải thiện" chung chung)
 - Disconfirming kèm **threshold cụ thể** (số / sự kiện cụ thể)
+- **Structural lens:** 3-5 từ định danh SI driver dominant, pull từ `K_sector_framework` mục 5.X (ngành có cover) hoặc mục 3 universal framework. Chỉ bắt buộc cho ngành Quan tâm + Cần thận trọng; ngành Trung tính có thể bỏ trống hoặc ghi "n/a" trong cột này.
 
 ## 6. Cross-reference đầu ra Trục 4
 

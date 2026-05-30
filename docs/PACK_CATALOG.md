@@ -1,6 +1,6 @@
 # Pack Catalog
 
-Catalog chi tiết từng pack/file trong 3 agent. Mỗi pack ghi: mục đích, files, dependencies, key constraints, output naming. Cập nhật: 2026-05-30.
+Catalog chi tiết từng pack/file trong 2 agent. Mỗi pack ghi: mục đích, files, dependencies, key constraints, output naming. Cập nhật: 2026-05-30.
 
 ---
 
@@ -26,6 +26,25 @@ Multi-pack analyst agent dùng kernel routing pattern. Đọc `KERNEL_SKELETON.m
 **Dependencies:** Không (knowledge layer độc lập).
 
 **Status:** ✅ Active. Schema được sync với `db_agent/agent_db_*` (cùng schema, framing khác).
+
+---
+
+#### `K_sector_framework` — 1 file
+
+**Mục đích:** Khung phân tích ngành chuẩn institutional buy-side, chắt lọc từ CFA Sector Analysis Framework (2020). Cung cấp lens systematic để deep-dive sector-level analysis bổ trợ cho dòng tiền/PTCB của `K_agent_db_04`.
+
+| File | Nội dung |
+|---|---|
+| `K_sector_framework` | (1) Universal 5-dimension framework: **Demand Drivers / Market Position / Structural Influences / Performance Metrics / ESG** với question bank distilled (~10-15 câu/dimension). (2) **Per-sector quick-reference** cho 10-12 ngành whitelist có CFA cover (NGANHANG, TIENICH, BDS, KCN, BANLE, VANTAI, CONGNGHE, XAYDUNG, THUCPHAM, NONGNGHIEP, CHUNGKHOAN, BAOHIEM override). (3) Guidance generic cho 6-7 ngành whitelist không CFA cover (DAUKHI, HOACHAT, KIMLOAI, DETMAY, KHOANGSAN, THUYSAN, CONGNGHIEP). (4) **Industry 4.0 lens** — digital footprint, automation, AI/IoT disruption cross-sector. |
+
+**Dependencies:** Không (knowledge layer độc lập). Reference được từ `P_invest_memo_05/06/07`, `P_vbse_strategy_04`, `P_weekly_overview_02`.
+
+**Quan hệ với `K_agent_db_04`:**
+- `K_agent_db_04`: chuyên dòng tiền + PTCB 4 type doanh nghiệp + chỉ báo technical (từ data DB)
+- `K_sector_framework`: chuyên industry structure + competitive dynamics + ESG (chuẩn CFA)
+- 2 pack **bổ trợ**, không thay thế nhau
+
+**Status:** ✅ Active. Created 2026-05-30.
 
 ---
 
@@ -126,6 +145,42 @@ Multi-pack analyst agent dùng kernel routing pattern. Đọc `KERNEL_SKELETON.m
 
 ---
 
+#### `P_stock_report` — 5 files
+
+**Mục đích:** Sinh **báo cáo phân tích chuyên sâu 1 cổ phiếu** Việt Nam niêm yết. Vào trực tiếp từ ticker, không cần qua workflow `P_invest_memo` Tier 0-3. Horizon 1-12 tháng, output 1-10 trang theo 3 depth mode, audience flex (nội bộ analyst / KH), support pair compare 2-3 mã. Complement (không thay thế) Tier 5C của `P_invest_memo` — dùng cho pre-screening / pitch nhanh / ad-hoc analysis ngoài full memo cycle.
+
+| File | Nội dung |
+|---|---|
+| `_00` | Master — mục đích, scope, differentiate với Tier 5C, philosophy, 6 nguyên tắc bất biến (cross-cutting + pack-specific), manifest (5 file con với Stage 1 16 sub-step + mục 2.6 chuỗi giá trị SXKD), workflow tổng, 3 depth mode definition, cross-reference, flex+downgrade triết lý |
+| `_01` | Pre-flight 6 câu (ticker / horizon / depth mode / audience / pair / **file request BCTC PDF bắt buộc**) + Stage 0 optional eval prior analysis + **Stage 1 Data Acquisition 16 sub-step (1a-1p)** (1a stock info + type classification → 1b FA data DB → 1c dòng tiền + tech zone → 1d khối ngoại + tự doanh → 1e major shareholders → 1f corporate actions → 1g news DB → 1h web search news (VN equity + EN macro tuỳ ngành) → 1i **BCTC PDF forensic 15-point checklist đào sâu thuyết minh** → 1j sector context K_sector_framework → 1k macro relevant → 1l **peer compare internet-first + filter thanh khoản** → 1m ADV liquidity → 1n earnings calendar → 1o ESG controversy scan → **1p Value chain data top KH/NCC/channel/capacity/R&D ratio/Industry 4.0 readiness — SXKD mandatory Standard+; SKIP NH/CK/BH**) + depth mode coverage matrix + fail-soft rule |
+| `_02` | **Type-specific framework cho 4 type:** SXKD (4 kịch bản Value Play / Value Trap / Growth at Premium / Cycle Top + 3 sub-type cycle dynamics + **mục 2.6 Chuỗi giá trị 10 sub-mục: 2.6.0 khung tham chiếu chuyên nghiệp / 2.6.1 industry value chain map / 2.6.2 Porter Value Chain 5 primary + 4 support + forward/backward integration / 2.6.3 Porter 5 forces + GVC governance + Tier suppliers / 2.6.4 Smile Curve Stan Shih / 2.6.5 Industry 4.0 CFA Sector Analysis 2020 / 2.6.6 position summary tích hợp / 2.6.7 data sourcing / 2.6.8 cross-link 4 kịch bản / 2.6.9 CFA chapter mapping 21 ngành ↔ VN whitelist**) + NH (NIM/CASA/CAR/NPL + bank-specific FA) + CK (brokerage share/margin/IB/prop book) + BH (combined ratio/APE/persistency/embedded value) + cross-type decision rule (conglomerate / holding / newly listed) + output template phần 2 theo type |
+| `_03` | Stage 2 workflow + **6-7 phần output structure rigid** (1 Khuyến nghị / 2 Doanh nghiệp với **sub-section 3 Vị trí chuỗi giá trị MANDATORY SXKD Standard+ với 6 sub-sub 3a-3f** / 3 Bối cảnh ngành & vĩ mô / 4 Tài chính & định giá / 5 Tin tức & Catalyst / 6 Bear case & Disconfirming / 7 Exit triggers chỉ Long) + 3 depth mode coverage + **Variant Perception rule per mode** (Quick optional / Standard recommended với flag / **Deep mandatory với auto downgrade**) + **Pair compare mode** (2-3 mã, same industry / theme constraint) + Checkpoint 1 thesis core review + Checkpoint 2 optional output review + bear case strict reject pattern (dòng tiền dương + catalyst tiêu cực) + K hygiene checklist |
+| `_04` | **Self-audit checklist 47 điểm SXKD / 35 điểm NH/CK/BH** (data quality 10 + thesis quality 8 + type-specific 4 + **value chain audit 1.3b SXKD 12 điểm: Porter 4 + Competitive 3 + Smile/Industry 4.0 2 + Synthesis 1 + Professional standards 2** + strict reject pattern 3 + K hygiene + citation 5 + audience awareness 3 + flex+downgrade 2) + **Edge cases** (conglomerate / holding / newly listed / suspended / penny / mã ngoài whitelist / related party hệ tập đoàn / ETF / multi-listing / delisting) + **10 failure modes** (BCTC thiếu thuyết minh / BCTC quá cũ / thesis dựa rẻ / bear soft-pedal / catalyst không timing / disconfirming mơ hồ / fake VP / skip bear khi HIGH / auto-escalate Long / KH render technical raw) + output contract chi tiết + limitations + honest disclosure |
+
+**Dependencies:**
+- `K_agent_db` (mandatory) — schema + query patterns + methodology + K hygiene
+- `K_sector_framework` (mandatory cho SXKD value chain analysis, recommended ngành khác) — pull cho Phần 3 industry context + Phần 2 sub-type context + Phần 2 sub-section 3 Vị trí chuỗi giá trị (mục 7.4 Điểm A/B/C của K_sector_framework)
+
+**Key constraints:**
+- **BCTC PDF mandatory** — không upload thì REFUSE chạy (gate strict)
+- **Long-only** (Long / Watch / Avoid)
+- **Web search VN-only cho equity**, EN OK cho macro liên quan financial/commodity (Fed, OPEC, LME, USDA, etc.)
+- **Peer compare internet-first** + filter ADV ≥ 30 tỷ/ngày + market cap top 50, exclude small cap unknown
+- **Strict reject pattern Long:** dòng tiền dương + catalyst tiêu cực material → auto downgrade Watch
+- **Conviction CAP** at LOW cho penny (market cap < 1.000 tỷ), at MID cho newly listed (< 2 năm)
+- **Audience flex** (nội bộ / KH) — wording + K hygiene khác nhau, KH KHÔNG nhận TP/SL số cụ thể
+- **Bear case mandatory** cho mọi recommendation
+- **Disconfirming signal measurable** với threshold cụ thể (số / sự kiện)
+- **Value chain analysis MANDATORY cho SXKD Standard+** — áp dụng 6 framework chuẩn quốc tế (Porter Value Chain 1985 + Porter 5 Forces 1979 + Smile Curve Stan Shih 1992 + GVC governance Gereffi 2005 + Industry 4.0 CFA Sector Analysis 2020 + CFA chapter mapping). SKIP NH/CK/BH (đã có lens type-specific tương đương)
+
+**Output naming:**
+- Single: `stock_report_<TICKER>_<YYYYMMDD>_<mode>.md` (mode = quick/standard/deep)
+- Pair: `stock_report_<TICKER1>vs<TICKER2>_<YYYYMMDD>_pair_<mode>.md`
+
+**Status:** ✅ Active. Created 2026-05-30.
+
+---
+
 ### Output layer
 
 #### `O_invest_memo` — 7 files
@@ -173,6 +228,24 @@ Multi-pack analyst agent dùng kernel routing pattern. Đọc `KERNEL_SKELETON.m
 
 ---
 
+#### `O_stock_report` — 1 file
+
+**Mục đích:** Render spec cho `P_stock_report`. 6-7 phần rigid structure + 3 depth mode (Quick 1-2 / Standard 3-5 / Deep 5-10 trang) + audience flex (nội bộ analyst / KH) + pair compare optional + 2 mode branding (plain / branded optional).
+
+| File | Nội dung |
+|---|---|
+| `_00` | Master + frontmatter metadata format + heading hierarchy 6-7 phần + format từng phần (Khuyến nghị / Doanh nghiệp / Bối cảnh / Tài chính / Tin tức Catalyst / Bear case Disconfirming / Exit triggers / Phụ lục audit trail) + K hygiene table dịch taxonomy nội bộ ↔ wording cho 2 audience + citation 4 nhóm + 2 mode branding + length budget + disclaimer 2 mode + forward-looking statement Deep+client + output naming + self-checklist trước render |
+
+**Key K hygiene rule:**
+- Audience nội bộ: giữ raw Recommendation Long/Watch/Avoid + Conviction HIGH/MID/LOW + TP1/TP2/SL số cụ thể
+- Audience KH: dịch sang "Quan điểm tích cực / Theo dõi / Cẩn trọng" + KHÔNG render TP/SL số (chỉ "Tín hiệu cần theo dõi để xem xét lại quan điểm")
+
+**Dependencies:** `P_stock_report`, `K_agent_db`.
+
+**Status:** ✅ Active. Created 2026-05-30.
+
+---
+
 ### Meta files (analysis_agent root)
 
 | File | Vai trò |
@@ -212,26 +285,9 @@ Khác biệt giữ riêng:
 
 ---
 
-## template_agent — Document Normalizer + Brander
+## template_agent — XOÁ
 
-Render binary (pptx/docx) branded. Nhận input bất kỳ (PDF / DOCX / MD / paste content) → chuẩn hoá theo `FORMAT.md` contract → hỏi pick brand → render binary.
-
-### Files
-
-| File | Vai trò |
-|---|---|
-| `system_prompt.md` | Meta-rules agent (paste vào Custom Instructions) |
-| `INDEX.md` | Manifest + workflow tổng quan |
-| `FORMAT.md` | Spec MD chuẩn hoá — 9 report_types với section structure |
-| `WORKFLOW.md` | Flow 7 stage + 3 checkpoint (Pre-flight → Normalize → Brand pick → Layout pick → Approve → Render → Output) |
-| `TEMPLATE_VBSE.md` + `.pptx` | Catalog 27 layout brand VBSE (navy + đỏ + tam giác vuông cân) |
-| `TEMPLATE_FINEXT.md` + `.pptx` | Catalog 27 layout brand Finext (xanh lá + xám) |
-
-**Lưu ý:** 2 file `.pptx` không upload được vào project knowledge của Claude Desktop — user attach trong chat session khi cần render binary.
-
-**Dependencies:** Không (standalone). Nhận input từ analysis_agent (qua copy/paste) hoặc nguồn ngoài.
-
-**Status:** ✅ Active. Không thay đổi trong session refactor 2026-05.
+Pack `template_agent` (document-to-pptx normalizer + brander VBSE/Finext) đã được **xoá hoàn toàn** khỏi project 2026-05-30. Lý do: render binary out of scope, MD final từ analysis_agent đã đủ structured để tool render bên ngoài consume. Catalog cũ archive trong `docs/CHANGELOG.md` mục 2026-05-30.
 
 ---
 
@@ -242,10 +298,20 @@ Render binary (pptx/docx) branded. Nhận input bất kỳ (PDF / DOCX / MD / pa
 | Hiểu schema DB | `K_agent_db_01` (analysis) hoặc `agent_db_01` (db) |
 | Viết báo cáo tuần broadcast | `P_weekly_overview_*` + `O_weekly_overview_00` |
 | Viết chiến lược tháng deep nội bộ | `P_vbse_strategy_*` + `O_vbse_strategy_00` |
-| Workflow đầu tư cá nhân deep-dive | `P_invest_memo_*` + `O_invest_memo_*` |
+| Workflow đầu tư cá nhân deep-dive (full portfolio cycle) | `P_invest_memo_*` + `O_invest_memo_*` |
+| **Phân tích chuyên sâu 1 cổ phiếu standalone** (ad-hoc / pitch / pre-screening / pair compare) | `P_stock_report_*` + `O_stock_report_00` |
 | Query DB ad-hoc | db_agent (monolithic) |
-| Render branded binary | template_agent |
+| Deep-dive ngành theo chuẩn CFA institutional | `K_sector_framework` (universal DD/MP/SI/PM/ESG + per-sector quick-ref) |
+| Hiểu 4 type doanh nghiệp (SXKD/NH/CK/BH) | `K_agent_db_04` (methodology gốc) + `P_stock_report_02` (apply cho single-stock) |
 | Hiểu whitelist 18 ngành rule | `K_agent_db_00` mục 4.5 + `K_agent_db_01` Section B (đầu khối) |
 | Hiểu rank ngành tự tổng hợp | `K_agent_db_01` mục "Xếp hạng ngành" + `K_agent_db_02` Section 3.6 |
 | Hiểu Bucket entry (1/2/3) | `P_invest_memo_03` mục 5 (master definition) — `P_vbse_strategy_06` reference |
 | Hiểu tỷ trọng PTKT trong pack | Master `P_vbse_strategy_00` mục 4 + `P_weekly_overview_00` mục 4 |
+| Hiểu Variant Perception concept | `P_invest_memo_07` Phần 2 (gate Tier 5C) + `P_stock_report_03` mục 4 (rule per depth mode) |
+| BCTC PDF forensic 15-point checklist | `P_stock_report_01` mục 3.9 (Stage 1i đào sâu thuyết minh) |
+| Value chain analysis SXKD 6 framework | `P_stock_report_02` mục 2.6 (Porter VC 1985 + Porter 5 Forces 1979 + Smile Curve Stan Shih 1992 + GVC governance Gereffi 2005 + Industry 4.0 CFA Sector Analysis 2020 + CFA chapter mapping 21 ngành) + render template `O_stock_report_00` |
+| Sub-step 1p Value chain data (top KH/NCC/channel/R&D/Industry 4.0) | `P_stock_report_01` mục 3.16 (Stage 1p — SXKD mandatory Standard+) |
+| Smile Curve concept (Stan Shih 1992) | `P_stock_report_02` mục 2.6.4 (ASCII diagram + 3 zones + VN context callout) |
+| Industry 4.0 / Digital footprint lens | `P_stock_report_02` mục 2.6.5 (Three Golden Steps CFA + 7-dimension readiness table) |
+| GVC governance type (Gereffi 2005) | `P_stock_report_02` mục 2.6.3 (market/modular/relational/captive/hierarchy) |
+| CFA Sector Analysis 2020 industry mapping | `P_stock_report_02` mục 2.6.9 (21 CFA chapter ↔ 18 ngành VN whitelist + 3 financial + 2 override) |

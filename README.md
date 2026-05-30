@@ -1,28 +1,26 @@
-# Claude Project — Hệ thống agent phân tích chứng khoán & template báo cáo
+# Claude Project — Hệ thống agent phân tích chứng khoán
 
-Bộ 3 agent độc lập phục vụ phân tích cổ phiếu Việt Nam và render báo cáo branded. Mỗi agent là 1 Claude Desktop Project riêng. File này là điểm vào cho con người và AI session sau hiểu toàn bộ kiến trúc, biết khi nào dùng agent nào, khi nào extend cái nào.
+Bộ 2 agent độc lập phục vụ phân tích cổ phiếu Việt Nam. Mỗi agent là 1 Claude Desktop Project riêng. File này là điểm vào cho con người và AI session sau hiểu toàn bộ kiến trúc, biết khi nào dùng agent nào, khi nào extend cái nào.
 
 ---
 
 ## 1. Tổng quan dự án
 
-### 1.1. Ba agent
+### 1.1. Hai agent
 
 | Agent | Folder | Mục đích | Số file |
 |---|---|---|---|
-| **analysis_agent** | `analysis_agent/` | Phân tích cổ phiếu Việt Nam đa giai đoạn, output MD final structured (memo, báo cáo tuần, khuyến nghị mua) | 29 |
-| **template_agent** | `template_agent/` | Nhận MD/document bất kỳ → chuẩn hoá theo contract → render pptx branded (VBSE / Finext) | 8 |
+| **analysis_agent** | `analysis_agent/` | Phân tích cổ phiếu Việt Nam đa giai đoạn, output MD final structured (memo, báo cáo tuần, khuyến nghị mua, single-stock deep report) | 49 |
 | **db_agent** | `db_agent/` | Phân tích single-shot nhanh: tra cứu, query MongoDB `agent_db`, đưa nhận định lẻ không qua workflow đa stage | 7 |
 
 ### 1.2. Use case từng agent
 
-- **analysis_agent** — khi cần một báo cáo deliverable hoàn chỉnh: viết memo deep-dive cho 1 mã, sinh báo cáo thị trường tuần 12 phần, soạn pitch khuyến nghị mua gửi khách hàng, lập portfolio plan, review cycle. Workflow có nhiều giai đoạn + checkpoint, output MD structured.
-- **template_agent** — khi đã có content (do analysis_agent xuất ra, hoặc tài liệu sẵn từ nguồn khác) muốn trình bày dưới dạng pptx branded. Nhận input bất kỳ (PDF / DOCX / MD / paste), chuẩn hoá MD, hỏi pick brand, render binary.
+- **analysis_agent** — khi cần một báo cáo deliverable hoàn chỉnh: viết memo deep-dive cho 1 mã, sinh báo cáo thị trường tuần 12 phần, soạn pitch khuyến nghị mua gửi khách hàng, lập portfolio plan, review cycle. Workflow có nhiều giai đoạn + checkpoint, output MD final structured (user copy/save thủ công).
 - **db_agent** — khi chỉ cần tra cứu hoặc nhận định nhanh không cần qua workflow: "VNM giá bao nhiêu", "thị trường tuần qua dòng tiền thế nào", "ngành thép Q1 ra sao". Output dạng conversational, không cần file deliverable.
 
 ### 1.3. Quy tắc kiến trúc cốt lõi
 
-**Mỗi agent độc lập 100%.** File trong agent này KHÔNG reference path / tên file của agent khác. Communication giữa các agent qua MD file mà user copy/paste thủ công, không có shared state hay cross-agent runtime call.
+**Mỗi agent độc lập 100%.** File trong agent này KHÔNG reference path / tên file của agent khác. Communication giữa 2 agent qua MD file mà user copy/paste thủ công, không có shared state hay cross-agent runtime call.
 
 Hệ quả thực tế:
 - Sửa 1 agent không phá agent khác
@@ -35,12 +33,11 @@ Hệ quả thực tế:
 
 ### 2.1. Mỗi agent = 1 Claude Desktop Project
 
-Tạo 3 project riêng trong Claude Desktop app:
+Tạo 2 project riêng trong Claude Desktop app:
 
 | Project name (đề xuất) | Source folder | Custom Instructions | Knowledge files |
 |---|---|---|---|
-| `Analysis Agent` | `analysis_agent/` | Paste nội dung `analysis_agent/system_prompt.md` | Upload toàn bộ file `.md` còn lại trong folder (28 file) |
-| `Template Agent` | `template_agent/` | Paste nội dung `template_agent/system_prompt.md` | Upload `INDEX.md`, `FORMAT.md`, `WORKFLOW.md`, 2 `TEMPLATE_*.md` (5 file `.md`). **2 file `.pptx` KHÔNG upload được vào project knowledge** — user attach trong chat session khi cần render binary (xem mục 4.4 dưới) |
+| `Analysis Agent` | `analysis_agent/` | Paste nội dung `analysis_agent/system_prompt.md` | Upload toàn bộ file `.md` còn lại trong folder (48 file) |
 | `DB Agent` | `db_agent/` | Paste nội dung `db_agent/system_prompt.md` | Upload `agent_db_00` đến `agent_db_05` (6 file) |
 
 ### 2.2. Khi cần update file
@@ -76,12 +73,15 @@ Pack vận hành theo kiến trúc module 3 layer:
 | Pack | Files | Mục đích |
 |---|---|---|
 | `K_agent_db` | 6 (`_00` master + `_01` đến `_05`) | Knowledge MongoDB `agent_db` chứng khoán VN (25 collection) |
+| `K_sector_framework` | 1 | Khung phân tích ngành CFA institutional buy-side (DD/MP/SI/PM/ESG + per-sector quick-ref cho 18 ngành whitelist + Industry 4.0 lens) |
 | `P_invest_memo` | 10 (`_00` master + `_01` đến `_09`) | Quy trình đầu tư cá nhân, horizon 1-6 tháng, long only, portfolio < 1 triệu USD |
 | `P_weekly_overview` | 5 (`_00` master + `_01` đến `_04`) | Broadcast tổng quan thị trường tuần 12 phần fundamental-driven, audience nội bộ + KH |
 | `P_vbse_strategy` | 10 (`_00` master + `_01` đến `_09`) | Chiến lược đầu tư VBSE deep nội bộ, 2 cycle (monthly parent + weekly child), 6 trục, 2-phase watchlist |
+| `P_stock_report` | 5 (`_00` master + `_01` đến `_04`) | Báo cáo phân tích chuyên sâu 1 cổ phiếu (single hoặc pair 2-3 mã). Stage 1 16 sub-step (1a-1p) + 4 type framework (SXKD/NH/CK/BH; SXKD có mục 2.6 chuỗi giá trị áp dụng Porter + Smile Curve + GVC + Industry 4.0 + CFA Sector Analysis 2020) + 3 depth mode + audience flex. BCTC PDF mandatory |
 | `O_invest_memo` | 7 (`_00` master + `_01` đến `_06`) | Render spec cho 6 deliverables của `P_invest_memo` |
 | `O_weekly_overview` | 1 (`_00`) | Render spec broadcast tuần 12 phần rigid + 3 mode branding |
 | `O_vbse_strategy` | 1 (`_00`) | Render spec chiến lược 2 mode (monthly + weekly) flex 6 trục |
+| `O_stock_report` | 1 (`_00`) | Render spec báo cáo 1 cổ phiếu 6-7 phần rigid + 3 depth mode + audience flex (nội bộ/KH) |
 
 ### 3.3. `P_invest_memo` — workflow tóm tắt
 
@@ -169,7 +169,43 @@ _09  User overlay + Self-audit + Edge cases + Output contract
 - Conviction + horizon + disconfirming bắt buộc mỗi theme/sector/mã
 - Watchlist Phase 1: cơ bản + catalyst + thanh khoản (cấm PTKT filter). Phase 2: technical_zone đa khung → Bucket 1/2/3
 
-### 3.6. Triết lý flex+downgrade (xuyên suốt P_invest_memo + P_vbse_strategy)
+### 3.6. `P_stock_report` — Single-stock deep analysis (ad-hoc / pair compare)
+
+Pack chia 5 file (+ render spec `O_stock_report_00`):
+
+```
+_00  Master (mục đích, scope, differentiate với P_invest_memo Tier 5C, 6 nguyên tắc)
+_01  Pre-flight 6 câu + Stage 1 Data Acquisition 16 sub-step (1a-1p)
+       1a stock info + type SXKD/NH/CK/BH → 1b FA DB → 1c dòng tiền + tech zone
+       → 1d khối ngoại + tự doanh → 1e major shareholders → 1f corporate actions
+       → 1g news DB → 1h web search news → 1i BCTC PDF forensic 15-point
+       → 1j sector context → 1k macro → 1l peer compare → 1m ADV
+       → 1n earnings calendar → 1o ESG controversy
+       → 1p Value chain data (top KH/NCC/channel/R&D/Industry 4.0 — SXKD mandatory)
+_02  Type-specific framework cho 4 type (SXKD/NH/CK/BH)
+       SXKD có mục 2.6 Chuỗi giá trị 10 sub-mục áp dụng 6 framework chuẩn quốc tế:
+       Porter Value Chain (1985) + Porter 5 Forces (1979) + Smile Curve (Stan Shih 1992)
+       + GVC governance (Gereffi 2005) + Industry 4.0 (CFA Sector Analysis 2020)
+       + CFA chapter mapping (21 chapter ↔ VN whitelist)
+_03  Stage 2 compose + 6-7 phần output rigid + 3 depth mode (Quick/Standard/Deep)
+       + Variant Perception rule + Pair compare mode + Checkpoint 1+2
+       (Phần 2 sub-section 3 Vị trí chuỗi giá trị MANDATORY SXKD với 6 sub-sub 3a-3f)
+_04  Self-audit 47 điểm SXKD / 35 điểm NH/CK/BH + Edge cases + 10 failure modes
+```
+
+**Constraint chính:**
+- **BCTC PDF mandatory** — REFUSE chạy nếu không upload (gate strict tuyệt đối)
+- **Long-only** (Long / Watch / Avoid, không Short)
+- **Web search VN cho equity, EN cho macro** (tài chính/dầu khí/kim loại)
+- **Peer compare internet-first** + filter ADV ≥ 30 tỷ/ngày + market cap top 50
+- **Strict reject Long pattern:** dòng tiền dương + catalyst tiêu cực material → auto Watch
+- **Conviction CAP** at LOW cho penny (< 1.000 tỷ), at MID cho newly listed (< 2 năm)
+- **Audience flex** (nội bộ analyst / KH) — wording + K hygiene khác nhau; KH KHÔNG nhận TP/SL số cụ thể
+- **Value chain MANDATORY cho SXKD Standard+** — áp dụng đầy đủ 6 framework (Porter VC + 5 Forces + Smile Curve + GVC + Industry 4.0 + CFA). SKIP NH/CK/BH (đã có lens type-specific)
+
+**Quan hệ với `P_invest_memo`:** Complement, không thay thế. P_stock_report dùng pre-screening / pitch nhanh / ad-hoc deep-dive 1 mã. P_invest_memo Tier 5C dùng full conviction memo cycle (sau Tier 0-3). KHÔNG auto-escalate sang Tier 5C — user phải explicit yêu cầu.
+
+### 3.7. Triết lý flex+downgrade (xuyên suốt P_invest_memo + P_vbse_strategy)
 
 Khi gate (Variant Perception, Bear Case, R/R) không pass strict, **agent KHÔNG tự reject** mã. Thay vào đó:
 - Flag cảnh báo cụ thể (lý do gate yếu)
@@ -180,90 +216,21 @@ Triết lý: discipline ở dạng force user explicit aware về rủi ro, khô
 
 ---
 
-## 4. `template_agent` — chi tiết
+## 4. `K_sector_framework` — knowledge phụ trợ phân tích ngành
 
-### 4.1. Vai trò
+Pack K mới (1 file `K_sector_framework.md`) cung cấp khung phân tích ngành theo chuẩn institutional buy-side (chắt lọc từ CFA Sector Analysis Framework 2020), bao gồm:
 
-Agent thuần **trình bày**. Nhận input bất kỳ định dạng (PDF / DOCX / MD / text / paste) → chuẩn hoá thành MD theo contract → render binary branded.
+- **Universal 5-dimension framework:** Demand Drivers / Market Position / Structural Influences / Performance Metrics / ESG — áp dụng cho mọi ngành
+- **Per-sector quick-reference** cho 10-12 ngành trong whitelist 18 có direct CFA cover (NGANHANG, TIENICH, BDS, KCN, BANLE, VANTAI, CONGNGHE, XAYDUNG, THUCPHAM, NONGNGHIEP, CHUNGKHOAN, BAOHIEM override)
+- **Guidance generic** cho 6-7 ngành whitelist không có direct CFA cover (DAUKHI, HOACHAT, KIMLOAI, DETMAY, KHOANGSAN, THUYSAN, CONGNGHIEP)
+- **Industry 4.0 lens** — digital footprint, automation, AI/IoT disruption áp dụng cross-sector
 
-KHÔNG phân tích nội dung, KHÔNG sinh insight, KHÔNG query database.
+**Khi nào active:** P pack tham chiếu khi cần deep-dive sector-level analysis. Cụ thể:
+- `P_invest_memo_05/06/07` (Tier 5A/B/C deep-dive memo) — section "Business" trong memo 7 phần
+- `P_vbse_strategy_04` (Trục 4 Sector allocation) — per-sector analytical lens
+- `P_weekly_overview_02` (Phần 6 Biến động 18 ngành) — structural watch khi có chuyển động bất thường
 
-### 4.2. File flat structure
-
-| File | Vai trò |
-|---|---|
-| `system_prompt.md` | Meta-rules vận hành agent (paste vào Custom Instructions) |
-| `INDEX.md` | Manifest + workflow tổng quan |
-| `FORMAT.md` | Spec MD chuẩn hoá — 9 report_types với section structure |
-| `WORKFLOW.md` | Flow 7 stage + 3 checkpoint |
-| `TEMPLATE_VBSE.md` / `.pptx` | Catalog 27 layout brand VBSE (navy + đỏ + tam giác vuông cân) |
-| `TEMPLATE_FINEXT.md` / `.pptx` | Catalog 27 layout brand Finext (dark + violet + chevron `>>`) |
-
-### 4.3. 9 report_type trong `FORMAT.md` mục 3
-
-| report_type | Section count | Length | Audience |
-|---|---|---|---|
-| `stock_pitch` | 13-16 (rigid + 4-7 luận điểm flex) | 12-18 trang | KH |
-| `weekly_market` | 12 rigid | 9-11 trang | Nội bộ + KH |
-| `market_scan` | 7 flex top-down | 8-15 trang | Nội bộ |
-| `stock_memo` | 3-7 theo conviction tier | 3-15 trang | Nội bộ |
-| `portfolio_plan` | 8 flex | 6-10 trang | Nội bộ |
-| `portfolio_review_weekly` | 6 rigid | 0.5-2 trang | Nội bộ |
-| `portfolio_review_monthly` | 8 rigid | 3-5 trang | Nội bộ |
-| `portfolio_review_quarterly` | 9 rigid | 5-8 trang | Nội bộ |
-| `custom` | flex 3-15 (quiz-driven) | tùy user | tùy user |
-
-### 4.4. Workflow 7 stage
-
-```
-Stage 1   Ingest (đọc input, extract content thô)
-Stage 1.5 Detect skip-normalize (≥4/6 signals match → skip Stage 2-5, đi thẳng Stage 6)
-Stage 2   Parse (LLM analyze report_type + section + ambiguities)
-Stage 3   Clarify (multi-choice questions, gom 3-5 câu/turn; nếu custom: quiz 7 câu trong 2 turn)
-CP1       Clarification confirm
-Stage 4   Normalize (LLM produce MD theo FORMAT contract)
-CP2       MD draft review (user confirm/edit/fix)
-Stage 5   Finalize MD
-Stage 6   Brand pre-flight (VBSE / Finext / chỉ MD)
-CP3       Brand confirm + pptx upload check
-Stage 7   Render binary
-```
-
-**Brand whitelist strict:** chỉ VBSE và Finext. Brand khác → reject, không fallback render plain branded. Nếu cần brand mới → build TEMPLATE pack mới (xem mục 9 Hướng mở rộng).
-
-**Pptx template upload runtime:** File `.pptx` không upload được vào Claude Desktop project knowledge (chỉ accept text-based file). Hệ quả:
-- Catalog `.md` (`TEMPLATE_VBSE.md`, `TEMPLATE_FINEXT.md`) — trong project knowledge
-- Binary `.pptx` (`TEMPLATE_VBSE.pptx`, `TEMPLATE_FINEXT.pptx`) — user **attach trong chat session** trước Stage 7 render
-
-Workflow: agent ở CP3 sau khi user pick brand sẽ check session attachments. Nếu chưa có pptx tương ứng → agent request user upload, không vào Stage 7. Nếu user pick "(c) chỉ MD" → skip Stage 7, output MD final, không cần pptx. Chi tiết rule ở `template_agent/system_prompt.md` mục 5.7.
-
-### 4.5. Custom quiz (FORMAT mục 3.9 + WORKFLOW mục 5.4-5.5)
-
-Khi user pick `custom` (hoặc Stage 2 detect không match preset), agent chạy quiz 7 câu chia 2 turn:
-- Turn 1 (4 câu): Mục đích / Audience / Length target / Tone
-- Turn 2 (3 câu + bonus): Số section / Chart count / Citation style + (optional) section list user paste
-
-Sau quiz, agent build spec runtime + lưu `custom_spec_id` (timestamp) trong frontmatter. Re-render cùng MD `custom` đã có spec → skip-normalize, đi thẳng brand pre-flight.
-
-### 4.6. TEMPLATE pack độc lập về authoring
-
-TEMPLATE pack runtime chỉ consume 2 nguồn data:
-1. File pack của chính nó (catalog `.md` + binary `.pptx`)
-2. MD final do upstream pipeline produce làm input
-
-Reference đến `WORKFLOW.md` Stage 5/7 trong file TEMPLATE chỉ là pointer runtime (khi nào activate, đọc input từ đâu), không phải derive content. Layout/design tokens/render rule của TEMPLATE độc lập với spec của FORMAT/WORKFLOW.
-
-### 4.7. Independence rule pragmatic (system_prompt mục 2)
-
-Hiện tại rule đã loosen từ "tuyệt đối không reference" sang **"minimal cross-reference cho clarity runtime, cấm backward authoring dependency"**:
-
-- FORMAT định nghĩa MD contract — không depend WORKFLOW/TEMPLATE để define spec
-- WORKFLOW đọc FORMAT để biết target output — không depend TEMPLATE để define flow
-- TEMPLATE runtime consume MD final — không depend FORMAT/WORKFLOW để define layout
-
-**Cấm:** FORMAT đọc WORKFLOW spec để define MD; WORKFLOW đọc TEMPLATE catalog để define flow; TEMPLATE đọc FORMAT/WORKFLOW spec để define layout. Đây là backward authoring dependency.
-
-**Cho phép:** mention runtime activation point (vd "WORKFLOW Stage 7", "TEMPLATE_VBSE / TEMPLATE_FINEXT brand whitelist") như pointer cho người đọc tài liệu / agent runtime — không dùng để build/derive content.
+**Không thay thế** `K_agent_db_04` (methodology diễn giải chỉ báo). 2 pack bổ trợ nhau: `K_agent_db_04` chuyên về **dòng tiền + PTCB 4 type doanh nghiệp** từ data DB, `K_sector_framework` chuyên về **industry structure + competitive dynamics + ESG** từ chuẩn CFA.
 
 ---
 
@@ -298,7 +265,9 @@ Content của 6 file `agent_db_*` (db_agent) gần **identical 99%** với 6 fil
 - Reference đến system_prompt section number (2 system_prompt khác nhau)
 - 1 vài legacy comment ("Rule 6") trong K_agent_db_04 (analysis_agent)
 
-**Đây là chấp nhận có chủ đích**: 2 agent độc lập về deployment (3 Claude Desktop Project riêng), nên knowledge base duplicate. Trade-off: maintenance burden khi update methodology phải apply 2 chỗ; lợi ích: 2 agent hoàn toàn không coupling, có thể swap/extend độc lập.
+**Đây là chấp nhận có chủ đích**: 2 agent độc lập về deployment (2 Claude Desktop Project riêng), nên knowledge base duplicate. Trade-off: maintenance burden khi update methodology phải apply 2 chỗ; lợi ích: 2 agent hoàn toàn không coupling, có thể swap/extend độc lập.
+
+**Lưu ý:** `K_sector_framework` (analysis_agent) **không** có bản sao trong db_agent — đây là pack chuyên cho deep-dive analysis workflow, không phục vụ single-shot lookup.
 
 **Convention khi update methodology:**
 - Sửa 1 nguồn (ưu tiên `db_agent/agent_db_*` vì đơn giản hơn) → manual port sang nguồn còn lại
@@ -306,21 +275,15 @@ Content của 6 file `agent_db_*` (db_agent) gần **identical 99%** với 6 fil
 
 ---
 
-## 6. Communication giữa 3 agent
+## 6. Communication giữa 2 agent
 
-3 agent **không call cross-agent runtime**. Communication qua **MD file mà user copy/paste thủ công**:
+2 agent **không call cross-agent runtime**. Communication qua **MD file / context user copy/paste thủ công**:
 
 ```
 ┌─────────────────────┐
 │  analysis_agent     │  → Output: MD final (memo / weekly / pitch)
-│  (3 layer K/P/O)    │
-└──────────┬──────────┘
-           │ (user copy MD)
-           ▼
-┌─────────────────────┐
-│  template_agent     │  → Output: pptx branded (VBSE / Finext)
-│  (7 stage)          │
-└─────────────────────┘
+│  (3 layer K/P/O)    │     User copy/save thủ công, dùng tool render
+└─────────────────────┘     bên ngoài nếu cần binary (pptx/docx).
 
 ┌─────────────────────┐
 │  db_agent           │  ← Tra cứu lẻ, không gắn với pipeline
@@ -330,11 +293,8 @@ Content của 6 file `agent_db_*` (db_agent) gần **identical 99%** với 6 fil
 
 **Workflow điển hình end-to-end:**
 1. User mở `analysis_agent` project, request "viết báo cáo tổng quan tuần [DD/MM]" hoặc "báo cáo chiến lược tháng [N]"
-2. analysis_agent chạy pack tương ứng (`P_weekly_overview` 2 stage 1 checkpoint hoặc `P_vbse_strategy` 4 stage 2 checkpoint), xuất MD final structured
-3. User copy MD → mở `template_agent` project → paste vào chat
-4. template_agent detect skip-normalize (input đã match contract) → hỏi pick brand
-5. User pick VBSE → template_agent render pptx/docx branded
-6. User download file, gửi audience
+2. analysis_agent chạy pack tương ứng (`P_weekly_overview` 2 stage 1 checkpoint hoặc `P_vbse_strategy` 4 stage 2 checkpoint), xuất MD final structured trong chat
+3. User copy MD ra ngoài, nếu cần render branded pptx/docx thì dùng tool render bên ngoài (out of scope project này)
 
 **db_agent dùng song song khi cần tra cứu nhanh** trong quá trình:
 - "VNM giá đóng cửa hôm qua bao nhiêu?" → db_agent trả lời inline 1 câu, không cần qua workflow
@@ -385,10 +345,6 @@ Bảng dịch đầy đủ ở `K_agent_db_00` mục 5 (analysis_agent) hoặc `
 - `vbse_strategy_monthly_<YYYYMM>.md` (tháng báo cáo chiến lược)
 - `vbse_strategy_weekly_<YYYYMMDD>.md` (ngày cuối tuần update chiến lược)
 
-**template_agent:**
-- MD chuẩn hoá: theo `report_type` + ngày/ticker (xem `WORKFLOW.md` mục 9)
-- Binary: `<report_type>_<id>_<YYYYMMDD>_<brand>.pptx` với `<brand>` = `vbse` hoặc `finext`
-
 ### 7.6. Constraint cốt lõi (audience cuối có thể là KH)
 
 Pack `P_weekly_overview` và `P_vbse_strategy` (có mode branded gửi KH) tuân chặt:
@@ -407,9 +363,9 @@ Pack `P_weekly_overview` và `P_vbse_strategy` (có mode branded gửi KH) tuân
 
 ### 8.1. Render binary out of scope của analysis_agent
 
-`analysis_agent` xuất **MD final** là output cuối. Render pptx/docx/xlsx là concern downstream của `template_agent` (hoặc tool render bên ngoài). MD final đã đủ structured (heading hierarchy + chart annotation YAML + citation + locale) để consume.
+`analysis_agent` xuất **MD final** là output cuối. Render pptx/docx/xlsx là concern downstream của tool render bên ngoài (out of scope project này). MD final đã đủ structured (heading hierarchy + chart annotation YAML + citation + locale) để tool render consume.
 
-Lý do tách: render binary là concern khác với analysis quality. Tách giúp `analysis_agent` focus vào content depth, `template_agent` focus vào visual presentation.
+Lý do tách: render binary là concern khác với analysis quality. Tách giúp `analysis_agent` focus vào content depth, không bị phân tán bởi presentation/branding.
 
 **Note:** Tại rev 6, 16/16 section "Guide render docx/pptx" trong các O pack đã được marked `[LEGACY]` (kèm note "Render binary out of scope, section giữ làm reference cho tool render bên ngoài"). Content section giữ nguyên — pass cleanup tiếp theo có thể xoá hẳn nếu cần thu gọn knowledge base. Không ảnh hưởng workflow runtime vì master rule rev 6 đã chốt MD final là output cuối.
 
@@ -424,27 +380,11 @@ Lý do: discipline ở dạng force user explicit aware về rủi ro, không ch
 
 **Exception — Nguyên tắc 5 (P_invest_memo) vẫn strict reject:** "Dòng tiền dương + catalyst tiêu cực → loại" giữ behavior strict (không flex+downgrade). Khác với 5 nguyên tắc còn lại — Variant Perception / Bear Case / R/R là đánh giá **chủ quan** có thể debate, còn pattern "dòng tiền dương + catalyst tiêu cực" là **objective historical pattern** với base rate lỗi rất cao (retail trap kinh điển ở thị trường VN: dòng tiền vào muộn priced-in tin xấu chưa lộ). Đưa cho user "quyết" với pattern này là ép user override discipline về 1 loại lỗi đã có evidence rõ. Giữ strict reject ở đây là design decision có chủ đích.
 
-### 8.3. Brand whitelist strict (template_agent)
-
-Chỉ render được 2 brand: VBSE và Finext. Brand khác → reject, không fallback render plain.
-
-Lý do: bảo đảm output luôn match 1 trong 2 brand chuẩn hoặc không có output. Tránh sản phẩm half-baked có thể bị gửi nhầm cho KH dưới brand không official.
-
-### 8.4. Skip-normalize fast path (template_agent)
-
-Khi input MD đã match `FORMAT.md` contract (≥4/6 signals: frontmatter + heading + section count + chart YAML + citation + locale), template_agent skip Stage 2-5 (parse, clarify, normalize, finalize) → đi thẳng Stage 6 brand pre-flight.
-
-Lý do: MD từ analysis_agent đã chuẩn rồi không cần re-normalize. Tiết kiệm thời gian + tránh LLM overwrite content có chủ đích.
-
-### 8.5. Knowledge base duplicate (analysis_agent K + db_agent agent_db)
+### 8.3. Knowledge base duplicate (analysis_agent K + db_agent agent_db)
 
 2 pack content gần identical, chấp nhận duplicate vì priority "agent độc lập 100%" cao hơn DRY. Trade-off đã document ở mục 5.3.
 
-### 8.6. Independence rule pragmatic (template_agent system_prompt mục 2)
-
-Loosen rule "tuyệt đối không reference" → "minimal cross-reference cho clarity runtime, cấm backward authoring dependency". Lý do: rule strict tuyệt đối làm vô nghĩa pointer runtime cần thiết (FORMAT mention WORKFLOW Stage, TEMPLATE mention WORKFLOW Stage 7, etc.).
-
-### 8.7. Conviction memo mới được vào position (analysis_agent P_invest_memo)
+### 8.4. Conviction memo mới được vào position (analysis_agent P_invest_memo)
 
 Trong workflow đầu tư (P_invest_memo), không vào position nếu chưa hoàn thành memo deep-dive (Tier 5C). Memo là gate cuối cùng — viết được memo 7 phần (Recommendation / Thesis / Variant / Business / Financial / Catalysts / Bear / Exit) đủ chuẩn mới được conviction để sizing.
 
@@ -461,31 +401,15 @@ Pattern cũ (3 layer K/P/O):
 4. Thêm entry vào `KERNEL_SKELETON.md` với trigger activation
 5. Re-upload toàn bộ analysis_agent project knowledge
 
-### 9.2. Thêm `report_type` mới trong `template_agent`
+### 9.2. Thêm domain mới (vd thị trường ngoài VN)
 
-1. Thêm row trong bảng `FORMAT.md` mục 2.1 (frontmatter whitelist) + spec section structure ở mục 3.X
-2. Update `INDEX.md` bảng "9 loại báo cáo" → "10 loại"
-3. Update `WORKFLOW.md` mục 4.1 detection list + mục 9 naming convention output + mục 12.1 binary naming
-4. Re-upload template_agent project knowledge
-
-### 9.3. Thêm brand mới trong `template_agent`
-
-1. Build template pptx mới: 27 layout với cấu trúc 1-1 mapping với TEMPLATE_VBSE/TEMPLATE_FINEXT (để runtime fit cùng MD content)
-2. Tạo file `TEMPLATE_<BRAND>.md` catalog: design tokens, layout list, render rules
-3. Update `INDEX.md` brand whitelist từ 2 → 3
-4. Update `system_prompt.md` mục 5.4 brand whitelist
-5. Update `WORKFLOW.md` mục 10 brand pre-flight question + mục 11 CP3 routing
-6. Re-upload template_agent project knowledge
-
-### 9.4. Thêm domain mới (vd thị trường ngoài VN)
-
-Hiện tại 3 agent đều scope cho thị trường VN (giả định MongoDB `agent_db` chứa data VN). Để extend ra thị trường khác:
+Hiện tại 2 agent đều scope cho thị trường VN (giả định MongoDB `agent_db` chứa data VN). Để extend ra thị trường khác:
 - Build pack K mới (`K_us_market_*` chẳng hạn) cho schema/data nguồn US
 - Build pack P mới phù hợp methodology US (DCF, peer multiples — khác VN ở P/E benchmark, dynamics ngành)
 - Build pack O mới cho format US (USD, MM-DD-YYYY, etc.)
 - KHÔNG mix VN + US trong cùng pack — methodology + locale + audience khác nhau
 
-### 9.5. Thêm audience mới (vd retail, intern)
+### 9.3. Thêm audience mới (vd retail, intern)
 
 `analysis_agent` hiện assume audience analyst/broker nội bộ (được phép nhận khuyến nghị cụ thể). Để serve audience khác:
 - Build agent riêng (project Claude Desktop riêng) với system_prompt + K pack restricted
@@ -517,7 +441,7 @@ File `CLAUDE.md` ở root chứa 4 nguyên tắc behavioral chung cho mọi sess
 3. **Surgical Changes** — touch only what must, clean up only own mess, match existing style
 4. **Goal-Driven Execution** — define success criteria, loop until verified
 
-Áp dụng khi maintain project: thêm pack, sửa methodology, refactor structure. Không upload vào project knowledge của 3 agent (3 agent có system_prompt riêng) — đây là guideline cho dev / AI dev assistant.
+Áp dụng khi maintain project: thêm pack, sửa methodology, refactor structure. Không upload vào project knowledge của 2 agent (2 agent có system_prompt riêng) — đây là guideline cho dev / AI dev assistant.
 
 ---
 
@@ -525,7 +449,7 @@ File `CLAUDE.md` ở root chứa 4 nguyên tắc behavioral chung cho mọi sess
 
 ### 12.1. Agent không hiểu request
 
-- Verify đã upload đúng files vào project knowledge (analysis_agent: 25 file, template_agent: 7 file, db_agent: 6 file)
+- Verify đã upload đúng files vào project knowledge (analysis_agent: 29 file, db_agent: 6 file)
 - Verify Custom Instructions đã paste đúng `system_prompt.md` của agent đó
 - Re-upload knowledge nếu vừa sửa file gốc
 
@@ -537,7 +461,7 @@ File `CLAUDE.md` ở root chứa 4 nguyên tắc behavioral chung cho mọi sess
 
 ### 12.3. Workflow stuck ở checkpoint
 
-- analysis_agent / template_agent có checkpoint discipline strict: agent KHÔNG tự chuyển stage qua CP. User phải explicit confirm/override
+- analysis_agent có checkpoint discipline strict: agent KHÔNG tự chuyển stage qua CP. User phải explicit confirm/override
 - Nếu agent skip CP, có thể system_prompt chưa load đúng → re-paste Custom Instructions
 
 ### 12.4. K methodology không sync giữa analysis_agent và db_agent
@@ -555,7 +479,6 @@ Project knowledge đã đủ context cho AI hoạt động. Nhưng nếu cần d
 2. **`README.md`** ở root (file này) — kiến trúc tổng thể
 3. Tuỳ task:
    - Sửa analysis_agent → đọc `analysis_agent/system_prompt.md` + `analysis_agent/KERNEL_SKELETON.md` + master file của pack liên quan (`*_00.md`)
-   - Sửa template_agent → đọc `template_agent/system_prompt.md` + `template_agent/INDEX.md` + `FORMAT.md` + `WORKFLOW.md`
    - Sửa db_agent → đọc `db_agent/system_prompt.md` + `db_agent/agent_db_00.md`
 
 ---

@@ -1,21 +1,20 @@
 # Project Status
 
-Trạng thái dự án Claude Code Vietnam Stock Analysis. Cập nhật: 2026-05-30.
+Trạng thái dự án Claude Code Vietnam Stock Analysis. Cập nhật: 2026-05-30 (rev 5).
 
-Project gồm **3 agent hoàn toàn độc lập** — mỗi agent là 1 Claude project riêng trên Claude Desktop/App với system prompt + project knowledge files riêng. **Không có cross-agent dependency hay runtime sharing** — agent này không đọc file/state của agent kia. Việc nhiều agent có nội dung tương tự (vd schema DB) chỉ là **đồng bộ với cùng nguồn DB**, không phải shared knowledge.
+Project gồm **2 agent hoàn toàn độc lập** — mỗi agent là 1 Claude project riêng trên Claude Desktop/App với system prompt + project knowledge files riêng. **Không có cross-agent dependency hay runtime sharing** — agent này không đọc file/state của agent kia. Việc 2 agent có nội dung tương tự (vd schema DB) chỉ là **đồng bộ với cùng nguồn DB**, không phải shared knowledge.
 
-**3 agent = 3 Claude project độc lập:**
+**2 agent = 2 Claude project độc lập:**
 - Mỗi agent có system prompt riêng (paste vào Custom Instructions)
 - Mỗi agent có project knowledge riêng (upload file `.md` riêng)
 - Khi update DB schema → phải update cả 2 agent (analysis + db) riêng biệt, không có cơ chế sync tự động
 
-## 1. Tổng quan 3 agent
+## 1. Tổng quan 2 agent
 
 | Agent | Directory | Vai trò | Status |
 |---|---|---|---|
 | **analysis_agent** | [analysis_agent/](../analysis_agent/) | Multi-pack analyst (K/P/O layered architecture) — broadcast tuần, chiến lược tháng, memo deep-dive | ✅ Active |
 | **db_agent** | [db_agent/](../db_agent/) | Monolithic stock analyst — tra cứu DB + phân tích ad-hoc | ✅ Active |
-| **template_agent** | [template_agent/](../template_agent/) | Document-to-pptx normalizer + brander (VBSE / Finext) | ✅ Active |
 
 Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 
@@ -26,12 +25,15 @@ Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 | Pack | Files | Status | Last major change |
 |---|---|---|---|
 | `K_agent_db` | 6 (master + 5) | ✅ Active | 2026-05-30 — schema 25 collection, History block thêm, stock_highlight bỏ, rank ngành tự tổng hợp |
-| `P_invest_memo` | 10 (master + 9) | ✅ Active | Pre-2026-05 — stable |
+| `K_sector_framework` | 1 | ✅ Active | 2026-05-30 — new pack distill CFA Sector Analysis Framework (universal DD/MP/SI/PM/ESG + per-sector quick-ref cho 18 ngành whitelist + Industry 4.0 lens) |
+| `P_invest_memo` | 10 (master + 9) | ✅ Active | Pre-2026-05 — stable; 2026-05-30 thêm pointer K_sector_framework ở `_07` Phần 3 |
 | `P_weekly_overview` | 5 (master + 4) | ✅ Active | 2026-05-30 — refactor từ `P_weekly_market` (fundamental-driven + whitelist 18 + conviction/horizon/disconfirming) |
-| `P_vbse_strategy` | 10 (master + 9) | ✅ Active | 2026-05-30 — refactor từ `P_invest_strategy` (fundamental supremacy + 2-phase watchlist với Bucket entry) |
+| `P_vbse_strategy` | 10 (master + 9) | ✅ Active | 2026-05-30 — refactor từ `P_invest_strategy` (fundamental supremacy + 2-phase watchlist với Bucket entry); thêm pointer K_sector_framework ở `_04` Trục 4 |
+| `P_stock_report` | 5 (master + 4) | ✅ Active | 2026-05-30 (rev 5) — new pack single-stock deep analysis. **Stage 1 16 sub-step (1a-1p)** data acquisition (BCTC PDF bắt buộc + forensic thuyết minh + news DB + web VN equity + EN macro + peer internet-first + ESG + **1p value chain data**) + 4 type framework (SXKD/NH/CK/BH) + **SXKD có mục 2.6 Chuỗi giá trị 10 sub-mục áp dụng 6 framework chuẩn quốc tế (Porter Value Chain + 5 Forces + Smile Curve Stan Shih + GVC governance Gereffi + Industry 4.0 CFA Sector Analysis 2020 + CFA chapter mapping 21 ngành)** + 3 depth mode (Quick/Standard/Deep) + audience flex (nội bộ/KH) + pair compare 2-3 mã. Self-audit 47 điểm SXKD / 35 điểm NH/CK/BH |
 | `O_invest_memo` | 7 (master + 6) | ✅ Active | Pre-2026-05 — stable |
 | `O_weekly_overview` | 1 (master) | ✅ Active | 2026-05-30 — new render spec 12 phần rigid + 3 mode branding |
 | `O_vbse_strategy` | 1 (master) | ✅ Active | 2026-05-30 — new render spec 2 mode flex |
+| `O_stock_report` | 1 (master) | ✅ Active | 2026-05-30 — new render spec 6-7 phần rigid + 3 depth mode + audience flex (K hygiene khác nội bộ vs KH) |
 
 ### db_agent — Monolithic knowledge base
 
@@ -40,11 +42,9 @@ Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 | `system_prompt.md` | ✅ Active | 2026-05-30 — manifest 25 collection |
 | `agent_db_00..05` | ✅ Active | 2026-05-30 — same schema sync với K_agent_db |
 
-### template_agent
+### template_agent — XOÁ
 
-| File | Status | Note |
-|---|---|---|
-| `system_prompt.md` + 5 knowledge files | ✅ Active | Không thay đổi trong session này |
+Pack `template_agent` (document-to-pptx normalizer + brander) đã được xoá khỏi project 2026-05-30. Lý do: render binary out of scope, MD final từ analysis_agent đã đủ structured để consume bằng tool render bên ngoài.
 
 ## 3. Refactor đáng chú ý đã thực thi
 
@@ -54,10 +54,13 @@ Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 - `P_invest_strategy_00.md` + `O_invest_strategy_00.md` → refactor thành `P_vbse_strategy_*` + `O_vbse_strategy_00`
 - `P_stock_pitch_00.md` + `O_stock_pitch_00.md` → xoá hoàn toàn (vai trò chuyển sang `P_vbse_strategy` watchlist + `P_invest_memo` memo)
 - `P_weekly_market_00.md` + `O_weekly_market_00.md` → refactor thành `P_weekly_overview_*` + `O_weekly_overview_00`
+- **Toàn bộ `template_agent/`** (document-to-pptx normalizer + brander) → out of scope, render binary chuyển sang tool ngoài
 
 **Pack mới tạo:**
 - `P_vbse_strategy` 10 files với philosophy **fundamental supremacy** + **2-phase watchlist** (Phase 1 Screen cơ bản, Phase 2 Bucket entry PTKT theo `P_invest_memo_03` mục 5)
 - `P_weekly_overview` 5 files với philosophy **fundamental-driven** + 12 phần rigid + Key calls/Watch/Risk executive summary
+- `K_sector_framework` 1 file — khung phân tích ngành chuẩn CFA institutional buy-side (universal DD/MP/SI/PM/ESG + per-sector quick-ref cho 18 ngành whitelist + Industry 4.0 lens)
+- `P_stock_report` 5 files + `O_stock_report` 1 file — pack **single-stock deep analysis** vào trực tiếp từ ticker. Đặc trưng: BCTC PDF mandatory + forensic 15-point thuyết minh + 4 type framework (SXKD/NH/CK/BH) + 3 depth mode (Quick 1-2 / Standard 3-5 / Deep 5-10 trang) + audience flex (nội bộ/KH) + pair compare 2-3 mã. Complement (không thay thế) `P_invest_memo` Tier 5C — dùng cho pre-screening / pitch nhanh / ad-hoc analysis ngoài full memo cycle
 
 **Schema DB update:**
 - 23 → 25 collection
@@ -102,6 +105,11 @@ Quy tắc giữ riêng:
 - [ ] Audit `P_invest_memo` xem có cần update để align fundamental-first philosophy của pack mới (hiện tại độc lập, không bị conflict)
 - [ ] Decide whether `K_agent_db_03` (anti-patterns) cần case study mới cho rank ngành tự tổng hợp (vd anti-pattern: query industry_rank tĩnh vẫn nghĩ DB có)
 - [ ] Consider thêm pack `P_quarterly_report` cho báo cáo quý (gap hiện tại: chỉ có monthly cycle, không có quarterly aggregation)
+- [ ] Test pack `P_stock_report` end-to-end với 1-2 mã thực tế (1 SXKD value chain heavy như HPG/VNM/TNG để stress test mục 2.6 6 framework, 1 NH) để validate workflow + output quality
+- [ ] Bổ sung case study `K_agent_db_03` cho failure modes `P_stock_report` mục 3 (fake Variant Perception, soft-pedal bear, catalyst không timing)
+- [ ] Test value chain framework Phần 2 sub-section 3 với firm điển hình mỗi Smile Curve zone (smile bottom: Garmex/EMS; smile mid: TNG/HPG; smile top: VNM/PNJ/FPT)
+- [x] ~~Bổ sung Value chain analysis cho P_stock_report SXKD lens~~ — DONE 2026-05-30 rev 4 (basic Porter framework)
+- [x] ~~Tham chiếu CFA Sector Analysis 2020 + internet professional standards cho value chain~~ — DONE 2026-05-30 rev 5 (Porter full + Smile Curve + GVC governance + Industry 4.0 + CFA 21 chapter mapping)
 
 ## 6. File chính cho phát triển tương lai
 

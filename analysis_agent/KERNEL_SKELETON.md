@@ -24,6 +24,24 @@ File index của project knowledge. Agent đọc file này đầu session để 
 
 **Status:** Active.
 
+### K_sector_framework
+
+**Mục đích:** Khung phân tích ngành chuẩn institutional buy-side, chắt lọc từ CFA Sector Analysis Framework (2020). Cung cấp lens systematic cho deep-dive sector-level analysis qua 5 dimension: **Demand Drivers / Market Position / Structural Influences / Performance Metrics / ESG**, cộng Industry 4.0 lens cross-sector. Có per-sector quick-reference cho 10-12 ngành whitelist có CFA cover trực tiếp (NGANHANG, TIENICH, BDS, KCN, BANLE, VANTAI, CONGNGHE, XAYDUNG, THUCPHAM, NONGNGHIEP, CHUNGKHOAN, BAOHIEM override) + guidance generic cho 6 ngành còn lại (DAUKHI, HOACHAT, KIMLOAI, DETMAY, KHOANGSAN, CONGNGHIEP).
+
+**Pack chỉ có 1 file (không có `_00` master riêng vì pack đơn file):** `K_sector_framework`
+
+**Trigger:** P pack chủ động pull khi cần industry-level lens — không tự activate. Cụ thể:
+- `P_invest_memo_05/06/07` (Tier 5A/B/C memo deep-dive): khi compose phần "Business" của memo 7 phần
+- `P_vbse_strategy_04` (Trục 4 Sector allocation): khi compose per-sector tilt rationale
+- `P_weekly_overview_02` (Phần 6 Biến động 18 ngành): chỉ khi ngành có biến động bất thường cần structural watch
+- Standalone: khi user hỏi "phân tích sâu ngành X" hoặc "outlook ngành X 12 tháng tới"
+
+**Quan hệ với `K_agent_db_04`:** Bổ trợ, không overlap. `K_agent_db_04` chuyên dòng tiền + PTCB 4 type doanh nghiệp + technical từ data DB; `K_sector_framework` chuyên industry structure + competitive dynamics + ESG chuẩn CFA.
+
+**Depends:** Không có. Reference được `K_agent_db_01/02` khi gợi ý metric cần kéo từ DB.
+
+**Status:** Active. Created 2026-05-30.
+
 ## P — Process packs
 
 ### P_invest_memo
@@ -36,7 +54,7 @@ File index của project knowledge. Agent đọc file này đầu session để 
 
 **Lưu ý:** "memo" ở đây là conviction memo deep-dive nội bộ (tier 5C), không phải broadcast tuần hay báo cáo chiến lược tháng.
 
-**Depends:** `K_agent_db`.
+**Depends:** `K_agent_db`. Có thể pull thêm `K_sector_framework` ở Tier 5C (memo 7 phần, phần "Business") để bổ sung industry-level lens.
 
 **Status:** Active.
 
@@ -54,7 +72,7 @@ Pack độc lập với `P_invest_memo` và `P_vbse_strategy` — không đọc 
 
 **Trigger:** User yêu cầu "viết báo cáo tuần", "weekly overview report", "báo cáo tổng quan thị trường tuần", "tổng quan tuần", "broadcast tuần".
 
-**Depends:** `K_agent_db`.
+**Depends:** `K_agent_db`. Có thể pull thêm `K_sector_framework` ở Phần 6 (Biến động 18 ngành whitelist) khi có ngành biến động bất thường cần structural watch — không phải mặc định mỗi tuần (broadcast tuần ưu tiên ngắn gọn).
 
 **Status:** Active.
 
@@ -88,7 +106,67 @@ Pack chia 10 file con: `_00` master + `_01..06` mỗi trục một file + `_07` 
 - Monthly: "báo cáo chiến lược tháng", "monthly strategy", "outlook tháng [N]", "chiến lược đầu tư tháng", "định vị thị trường tháng [N]", "vbse strategy monthly"
 - Weekly update: "update tuần [DD/MM] chiến lược", "weekly strategy update", "cập nhật tuần báo cáo tháng [N]", "weekly check chiến lược", "vbse strategy weekly"
 
-**Depends:** `K_agent_db`.
+**Depends:** `K_agent_db`. Có thể pull thêm `K_sector_framework` ở Trục 4 (Sector allocation) để compose per-sector tilt rationale với lens industry structure.
+
+**Status:** Active.
+
+### P_stock_report
+
+**Mục đích:** Sinh **báo cáo phân tích chuyên sâu 1 cổ phiếu** Việt Nam niêm yết. Vào trực tiếp từ ticker, không cần qua workflow `P_invest_memo` Tier 0-3. Horizon 1-12 tháng, output 1-10 trang theo 3 depth mode, audience flex (nội bộ analyst hoặc KH), support pair compare 2-3 mã.
+
+Pack chia 5 file: `_00` master + `_01` pre-flight + **Stage 1 data acquisition 16 sub-step (1a-1p)** + type classification (SXKD/NH/CK/BH) + `_02` type-specific framework (lens chi tiết cho 4 type, mỗi type có KPIs + bear case riêng; **SXKD có mục 2.6 Chuỗi giá trị 10 sub-mục — áp dụng 6 framework chuẩn quốc tế**) + `_03` Stage 2 compose + 6-7 phần output (Phần 2 sub-section 3 Vị trí chuỗi giá trị MANDATORY SXKD với 6 sub-sub 3a-3f) + 3 depth mode + Variant Perception rule + Pair compare logic + `_04` self-audit **47 điểm SXKD / 35 điểm NH/CK/BH** + edge cases + failure modes + output contract chi tiết.
+
+**Stage 1 Data Acquisition 16 sub-step (chi tiết ở `_01`):** 1a stock info + type → 1b FA data DB → 1c dòng tiền + technical zone → 1d khối ngoại + tự doanh → 1e major shareholders → 1f corporate actions → 1g news DB → 1h web search news (VN equity + EN macro tuỳ ngành) → 1i **BCTC PDF forensic 15-point đào sâu thuyết minh** → 1j sector context (pull `K_sector_framework`) → 1k macro relevant → 1l peer compare (internet-first + thanh khoản filter) → 1m ADV/liquidity → 1n earnings calendar → 1o ESG controversy scan → **1p Value chain data (top KH/NCC/channel/capacity/R&D ratio/Industry 4.0 readiness — SXKD mandatory Standard+; SKIP NH/CK/BH)**.
+
+**Value chain framework cho SXKD (chi tiết ở `_02` mục 2.6 — 10 sub-mục):** 6 framework chuẩn quốc tế áp dụng đầy đủ:
+1. Porter Value Chain (1985) — 5 primary + 4 support activities + forward/backward vertical integration
+2. Porter 5 Forces (1979) — supplier/buyer/substitute/entrant/rivalry
+3. Smile Curve (Stan Shih 1992) — vị trí capture giá trị (smile bottom/mid/top) — **đặc biệt quan trọng cho VN context** vì hầu hết SXKD VN ở smile bottom
+4. GVC governance (Gereffi, Humphrey, Sturgeon 2005) — market/modular/relational/captive/hierarchy + Tier supplier position
+5. Industry 4.0 / Digital footprint (CFA Sector Analysis 2020) — Three Golden Steps + 7-dimension readiness table
+6. CFA Sector Analysis 2020 — 21 industry chapter mapping với 18 ngành VN whitelist + 3 financial
+
+**4 type framework (chi tiết ở `_02`):**
+- **SXKD** (Sản xuất kinh doanh, 21 ngành whitelist trừ tài chính): 4 kịch bản Value Play / Value Trap / Growth at Premium / Cycle Top + 3 sub-type cycle dynamics (Cyclical / Consumer-Defensive / Growth-Infrastructure)
+- **NH** (Banking): NIM drivers + asset quality (NPL Group 2-5, LLR coverage) + capital (CAR, LDR, LCR) + bank-specific FA
+- **CK** (Chứng khoán): brokerage market share + margin book quality (leverage, yield, concentration) + IB pipeline + prop book VaR
+- **BH** (Bảo hiểm — override mode): combined ratio (Loss + Expense) + APE/NBV (life) + persistency + investment yield + solvency margin
+
+**3 depth mode (chi tiết ở `_03`):**
+- **Quick** 1-2 trang: skip Stage 1i forensic, 1l peer, 1o ESG, 1p value chain. Variant Perception optional
+- **Standard** 3-5 trang (SXKD 2-3 trang Phần 2 với value chain): full 16 sub-step (1p SXKD only), peer 3 mã. Variant Perception recommended (không có → flag "Consensus-aligned thesis, edge limited")
+- **Deep** 5-10 trang (SXKD 3-4 trang Phần 2): full + ESG controversy kỹ + value chain đầy đủ 6 framework, peer 5 mã, macro sensitivity, data appendix. **Variant Perception bắt buộc** (không có → auto downgrade conviction HIGH→MID / MID→LOW / LOW→Watch)
+
+**Constraint chính:**
+- **BCTC PDF mandatory** — không upload thì REFUSE chạy (gate strict tuyệt đối)
+- **Long-only** (Long / Watch / Avoid, không Short)
+- **Web search VN cho equity, EN cho macro** chỉ với ngành có liên quan tài chính / commodity (Banking → Fed, Dầu khí → OPEC, Kim loại → LME, Thực phẩm → USDA, etc.)
+- **Peer compare internet-first** + filter ADV ≥ 30 tỷ/ngày + market cap top 50 ngành, exclude small cap unknown
+- **Pattern strict reject Long:** dòng tiền dương + catalyst tiêu cực material → auto downgrade Watch (như `P_invest_memo` nguyên tắc 5)
+- **Conviction CAP at LOW cho penny stock** (market cap < 1.000 tỷ) hoặc **CAP at MID cho newly listed** (< 2 năm)
+- **Audience flex** (nội bộ / KH) — wording + K hygiene khác nhau, đặc biệt audience KH không render TP1/TP2/SL số cụ thể
+- **Bear case mandatory** cho mọi recommendation (kể cả HIGH conviction)
+- **Disconfirming signal MEASURABLE** với threshold cụ thể (số / sự kiện)
+
+**Pair compare mode:** support 2-3 mã cùng ngành hoặc cùng theme/value chain. Render side-by-side (Standard) hoặc sequential (Deep) + pair selection thesis cuối báo cáo. Apple-to-orange (vd VNM vs VCB) → REFUSE pair, suggest pick 1 mã.
+
+**Master:** `P_stock_report_00`
+
+**Trigger:**
+- "Phân tích mã [X]", "Phân tích cổ phiếu [X]", "Đánh giá [X]"
+- "[X] có nên mua không", "Brief [X] cho KH"
+- "Quick check [X]", "Stock report [X]"
+- "So sánh [X] vs [Y]" (mode pair)
+- "[X] horizon [Y] tháng"
+
+**Trigger không activate (conflict resolution):**
+- "Memo deep-dive [X]" hoặc "Tier 5C [X]" → activate `P_invest_memo` Tier 5C
+- "Báo cáo tuần" → `P_weekly_overview`
+- "Chiến lược tháng" → `P_vbse_strategy`
+
+**Depends:** `K_agent_db` (mandatory) + `K_sector_framework` (recommended cho Phần 3 industry context và Phần 2 sub-type context).
+
+**Quan hệ với `P_invest_memo`:** Complement, không thay thế. `P_stock_report` dùng pre-screening / pitch nhanh / ad-hoc deep-dive 1 mã. Tier 5C dùng full conviction memo cycle (sau khi đã qua Tier 0-3). KHÔNG auto-escalate sang Tier 5C — user phải explicit yêu cầu.
 
 **Status:** Active.
 
@@ -130,6 +208,26 @@ Pack chia 10 file con: `_00` master + `_01..06` mỗi trục một file + `_07` 
 
 **Status:** Active.
 
+### O_stock_report
+
+**Mục đích:** Render spec cho deliverable của pack `P_stock_report` — báo cáo phân tích chuyên sâu 1 cổ phiếu VN niêm yết, 3 depth mode (Quick / Standard / Deep), audience flex (nội bộ / KH), pair compare optional. Quy định structure rigid 6-7 phần, format MD (source of truth), 2 mode branding (plain / branded optional), K hygiene + citation (4 nhóm), audit trail metadata, file naming `stock_report_<TICKER>_<YYYYMMDD>_<mode>.md`.
+
+Output cuối là MD final trong message (Claude Desktop). Render binary pptx/docx out of scope project (xem README.md mục 8.1). Branding optional — user cung cấp brand info ở pre-flight nếu cần shell visual.
+
+**K hygiene đặc biệt:**
+- Audience nội bộ analyst: giữ raw Recommendation Long/Watch/Avoid + Conviction HIGH/MID/LOW + TP1/TP2/SL số
+- Audience KH: dịch sang "Quan điểm tích cực / Theo dõi / Cẩn trọng" + KHÔNG render TP/SL số (chỉ "Tín hiệu cần theo dõi để xem xét lại quan điểm")
+
+**Forward-looking statement** bắt buộc cho Deep mode + audience KH.
+
+**Master:** `O_stock_report_00` (1 file đơn).
+
+**Trigger:** Activate cùng với `P_stock_report` khi user yêu cầu báo cáo phân tích 1 cổ phiếu (single hoặc pair compare).
+
+**Depends:** `P_stock_report`, `K_agent_db`.
+
+**Status:** Active.
+
 ## Render binary (pptx / docx / xlsx)
 
 MD final là source of truth. Khi user yêu cầu render binary, agent chạy theo workflow ở `system_prompt.md` mục 4 "Render binary — workflow": xác định style qua (a) O pack render spec, (b) branding info pre-flight, (c) user explicit; nếu không rõ thì hỏi clarify. **Body font chốt: Roboto** (fallback Roboto → Open Sans → Arial). Binary derive từ MD final, không edit độc lập — sửa nội dung phải sửa MD trước rồi re-render.
@@ -145,4 +243,6 @@ O_{format_or_style}_{NN}     ví dụ O_memo_docx_00, O_inline_chat_00
 ```
 
 Số `NN` ý nghĩa nội bộ pack, quy định trong file `_00` của pack đó.
+
+**Exception cho pack 1-file:** theo system prompt mục 2 ("Pack có ≥3 file phải có master. Pack 1-2 file không bắt buộc master"), pack 1-file có thể bỏ suffix `_NN`. Hiện có 1 pack áp dụng exception này: `K_sector_framework` (1 file đơn, không có `_00` riêng).
 
