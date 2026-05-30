@@ -4,11 +4,30 @@ File index của project knowledge. Agent đọc file này đầu session để 
 
 ## Cách dùng file này
 
-1. Agent scan file này đầu session.
+1. Agent scan file này đầu session, cùng với `OUTPUT_MASTER.md` (xem mục "Global output convention" bên dưới).
 2. Khi query user đến, match với trigger của pack để quyết định activate pack nào.
 3. Activate pack thì đọc `_00` master của pack đó trước (bắt buộc theo rule master-first reading trong system prompt mục 5.7).
 4. Nếu không match pack nào, fall back về Default inline hoặc Default report (xem system prompt mục 6).
 5. Pack không có trong file này = không tồn tại. Agent không được suy diễn pack ngoài danh sách.
+6. Khi render deliverable cuối, áp glossary EN→VN ở `OUTPUT_MASTER.md` (system prompt mục 5.8).
+
+## Global output convention
+
+### OUTPUT_MASTER
+
+**Mục đích:** Chốt cách dịch term EN → VN khi render output cuối cho user đọc (memo / weekly / stock report / strategy). Áp cross-pack — không thuộc O pack riêng nào. Tách glossary khỏi O pack để: (a) consistency cross-O, (b) sửa 1 chỗ áp toàn deliverable, (c) O pack focus vào structure/tone, glossary tách layer riêng.
+
+**File:** `OUTPUT_MASTER.md` (file đơn, không có `_00` master).
+
+**Nội dung:** 3 nhóm term — A (dịch luôn), B (dịch + ngoặc EN lần đầu), C (giữ EN). Polysemy rules + conflict resolution với O pack K hygiene riêng.
+
+**Trigger:** Đọc đầu session. Re-queryable khi compose deliverable cuối ở bất kỳ O pack nào active.
+
+**Depends:** Không có. Đứng độc lập tương tự `KERNEL_SKELETON.md`.
+
+**Override:** O pack có K hygiene table riêng (vd `O_stock_report_00` mục 5 với audience-aware translation) override OUTPUT_MASTER trong scope O pack đó.
+
+**Status:** Active. Created 2026-05-30.
 
 ## K — Knowledge packs
 
