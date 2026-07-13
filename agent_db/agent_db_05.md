@@ -455,10 +455,9 @@ Phần này là điểm giao giữa file này và `agent_db_04` — mô tả cá
 
 ### 8.0. Bối cảnh pha thị trường (v2 — nguồn dữ liệu đã có)
 
-Khi kết hợp tin với chỉ báo, xác định **bối cảnh pha thị trường hiện tại**: nhãn pha của hệ đọc từ
-`market_phase` (headline có sẵn trong `data_briefing.core.phase`), kết hợp đánh giá trend đa khung độc lập của
-agent (`agent_db_04`) — hai góc nhìn lệch nhau thì nêu cả hai (system prompt mục 5). Cùng một tin, thông điệp
-đổi theo pha:
+Cùng một tin, thông điệp đổi theo pha thị trường. Pha lấy từ `market_phase` (headline sẵn trong
+`data_briefing.core.phase`) và/hoặc đánh giá trend đa khung của agent (`agent_db_04`) — đây là bước hiệu chỉnh
+cách ĐỌC tin, không phải thứ bắt buộc nêu ra output:
 
 - **DOWNTREND (exposure 0):** hệ đang đứng ngoài — tin tốt mã lẻ thường chỉ ở mức "điểm cộng cho danh sách
   theo dõi, chờ hệ bật lại"; nếu agent đánh giá tin đủ mạnh để cân nhắc vị thế, nói rõ đây là quan điểm ngược

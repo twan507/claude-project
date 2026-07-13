@@ -5,10 +5,9 @@ Tài liệu cho MỌI câu hỏi về: pha thị trường ("đang uptrend hay d
 Dữ liệu ở 6 collection: `market_phase`, `market_phase_history`, `phase_basket`, `phase_trading`,
 `phase_industry`, `phase_perf` (schema chi tiết: `agent_db_01` Section I; query mẫu: `agent_db_02` Workflow M).
 
-**Luật nền (system prompt mục 5-6, nhắc lại vì quan trọng nhất file):** NHÃN pha của hệ CHỈ trích từ
-`market_phase` — không tự gán nhãn thay hệ (đánh giá xu hướng độc lập vẫn được phép, lệch thì nêu cả hai
-góc nhìn); khuyến nghị nêu bối cảnh `exposure` của hệ, ngược tín hiệu thì nói rõ điểm lệch; hiệu suất theo
-luật 2 tầng; không lộ công thức/trọng số/tiêu chí xếp hạng.
+**Luật nền (system prompt mục 5-6):** NHÃN pha của hệ CHỈ trích từ `market_phase` — không tự gán nhãn thay hệ
+(đánh giá xu hướng độc lập vẫn được phép, lệch thì nêu cả hai góc nhìn); khuyến nghị ngược tín hiệu hệ thì nói
+rõ điểm lệch; hiệu suất theo luật 2 tầng; không lộ công thức/trọng số/tiêu chí xếp hạng.
 
 ---
 
@@ -58,7 +57,7 @@ lên/xuống. **CẤM:** công thức tính, trọng số, cách kết hợp ra 
 | `px_ret20_pct` | Quán tính biến động giá | lợi suất 20 phiên gần nhất (điểm %) | trên **−10** = chưa rơi vào nhịp sập nhanh; dưới −10 thì chế độ thận trọng TẮT để bảo vệ kịp |
 | *(kèm)* `market_intensity` | Cường độ thị trường | gauge −1..+1 "đang lên/xuống sâu tới đâu"; điều tiết mức nắm giữ trong TRANSITION | không có ngưỡng công bố |
 
-Cách kể chuyện chuẩn (khớp bố cục web): kết luận pha (từ `comments.market`) → điều kiện đổi trạng thái
+Mạch kể gợi ý (khớp bố cục web, không bắt buộc): kết luận pha (từ `comments.market`) → điều kiện đổi trạng thái
 (`comments.condition`) → cấu trúc đồng thuận/mâu thuẫn (`comments.structure`) → rủi ro & watch-item
 (`comments.risk`) → chi tiết từng chỉ số khi khách hỏi sâu (comment per-indicator). Comment sinh sẵn là
 NỀN chính xác nhất — ưu tiên diễn đạt lại từ đó thay vì tự suy diễn mới.
@@ -145,7 +144,7 @@ Trích đúng, không rút gọn quá mức; tối thiểu phải nêu #1 #3 #4 
    forward đã publish không bao giờ sửa.
 6. Đòn bẩy 2.0x: rủi ro call margin + lãi vay ăn mòn; sau phí, hiệu quả điều-chỉnh-rủi-ro KHÔNG tốt hơn 1.0x.
 
-## 6. Q&A mẫu — khung trả lời chuẩn
+## 6. Q&A mẫu — khung tham khảo (nguồn dữ liệu + ý chính cần chạm, KHÔNG phải template bắt buộc theo từng chữ)
 
 - **"Thị trường đang thế nào / nên cầm bao nhiêu?"** → `market_phase`: nhãn pha + held_days + exposure
   ("hệ gợi ý nắm ~X%") + tóm `comments.market` + 1-2 chỉ số nổi bật. Downtrend thì nói rõ 100% tiền mặt.

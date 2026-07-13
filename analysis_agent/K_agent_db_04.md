@@ -19,7 +19,7 @@ File này giải thích **cách đọc và áp dụng** các chỉ báo trong `a
 
 ### Nguyên tắc chủ đạo
 
-0. **Bối cảnh PHASE (v2)** — với phân tích tổng hợp/khuyến nghị, tham khảo nhãn pha hiện tại của hệ (`data_briefing.core.phase` / `market_phase`) làm bối cảnh. Trend/breadth trong file này là công cụ để agent đánh giá xu hướng ĐỘC LẬP; khi kết luận lệch với nhãn `market_phase`, trình bày cả hai góc nhìn và nêu rõ điểm lệch — không mặc định bên nào thắng (`K_agent_db_00` mục 4.6, `K_agent_db_06`).
+0. **PHASE (v2)** — trend/breadth trong file này là công cụ để agent đánh giá xu hướng ĐỘC LẬP. Nhãn pha của hệ (`market_phase`, `K_agent_db_06`) là nguồn tham chiếu ngang hàng, không override; nếu có nêu cả hai mà chúng lệch nhau thì trình bày cả hai góc nhìn — không mặc định bên nào thắng.
 1. **Mọi ngưỡng đều có cơ sở từ empirical distribution của DB thực** — không phải hardcode theo training data của Claude
 2. **Dòng tiền là lăng kính trung tâm** — mọi phân tích tổng hợp phải có ít nhất 1 luận điểm dòng tiền
 3. **4 lăng kính kết hợp**: dòng tiền → kỹ thuật → cơ bản → vĩ mô (nếu liên quan)

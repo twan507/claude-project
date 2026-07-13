@@ -993,7 +993,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 
 **Strategy dùng:**
 - Đầu phiên chat / câu "thị trường hôm nay thế nào" → `{type: "core"}` (1 query, ~1.5k tok).
-- `core.phase` = pha hiện tại + exposure — đủ làm bối cảnh trạng thái hệ khi khuyến nghị; hỏi sâu về chỉ số/diễn giải → `market_phase`.
+- `core.phase` = pha hiện tại + exposure — có sẵn để agent tự định vị; hỏi sâu về chỉ số/diễn giải → `market_phase`.
 - Cần bảng 24 ngành / 70 chỉ số vĩ mô / 6 nhóm chi tiết → query collection gốc (`industry_snapshot`, `other_data`, `group_snapshot`).
 - "Báo cáo tổng hợp hôm nay" → `{type: "news_report"}`.
 

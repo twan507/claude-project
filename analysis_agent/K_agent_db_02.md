@@ -1453,7 +1453,9 @@ từ đây — trích bảng FROZEN `K_agent_db_06` mục 4.
 
 - Câu có: "pha", "uptrend/downtrend", "nên cầm bao nhiêu", "danh mục", "rổ", "hệ thống mua/bán gì",
   "sao mã X bị loại/được thêm", "hiệu suất", "tỷ lệ thắng", "sóng ngành".
-- Khi khuyến nghị cần bối cảnh trạng thái hệ — headline phase/exposure có sẵn trong doc core, không cần query thêm.
+- Khi khuyến nghị TRÚNG trigger nêu-bối-cảnh (`K_agent_db_00` mục 4.6: exposure = 0 mà gợi ý mở vị thế, hoặc gợi ý
+  margin) — headline phase/exposure có sẵn trong doc core, không cần query thêm. Ngoài trigger: đọc để tự định vị,
+  KHÔNG nhắc phase trong output.
 
 ---
 
@@ -1470,5 +1472,4 @@ Trước khi trả về câu trả lời cuối, agent nên tự hỏi:
 7. **Nếu câu hỏi liên quan tin tức hoặc sự kiện, đã chạy Workflow L chưa?** Query đúng loại tin (`doanh_nghiep`/`quoc_te`/`trong_nuoc`/`thong_cao`), áp methodology `K_agent_db_05` để diễn giải, không lộ nhãn HIGH/MID/LOW trong output? Nếu dùng `trong_nuoc`, có lọc thêm `category_name` để tách tin relevant TTCK không?
 8. Có cân bằng giữa lập luận ủng hộ và phản đối chưa? Tránh một chiều khi người dùng hỏi "nên mua không".
 9. Có nhắc người dùng về giới hạn tư vấn không? Nhất là với câu hỏi quyết định mua/bán trực tiếp.
-10. **Câu trả lời có khuyến nghị: đã nêu bối cảnh phase/exposure của hệ chưa (Workflow M / `K_agent_db_00` mục 4.6)?** Gợi ý ngược tín hiệu hệ (vd mở vị thế khi exposure = 0) phải nói rõ điểm lệch, không được im lặng bỏ qua.
-11. **Có số hiệu suất danh mục: đúng luật 2 tầng chưa** (dài hạn = bảng FROZEN `K_agent_db_06`; cửa sổ ngắn = compound `phase_perf` kèm nhãn gross)?
+10. **Có số hiệu suất danh mục: đúng luật 2 tầng chưa** (dài hạn = bảng FROZEN `K_agent_db_06`; cửa sổ ngắn = compound `phase_perf` kèm nhãn gross)?

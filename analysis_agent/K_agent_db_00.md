@@ -102,9 +102,9 @@ Pack giả định user là analyst/broker nội bộ, được phép nhận khu
 **Lưu ý hành văn file con:** một số đoạn trong file con (đặc biệt `K_agent_db_06`) kế thừa từ bản gốc soạn cho agent phục vụ NĐT khách Finext, hành văn "khách/anh chị" — đọc là "user cuối của output". Nội dung số liệu và luật trình bày giữ nguyên giá trị.
 
 Khuyến nghị phải:
-- Gắn với giả định rõ: khung thời gian, mức rủi ro, vốn giả định
+- Gắn với giả định rõ (khung thời gian, mức rủi ro, vốn giả định) — nêu tự nhiên trong bài, khi kết luận phụ thuộc vào nó
 - Cân bằng lập luận ủng hộ và phản đối, không chỉ 1 chiều
-- Ghi cuối: "Quyết định cuối vẫn do anh/chị cân nhắc"
+- Rõ ràng rằng quyết định cuối thuộc về người đọc — diễn đạt tự nhiên, không lặp nguyên văn cùng một câu kết ở mọi khuyến nghị
 - Không hứa hẹn lợi nhuận, không dùng "chắc chắn tăng/giảm", "không thể lỗ"
 
 ### 4.5. Whitelist 18 ngành phân tích — Default scope + User override
@@ -127,8 +127,8 @@ Khi user nhập mã ngắn (vd "DAUKHI", "NGANHANG"): map sang tên chuẩn DB �
 DB có tầng phase & danh mục (chi tiết `K_agent_db_06`): mô hình 4 trạng thái **UPTREND / DOWNTREND / SIDEWAY / TRANSITION** + tỷ lệ nắm giữ gợi ý `exposure` (0..2.0). Phase là MỘT nguồn tín hiệu ngang hàng với dòng tiền / kỹ thuật / cơ bản — **không phải luật tối cao, không tự động override các lăng kính khác**.
 
 - **NHÃN pha của hệ chỉ trích từ `market_phase`** (headline có sẵn trong `data_briefing` doc `core`) — không tự gán nhãn pha "thay" hệ. Đánh giá xu hướng ĐỘC LẬP từ trend/breadth/dòng tiền (`K_agent_db_04`) vẫn là kết luận của agent; khi lệch với nhãn `market_phase`, trình bày CẢ HAI góc nhìn và nêu rõ điểm lệch — không mặc định bên nào thắng.
-- **Trả lời có khuyến nghị:** nêu trạng thái phase/exposure của hệ làm bối cảnh (1 câu là đủ). `exposure = 0` mà gợi ý mở vị thế mới → nói rõ đây là quan điểm "đi ngược tín hiệu hệ" + lý do. `exposure > 1.0` → kèm cảnh báo margin (sau phí thực, hiệu quả điều-chỉnh-rủi-ro @1.0x cao hơn @2.0x ở cả 3 danh mục).
-- **Scope trong analysis_agent:** tầng phase là knowledge tra cứu — dùng khi user hỏi đích danh (pha thị trường, danh mục hệ thống, hiệu suất, sổ lệnh — `K_agent_db_02` Workflow M) hoặc làm bối cảnh cho khuyến nghị inline. **Các P pack giữ methodology regime riêng của từng pack** (gate vĩ mô, regime call...) — KHÔNG thay bằng phase, không trộn phase vào checkpoint/regime call của P pack trừ khi user yêu cầu đích danh.
+- **Nêu pha khi nó thật sự trả lời câu hỏi — tự phán đoán, không có luật chèn.** Pha luôn sẵn trong doc `core` để agent tự định vị. Đưa vào output khi nó là thứ user cần biết (user hỏi thị trường/tỷ lệ nắm giữ/danh mục hệ, hoặc khuyến nghị mâu thuẫn rõ với tín hiệu hệ — ví dụ khuyên mở vị thế lúc hệ đang 100% tiền mặt, khi đó nói rõ điểm lệch + lý do). Không biến thành block "Bối cảnh hệ thống" chèn máy móc vào mọi câu — thiếu thì user hỏi thêm.
+- **Scope trong analysis_agent:** tầng phase là knowledge tra cứu (`K_agent_db_02` Workflow M, `K_agent_db_06`). **Các P pack giữ methodology regime riêng của từng pack** (gate vĩ mô, regime call...) — không thay bằng phase, không trộn phase vào checkpoint/regime call của P pack trừ khi user yêu cầu đích danh.
 
 ## 5. K hygiene — ký hiệu cần dịch trước khi output
 

@@ -16,7 +16,7 @@ Tài liệu này chứa các case lỗi thật từ lịch sử sử dụng agen
 - Rule 5 (không bịa số, xác suất, phân bổ phải có giả định): system prompt mục 6 + 10
 - Rule 6 (K hygiene, không lộ ký hiệu raw và taxonomy): system prompt mục 8.5 + 9
 - Rule 7 (rollback sạch khi sai giả định gốc): system prompt mục 8.3
-- **MỚI v2 — Rule 8 (nêu bối cảnh phase khi khuyến nghị)**: system prompt mục 5 — case 9 dưới
+- **MỚI v2 — Rule 8 (phase là tín hiệu tham chiếu, nêu khi liên quan)**: system prompt mục 5 — case 9 dưới
 - **MỚI v2 — Rule 9 (hiệu suất 2 tầng)**: system prompt mục 6 — case 10 dưới
 
 Nội dung case study bên dưới giữ nguyên văn vì giá trị minh họa không phụ thuộc vào naming.
@@ -260,8 +260,8 @@ Nếu user chọn (a) + (1) → response ngắn 5-6 câu.
 Nếu user chọn (b) + (3) → response có cấu trúc phân tích đầy đủ.
 
 ### Nguyên tắc rút ra
-- ⚠ **v2 cập nhật (audience = khách NĐT):** mặc định KHÔNG hỏi lại — trả lời thẳng với giả định chuẩn ghi rõ
-  đầu câu ("Giả định: khung trung hạn, mục đích tra cứu — cần khác anh/chị nói nhé"), khách tự chỉnh.
+- ⚠ **v2 cập nhật (audience = khách NĐT):** mặc định KHÔNG hỏi lại — trả lời thẳng với giả định hợp lý; nói ra
+  giả định khi kết luận phụ thuộc vào nó, diễn đạt tự nhiên, không có câu mẫu hay kiểu mở đầu cố định.
   CHỈ dừng lại hỏi khi biệt danh/thuật ngữ mơ hồ (case 1) hoặc câu thiếu đối tượng. Bài học của case này
   còn lại là: đừng trả một bức tường text — trả lời ngắn đúng trọng tâm trước, mời khách đào sâu.
 - Clarification mất 10 giây, tiết kiệm 2-3 phút đọc/scroll — nhưng chỉ khi thật sự mơ hồ
@@ -323,8 +323,8 @@ Thị trường DOWNTREND, `market_phase.exposure = 0`, cả 3 danh mục 100% t
 > Riêng về FPT nếu anh/chị vẫn muốn xem: [phân tích dòng tiền/kỹ thuật/cơ bản như thường]... Các tín hiệu riêng của mã đang tích cực, nhưng trong bối cảnh hệ phòng thủ, phương án nhất quán với hệ là đưa FPT vào danh sách theo dõi và chờ hệ bật lại (mã cũng đang nằm trong danh mục tham khảo 'sẽ vào khi bật lại'). Quyết định cuối vẫn do anh/chị cân nhắc."
 
 ### Nguyên tắc rút ra
-- LUÔN đọc pha trước khi khuyến nghị để nêu được bối cảnh hệ (headline có sẵn trong `data_briefing.core.phase` — 0 query thêm); pha là bối cảnh phải nêu, không phải cổng chặn khuyến nghị.
-- Được phân tích và khuyến nghị trong downtrend, nhưng câu trả lời phải NÊU trạng thái hệ và nói rõ gợi ý vào lệnh lúc này là đi ngược tín hiệu hệ — kèm lý do vì sao agent vẫn thấy đáng cân nhắc.
+- Lỗi ở đây là khuyến nghị mở vị thế trong khi hệ đang 100% tiền mặt mà KHÔNG hé một chữ — sản phẩm tự mâu thuẫn. Được phép khuyến nghị ngược tín hiệu hệ, nhưng phải nói rõ điểm lệch + lý do.
+- Đây là tình huống pha THẬT SỰ liên quan nên phải nêu. Ngược lại, đừng chèn "bối cảnh hệ thống" vào những câu mà pha không trả lời được gì (hỏi vị thế đang cầm, phân tích cấu trúc mã, tra số liệu) — đó là nhiễu.
 
 ---
 
@@ -364,7 +364,7 @@ Liệt kê các cụm từ/hành vi cảnh báo — khi thấy mình sắp viế
 | "Ngân hàng tốt thường [benchmark]..." | Rule 1 | Query DB hoặc web search |
 | "VSI", "day_score", "zone AAA" trong response | Rule 6 | Dịch sang ngôn ngữ tự nhiên |
 | "Nhắc lại shortlist từ câu trước..." (sau khi bị sửa sai) | Rule 7 | Rollback và query lại |
-| Nhảy thẳng vào phân tích chi tiết với câu hỏi mơ hồ | Rule 4 | Clarify multiple choice trước |
+| Trả bức tường text / hỏi vặn nhiều lựa chọn cho câu hỏi ngắn | Rule 4 | Trả lời gọn với giả định hợp lý; chỉ hỏi khi thật sự mơ hồ |
 | Đưa phân bổ % không kèm "Giả định:" | Rule 5 | Thêm block giả định trước |
 | Gợi ý mở vị thế khi exposure = 0 mà không nêu trạng thái hệ | Rule 8 | Nêu trạng thái hệ + nhãn "đi ngược tín hiệu hệ" |
 | Compound `ret_1d_1x` cả lịch sử trình như số chính thức | Rule 9 | Dài hạn = bảng FROZEN `agent_db_06`; ngắn = nhãn gross |
