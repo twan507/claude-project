@@ -19,12 +19,39 @@ File này giải thích **cách đọc và áp dụng** các chỉ báo trong `a
 
 ### Nguyên tắc chủ đạo
 
-0. **PHASE là tầng trên (v2)** — trước mọi phân tích tổng hợp/khuyến nghị, đọc pha hiện tại (`data_briefing.core.phase` / `market_phase`). Trend/breadth trong file này là NGUYÊN LIỆU cùng họ với input của mô hình phase: khi kết luận từ chúng lệch với `market_phase`, **phase thắng** — mô tả trend như chi tiết bên dưới tín hiệu chính, không đưa kết luận pha ngược hệ (system prompt mục 5, `agent_db_06`).
+0. **Bối cảnh PHASE (v2)** — với phân tích tổng hợp/khuyến nghị, tham khảo nhãn pha hiện tại của hệ (`data_briefing.core.phase` / `market_phase`) làm bối cảnh. Trend/breadth trong file này là công cụ để agent đánh giá xu hướng ĐỘC LẬP; khi kết luận lệch với nhãn `market_phase`, trình bày cả hai góc nhìn và nêu rõ điểm lệch — không mặc định bên nào thắng (system prompt mục 5, `agent_db_06`).
 1. **Mọi ngưỡng đều có cơ sở từ empirical distribution của DB thực** — không phải hardcode theo training data của Claude
 2. **Dòng tiền là lăng kính trung tâm** — mọi phân tích tổng hợp phải có ít nhất 1 luận điểm dòng tiền
 3. **4 lăng kính kết hợp**: dòng tiền → kỹ thuật → cơ bản → vĩ mô (nếu liên quan)
 4. **3 lớp đồng pha**: thị trường → ngành → mã, chỉ có tín hiệu khỏe khi ít nhất 2 lớp đồng thuận
 5. **Đa khung w/m/q/y** không bao giờ suy từ khung này sang khung khác, chỉ đọc theo mức độ đồng pha
+
+### Bảng dịch taxonomy nội bộ → cách nói với user (K hygiene)
+
+Bảng tra nhanh cho rule K hygiene (system prompt mục 8.5): taxonomy dưới đây là công cụ nội bộ của file này, KHÔNG lộ tên ra output — thay bằng mô tả trực tiếp ở cột phải. Ký hiệu DB raw xem bảng system prompt mục 9; thuật ngữ tin tức xem `agent_db_05` phần 9.
+
+| Internal | Mô tả cho user |
+|---|---|
+| Kịch bản A (đồng pha trung tính tích cực) | Thị trường tăng khỏe đồng đều 4 khung, chưa cực đoan |
+| Kịch bản B (ngắn yếu + dài khỏe) | Điều chỉnh ngắn hạn trong xu hướng dài vẫn mạnh, cơ hội mua pullback |
+| Kịch bản C (ngắn yếu + dài cũng yếu) | Cả ngắn và dài đều yếu, tránh bắt đáy, bounce có thể chỉ là hồi kỹ thuật |
+| Kịch bản D (ngắn quá mua + dài chưa) | Điều chỉnh ngắn sắp tới trong uptrend dài, chờ tuần pullback mới vào |
+| Kịch bản E (đồng pha quá mua) | Cảnh báo đỉnh lớn, cả thị trường lan toả cực đoan, giảm tỷ trọng |
+| Kịch bản F (đồng pha quá bán) | Cảnh báo đáy lớn, canh tích luỹ dần, không all-in vì đáy có thể kéo dài |
+| Kịch bản G (sóng hồi trung hạn) | Rally trung hạn từ đáy dài hạn, chưa xác nhận dài hạn, rủi ro cao |
+| Kịch bản E1 (đã tăng nhưng còn khoẻ) | Mã đã có sóng tăng rõ nhưng chưa có dấu hiệu cạn lực |
+| Kịch bản E2 (chưa tăng nhưng dòng tiền quay lại) | Mã đang tích luỹ hoặc vừa đảo chiều đáy, tín hiệu sớm chưa xác nhận |
+| Kịch bản E3 (rủi ro cao, tránh vào) | Mã có nhiều cảnh báo đồng thời, không nên mua |
+| warning mean-reversion | Cảnh báo khả năng đảo chiều do quá mua hoặc quá bán |
+| exhaustion | Rally đuối hơi, cạn lực tăng |
+| dead-cat bounce | Hồi kỹ thuật trong downtrend, không bền |
+| confluence level | Vùng giao nhau của nhiều mức hỗ trợ hoặc kháng cự, mạnh hơn mức đơn |
+| Value Area | Vùng giá chấp nhận, nơi diễn ra khoảng 70% giao dịch |
+| Value Trap | Bẫy giá trị, P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued |
+| DuPont decomposition | Tách ROE thành 3 thành phần: biên lợi nhuận × vòng quay tài sản × đòn bẩy |
+| Golden Ratio retracement | Mức Fibonacci 61.8%, mức hỗ trợ sâu nhất; vượt xuống là cấu trúc trend có thể đã gãy |
+| whip-saw | Dao động biên độ lớn, rally rồi sập lặp nhiều lần |
+| B5/B6/B7, Pitfall F1-F12, Workflow A-M, Bước 1/2/3 | Không nhắc tên section/workflow, làm theo flow tự nhiên |
 
 ---
 
@@ -282,7 +309,7 @@ w_trend yếu không có nghĩa y_trend sắp đảo. Thị trường có cấu 
 
 Khi cả 4 khung cùng báo một điều, tỷ lệ tín hiệu đúng tăng lên rất cao. Khi các khung lệch pha, phải đọc theo kịch bản cụ thể.
 
-**Lưu ý dịch thuật (K hygiene):** 7 kịch bản dưới đây (A-G) là taxonomy NỘI BỘ để agent hiểu và gọi ra framework. KHÔNG nhắc tên "Kịch bản A/B/C/..." trong output cho user. Khi áp dụng, mô tả trực tiếp hiện tượng theo ngôn ngữ tự nhiên (bảng dịch đầy đủ ở system prompt mục 9). Ví dụ: thay vì "Thị trường đang ở Kịch bản G", nói "Thị trường đang trong pha rally trung hạn từ đáy dài hạn, dài hạn chưa xác nhận".
+**Lưu ý dịch thuật (K hygiene):** 7 kịch bản dưới đây (A-G) là taxonomy NỘI BỘ để agent hiểu và gọi ra framework. KHÔNG nhắc tên "Kịch bản A/B/C/..." trong output cho user. Khi áp dụng, mô tả trực tiếp hiện tượng theo ngôn ngữ tự nhiên (bảng dịch taxonomy ở đầu file này). Ví dụ: thay vì "Thị trường đang ở Kịch bản G", nói "Thị trường đang trong pha rally trung hạn từ đáy dài hạn, dài hạn chưa xác nhận".
 
 **7 kịch bản chính:**
 
@@ -893,7 +920,7 @@ Hiểu seasonality giúp đọc đúng QoQ: Q4 xây dựng giảm so với Q3 c�
 
 Đây là phần ứng dụng thực tế — gộp dòng tiền, kỹ thuật, cơ bản vào kịch bản quyết định. Agent nên lưu bảng criteria này trong đầu khi phân tích mã.
 
-**Lưu ý dịch thuật (K hygiene):** Tên "Kịch bản E1/E2/E3" là taxonomy NỘI BỘ. KHÔNG nhắc "Kịch bản E1", "E2", "E3" trong output. Mô tả trực tiếp bằng ngôn ngữ tự nhiên: "mã đã tăng nhưng còn khoẻ" (E1), "mã đang tích luỹ, dòng tiền bắt đầu quay lại" (E2), "mã có nhiều cảnh báo đồng thời, rủi ro cao" (E3). Bảng dịch đầy đủ ở system prompt mục 9.
+**Lưu ý dịch thuật (K hygiene):** Tên "Kịch bản E1/E2/E3" là taxonomy NỘI BỘ. KHÔNG nhắc "Kịch bản E1", "E2", "E3" trong output. Mô tả trực tiếp bằng ngôn ngữ tự nhiên: "mã đã tăng nhưng còn khoẻ" (E1), "mã đang tích luỹ, dòng tiền bắt đầu quay lại" (E2), "mã có nhiều cảnh báo đồng thời, rủi ro cao" (E3). Bảng dịch taxonomy ở đầu file này.
 
 ### E1. Kịch bản "Đã tăng nhưng còn khoẻ"
 
@@ -979,7 +1006,7 @@ Khi user yêu cầu phân tích chi tiết một mã, theo chuỗi 10 bước:
 
 Các tình huống agent dễ đọc sai. Mỗi pitfall có chẩn đoán và cách xử lý đúng.
 
-**Lưu ý dịch thuật (K hygiene):** Tên "Pitfall F1/F2/.../F12" là taxonomy NỘI BỘ để agent tra cứu. KHÔNG nhắc "pitfall F2", "F5", "F12"... trong output. Khi áp dụng pitfall vào phân tích cho user, mô tả trực tiếp hiện tượng (VD: thay vì "đây là pitfall F5 bẫy giá trị", nói "đây là bẫy giá trị — P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued"). Cũng không nhắc thuật ngữ tiếng Anh chưa dịch như "exhaustion", "dead-cat bounce", "Value Trap" — dịch theo bảng ở system prompt mục 9.
+**Lưu ý dịch thuật (K hygiene):** Tên "Pitfall F1/F2/.../F12" là taxonomy NỘI BỘ để agent tra cứu. KHÔNG nhắc "pitfall F2", "F5", "F12"... trong output. Khi áp dụng pitfall vào phân tích cho user, mô tả trực tiếp hiện tượng (VD: thay vì "đây là pitfall F5 bẫy giá trị", nói "đây là bẫy giá trị — P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued"). Cũng không nhắc thuật ngữ tiếng Anh chưa dịch như "exhaustion", "dead-cat bounce", "Value Trap" — dịch theo bảng taxonomy ở đầu file này.
 
 ### F1. Day_score dương mạnh nhưng week_score âm
 

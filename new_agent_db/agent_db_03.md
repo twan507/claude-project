@@ -16,7 +16,7 @@ Tài liệu này chứa các case lỗi thật từ lịch sử sử dụng agen
 - Rule 5 (không bịa số, xác suất, phân bổ phải có giả định): system prompt mục 6 + 10
 - Rule 6 (K hygiene, không lộ ký hiệu raw và taxonomy): system prompt mục 8.5 + 9
 - Rule 7 (rollback sạch khi sai giả định gốc): system prompt mục 8.3
-- **MỚI v2 — Rule 8 (subordination phase)**: system prompt mục 5 — case 9 dưới
+- **MỚI v2 — Rule 8 (nêu bối cảnh phase khi khuyến nghị)**: system prompt mục 5 — case 9 dưới
 - **MỚI v2 — Rule 9 (hiệu suất 2 tầng)**: system prompt mục 6 — case 10 dưới
 
 Nội dung case study bên dưới giữ nguyên văn vì giá trị minh họa không phụ thuộc vào naming.
@@ -305,7 +305,7 @@ Agent đưa gợi ý phân bổ danh mục cho user.
 
 ---
 
-## Case 9 — Khuyến nghị mở vị thế khi hệ đang phòng thủ (vi phạm nặng nhất — MỚI v2)
+## Case 9 — Khuyến nghị mở vị thế khi hệ phòng thủ mà KHÔNG nêu trạng thái hệ (MỚI v2)
 
 ### Tình huống
 Thị trường DOWNTREND, `market_phase.exposure = 0`, cả 3 danh mục 100% tiền mặt. User hỏi: "FPT nhìn ổn chưa, vào được chưa?"
@@ -314,8 +314,8 @@ Thị trường DOWNTREND, `market_phase.exposure = 0`, cả 3 danh mục 100% t
 > "FPT dòng tiền tuần dương 18, vùng kỹ thuật tuần mạnh, khối ngoại mua ròng — có thể cân nhắc mở vị thế thăm dò 20-30%."
 
 ### Chẩn đoán
-- **Vi phạm Rule 8 (subordination)** — agent phân tích mã ĐÚNG nhưng quên tầng trên: hệ đang bảo đứng ngoài.
-- Sản phẩm tự cãi nhau: web Finext hiện "100% TIỀN MẶT — đang phòng thủ", chat lại bảo "vào được" → khách mất niềm tin vào cả hai.
+- **Vi phạm Rule 8 (bối cảnh phase)** — agent phân tích mã ĐÚNG nhưng bỏ qua bối cảnh: hệ đang phòng thủ 100% tiền mặt mà câu trả lời không nhắc một chữ.
+- Sản phẩm tự cãi nhau NGẦM: web Finext hiện "100% TIỀN MẶT — đang phòng thủ", chat lại bảo "vào được" mà không giải thích điểm lệch → khách mất niềm tin vào cả hai. Quan điểm khác tín hiệu hệ là được phép — im lặng về điểm lệch mới là lỗi.
 
 ### Cách sửa — Response đúng
 > "Trước hết về bối cảnh: hệ thống đang ở trạng thái DOWNTREND, tỷ lệ nắm giữ gợi ý 0% — cả 3 danh mục đã về tiền mặt từ [ngày]. Mọi vị thế mở mới lúc này là đi ngược tín hiệu hệ.
@@ -323,8 +323,8 @@ Thị trường DOWNTREND, `market_phase.exposure = 0`, cả 3 danh mục 100% t
 > Riêng về FPT nếu anh/chị vẫn muốn xem: [phân tích dòng tiền/kỹ thuật/cơ bản như thường]... Các tín hiệu riêng của mã đang tích cực, nhưng trong bối cảnh hệ phòng thủ, phương án nhất quán với hệ là đưa FPT vào danh sách theo dõi và chờ hệ bật lại (mã cũng đang nằm trong danh mục tham khảo 'sẽ vào khi bật lại'). Quyết định cuối vẫn do anh/chị cân nhắc."
 
 ### Nguyên tắc rút ra
-- LUÔN đọc pha trước khi khuyến nghị (headline có sẵn trong `data_briefing.core.phase` — 0 query thêm).
-- Được phân tích mã trong downtrend, nhưng khung câu trả lời phải MỞ ĐẦU bằng trạng thái hệ và gắn nhãn "đi ngược tín hiệu hệ" cho mọi gợi ý vào lệnh.
+- LUÔN đọc pha trước khi khuyến nghị để nêu được bối cảnh hệ (headline có sẵn trong `data_briefing.core.phase` — 0 query thêm); pha là bối cảnh phải nêu, không phải cổng chặn khuyến nghị.
+- Được phân tích và khuyến nghị trong downtrend, nhưng câu trả lời phải NÊU trạng thái hệ và nói rõ gợi ý vào lệnh lúc này là đi ngược tín hiệu hệ — kèm lý do vì sao agent vẫn thấy đáng cân nhắc.
 
 ---
 
@@ -366,7 +366,7 @@ Liệt kê các cụm từ/hành vi cảnh báo — khi thấy mình sắp viế
 | "Nhắc lại shortlist từ câu trước..." (sau khi bị sửa sai) | Rule 7 | Rollback và query lại |
 | Nhảy thẳng vào phân tích chi tiết với câu hỏi mơ hồ | Rule 4 | Clarify multiple choice trước |
 | Đưa phân bổ % không kèm "Giả định:" | Rule 5 | Thêm block giả định trước |
-| Gợi ý mở vị thế khi exposure = 0 | Rule 8 | Mở đầu bằng trạng thái hệ + nhãn "đi ngược tín hiệu hệ" |
+| Gợi ý mở vị thế khi exposure = 0 mà không nêu trạng thái hệ | Rule 8 | Nêu trạng thái hệ + nhãn "đi ngược tín hiệu hệ" |
 | Compound `ret_1d_1x` cả lịch sử trình như số chính thức | Rule 9 | Dài hạn = bảng FROZEN `agent_db_06`; ngắn = nhãn gross |
 
 ---

@@ -5,8 +5,9 @@ Tài liệu cho MỌI câu hỏi về: pha thị trường ("đang uptrend hay d
 Dữ liệu ở 6 collection: `market_phase`, `market_phase_history`, `phase_basket`, `phase_trading`,
 `phase_industry`, `phase_perf` (schema chi tiết: `agent_db_01` Section I; query mẫu: `agent_db_02` Workflow M).
 
-**Luật nền (system prompt mục 5-6, nhắc lại vì quan trọng nhất file):** pha thị trường CHỈ đọc từ
-`market_phase` — không tự suy từ trend/breadth; mọi khuyến nghị subordinate theo `exposure`; hiệu suất theo
+**Luật nền (system prompt mục 5-6, nhắc lại vì quan trọng nhất file):** NHÃN pha của hệ CHỈ trích từ
+`market_phase` — không tự gán nhãn thay hệ (đánh giá xu hướng độc lập vẫn được phép, lệch thì nêu cả hai
+góc nhìn); khuyến nghị nêu bối cảnh `exposure` của hệ, ngược tín hiệu thì nói rõ điểm lệch; hiệu suất theo
 luật 2 tầng; không lộ công thức/trọng số/tiêu chí xếp hạng.
 
 ---

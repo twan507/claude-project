@@ -880,7 +880,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 - Output liệt kê nhiều tin/báo cáo dạng bảng hoặc danh sách → bổ sung link cho mỗi entry để user verify nhanh
 - Khi cite claim cụ thể từ tin/báo cáo cho analysis → dẫn link bên cạnh để audit trail
 
-**Lưu ý về K hygiene:** `article_slug` raw (dạng string code) thuộc diện cấm lộ trong output theo system prompt mục 4.5. Tuy nhiên URL `https://finext.vn/news/{slug}` là output user-facing hợp lệ, không tính vi phạm — khác biệt giữa ký hiệu nội bộ DB và URL công khai. Agent dẫn link URL đầy đủ, không để slug trần trong output dạng `article_slug: vnm-xyz`.
+**Lưu ý về K hygiene:** `article_slug` raw (dạng string code) thuộc diện cấm lộ trong output theo system prompt mục 8.5 (ngoại lệ URL: mục 8.2). Tuy nhiên URL `https://finext.vn/news/{slug}` là output user-facing hợp lệ, không tính vi phạm — khác biệt giữa ký hiệu nội bộ DB và URL công khai. Agent dẫn link URL đầy đủ, không để slug trần trong output dạng `article_slug: vnm-xyz`.
 
 **Query projection:** các workflow tin ở `agent_db_02` đã include sẵn `article_slug` / `report_slug` trong projection nên agent có sẵn slug trong kết quả query, không cần query thêm.
 
@@ -993,7 +993,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 
 **Strategy dùng:**
 - Đầu phiên chat / câu "thị trường hôm nay thế nào" → `{type: "core"}` (1 query, ~1.5k tok).
-- `core.phase` = pha hiện tại + exposure — đủ cho luật subordination; hỏi sâu về chỉ số/diễn giải → `market_phase`.
+- `core.phase` = pha hiện tại + exposure — đủ làm bối cảnh trạng thái hệ khi khuyến nghị; hỏi sâu về chỉ số/diễn giải → `market_phase`.
 - Cần bảng 24 ngành / 70 chỉ số vĩ mô / 6 nhóm chi tiết → query collection gốc (`industry_snapshot`, `other_data`, `group_snapshot`).
 - "Báo cáo tổng hợp hôm nay" → `{type: "news_report"}`.
 

@@ -345,7 +345,7 @@ Tin đồn mang tính chất hình sự — chẳng hạn lãnh đạo bị bắ
 
 ### 5.7. Các pattern đặc thù của doanh nghiệp Việt Nam
 
-**Chia cổ tức bằng cổ phiếu** có ý nghĩa khác hẳn thị trường phương Tây. Trên thế giới, hành động này thường bị xem là pha loãng giá trị vô nghĩa. Tuy nhiên văn hoá đầu tư cá nhân tại Việt Nam rất ưa chuộng các đợt chia cổ phiếu trong giai đoạn thị trường uptrend, bởi việc điều chỉnh giá kỹ thuật xuống mức thấp tạo ra ảo giác cổ phiếu rẻ hơn, thu hút dòng tiền đầu cơ mới. Ngược lại trong thị trường downtrend, tin chia cổ phiếu bị thị trường cực kỳ ruồng rẫy vì làm tăng lượng cung cổ phiếu trôi nổi trong bối cảnh cạn kiệt thanh khoản. Agent khi đọc tin chia cổ phiếu phải xác định đang ở pha thị trường nào trước khi kết luận tác động — pha lấy từ `market_phase` (xem 8.0), không phán đoán chay.
+**Chia cổ tức bằng cổ phiếu** có ý nghĩa khác hẳn thị trường phương Tây. Trên thế giới, hành động này thường bị xem là pha loãng giá trị vô nghĩa. Tuy nhiên văn hoá đầu tư cá nhân tại Việt Nam rất ưa chuộng các đợt chia cổ phiếu trong giai đoạn thị trường uptrend, bởi việc điều chỉnh giá kỹ thuật xuống mức thấp tạo ra ảo giác cổ phiếu rẻ hơn, thu hút dòng tiền đầu cơ mới. Ngược lại trong thị trường downtrend, tin chia cổ phiếu bị thị trường cực kỳ ruồng rẫy vì làm tăng lượng cung cổ phiếu trôi nổi trong bối cảnh cạn kiệt thanh khoản. Agent khi đọc tin chia cổ phiếu phải xác định đang ở pha thị trường nào trước khi kết luận tác động — tham chiếu nhãn pha của hệ trong `market_phase` và/hoặc trend đa khung `agent_db_04` (xem 8.0), không phán đoán chay.
 
 **Phát hành ESOP** có ý nghĩa kép tuỳ vào tỷ lệ và điều kiện. Nếu tỷ lệ ESOP duy trì ở mức hợp lý (dưới 1.5% số lượng cổ phiếu đang lưu hành) và có điều kiện hoàn thành KPI cụ thể, nó đóng vai trò khích lệ nhân tài. Nhưng lịch sử lạm dụng ESOP với tỷ lệ lớn hơn 3-5% mỗi năm, giá bán rẻ hơn nhiều so với thị giá, đi kèm thời hạn hạn chế chuyển nhượng lỏng lẻo, sẽ bị thị trường định giá khắt khe như hành vi bòn rút tài sản của cổ đông nhỏ lẻ để tư lợi cho giới tinh hoa quản trị. Agent phải nhận diện đây là một điểm trừ lớn về chất lượng quản trị doanh nghiệp.
 
@@ -453,18 +453,21 @@ Nguyên tắc tổng quát: tin càng tích cực bao nhiêu trong khi giá đã
 
 Phần này là điểm giao giữa file này và `agent_db_04` — mô tả cách agent kết hợp phân tích tin với các chỉ báo định lượng đã có (dòng tiền, trend, kỹ thuật, cơ bản) để ra kết luận có độ tin cậy cao hơn so với dùng riêng rẽ mỗi loại.
 
-### 8.0. Tầng PHASE trước tiên (v2 — nguồn dữ liệu đã có)
+### 8.0. Bối cảnh pha thị trường (v2 — nguồn dữ liệu đã có)
 
-Trước khi kết hợp tin với chỉ báo, xác định **pha thị trường hiện tại** từ `market_phase` (headline có sẵn trong
-`data_briefing.core.phase`) — KHÔNG tự suy pha từ trend/breadth (system prompt mục 5). Cùng một tin, thông điệp
+Khi kết hợp tin với chỉ báo, xác định **bối cảnh pha thị trường hiện tại**: nhãn pha của hệ đọc từ
+`market_phase` (headline có sẵn trong `data_briefing.core.phase`), kết hợp đánh giá trend đa khung độc lập của
+agent (`agent_db_04`) — hai góc nhìn lệch nhau thì nêu cả hai (system prompt mục 5). Cùng một tin, thông điệp
 đổi theo pha:
 
-- **DOWNTREND (exposure 0):** tin tốt mã lẻ KHÔNG đảo được khuyến nghị tổng — hệ đang đứng ngoài; diễn giải tin
-  ở mức "điểm cộng cho danh sách theo dõi, chờ hệ bật lại". Tin xấu = xác nhận thêm cho phòng thủ.
+- **DOWNTREND (exposure 0):** hệ đang đứng ngoài — tin tốt mã lẻ thường chỉ ở mức "điểm cộng cho danh sách
+  theo dõi, chờ hệ bật lại"; nếu agent đánh giá tin đủ mạnh để cân nhắc vị thế, nói rõ đây là quan điểm ngược
+  tín hiệu hệ. Tin xấu = xác nhận thêm cho phòng thủ.
 - **UPTREND:** tin xấu mã lẻ đọc nghiêm hơn (rủi ro riêng trong thị trường thuận); tin tốt dễ được dòng tiền hưởng ứng.
 - **TRANSITION/SIDEWAY:** tin có vai trò chất xúc tác lớn nhất — kiểm tra chéo dòng tiền (8.1) quyết định.
 - Các đoạn dưới đây (8.1–8.3) nhắc "pha thị trường"/"uptrend/downtrend" (vd tin chia cổ phiếu ở phần 5.7):
-  từ v2, pha đó lấy từ `market_phase`, không phán đoán chay.
+  từ v2 có thêm nhãn pha của hệ trong `market_phase` để tham chiếu, bên cạnh đánh giá trend đa khung của agent
+  — không phán đoán chay không nguồn.
 
 ### 8.1. Nguyên tắc chung — tin không thay thế chỉ báo
 

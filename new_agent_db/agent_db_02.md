@@ -1035,8 +1035,8 @@ Phần này mô tả chuỗi query cần thiết cho các phân tích hay gặp.
 **Mục tiêu:** trả lời "thị trường hôm nay thế nào", "ngành nào mạnh nhất".
 
 1. `data_briefing` doc core (xem 10.1) — bức tranh + **phase headline** (nếu chưa nạp đầu phiên).
-2. Trạng thái pha là KẾT LUẬN chính: đọc `core.phase` (sâu hơn → `market_phase`, Workflow M). Trend/breadth
-   trình bày như lớp mô tả BÊN DƯỚI tín hiệu pha — không đưa kết luận pha ngược với `market_phase`.
+2. Trạng thái pha của hệ: đọc `core.phase` (sâu hơn → `market_phase`, Workflow M) — nêu làm bối cảnh. Đánh giá
+   trend/breadth độc lập theo Workflow K; nếu kết luận lệch với nhãn pha của hệ, trình bày cả hai góc nhìn.
 3. "Ngành nào mạnh/yếu nhất" → `industry_snapshot` tự tổng hợp rank (xem 3.6).
 4. Cần vĩ mô → `other_data` (mục 11); cần tin nổi bật → doc news_report (10.2).
 5. Câu trả lời cần đánh giá xu hướng → thêm `market_recent` 20 phiên (Workflow K).
@@ -1160,9 +1160,9 @@ Phần này mô tả chuỗi query cần thiết cho các phân tích hay gặp.
 
 **Mục tiêu:** bất cứ khi nào câu hỏi liên quan tới xu hướng/trend của thị trường, ngành, hoặc nhóm — VD "thị trường đang thế nào", "ngành X mạnh yếu ra sao", "VNINDEX rally có bền không", "nhóm LargeCaps đi đâu".
 
-**Nguyên tắc 0 — PHASE TRƯỚC (v2):** trước khi phân tích trend, đọc pha hiện tại (`data_briefing.core.phase`
-hoặc `market_phase`). Pha thị trường CHỈ lấy từ đó — trend/breadth là nguyên liệu mô tả, khi mâu thuẫn thì
-**phase thắng** (system prompt mục 5). Kết luận trend trình bày trong khuôn khổ pha.
+**Lưu ý phase (v2):** nhãn pha của hệ (`data_briefing.core.phase` hoặc `market_phase`) là tín hiệu tham chiếu
+hữu ích khi phân tích trend — trích làm bối cảnh nếu liên quan. Đánh giá trend độc lập theo B1.5 vẫn là kết
+luận của agent; nếu lệch với nhãn pha của hệ, nêu cả hai góc nhìn (system prompt mục 5).
 
 **Nguyên tắc:** theo `agent_db_04` mục B1.5, snapshot một mình không đủ — phải xem vận động 20 phiên để phân loại 1 trong 5 pattern (đang rơi từ vùng quá mua / đang bật từ đáy / dao động biên độ lớn / ổn định / tăng đều hoặc giảm đều).
 
@@ -1453,7 +1453,7 @@ từ đây — trích bảng FROZEN `agent_db_06` mục 4.
 
 - Câu có: "pha", "uptrend/downtrend", "nên cầm bao nhiêu", "danh mục", "rổ", "hệ thống mua/bán gì",
   "sao mã X bị loại/được thêm", "hiệu suất", "tỷ lệ thắng", "sóng ngành".
-- TRƯỚC mọi khuyến nghị (luật subordination — cần biết exposure hiện tại; headline có sẵn trong core).
+- Khi khuyến nghị cần bối cảnh trạng thái hệ — headline phase/exposure có sẵn trong doc core, không cần query thêm.
 
 ---
 
@@ -1470,5 +1470,5 @@ Trước khi trả về câu trả lời cuối, agent nên tự hỏi:
 7. **Nếu câu hỏi liên quan tin tức hoặc sự kiện, đã chạy Workflow L chưa?** Query đúng loại tin (`doanh_nghiep`/`quoc_te`/`trong_nuoc`/`thong_cao`), áp methodology `agent_db_05` để diễn giải, không lộ nhãn HIGH/MID/LOW trong output? Nếu dùng `trong_nuoc`, có lọc thêm `category_name` để tách tin relevant TTCK không?
 8. Có cân bằng giữa lập luận ủng hộ và phản đối chưa? Tránh một chiều khi người dùng hỏi "nên mua không".
 9. Có nhắc người dùng về giới hạn tư vấn không? Nhất là với câu hỏi quyết định mua/bán trực tiếp.
-10. **Câu trả lời có khuyến nghị: đã đọc pha hiện tại và subordinate theo exposure chưa (Workflow M / system prompt mục 5)?** Exposure = 0 mà gợi ý mở vị thế là vi phạm nặng nhất.
+10. **Câu trả lời có khuyến nghị: đã nêu bối cảnh phase/exposure của hệ chưa (Workflow M / system prompt mục 5)?** Gợi ý ngược tín hiệu hệ (vd mở vị thế khi exposure = 0) phải nói rõ điểm lệch, không được im lặng bỏ qua.
 11. **Có số hiệu suất danh mục: đúng luật 2 tầng chưa** (dài hạn = bảng FROZEN `agent_db_06`; cửa sổ ngắn = compound `phase_perf` kèm nhãn gross)?
