@@ -329,7 +329,7 @@ Không bán ngay nhưng flag để review.
 **Ví dụ:**
 
 ```
-Soft trigger 1: market_rank_pct rơi xuống < 0.3 trong 2 tuần liên tiếp
+Soft trigger 1: market_rank_pct rơi xuống < 30 (percentile 0-100) trong 2 tuần liên tiếp
 - Source: stock_snapshot.money_flow_score.market_rank_pct
 - Action: review vị thế trong 1 tuần, cân nhắc giảm 30-50%
 
@@ -555,7 +555,7 @@ Mã top tier 3 (16đ, High conviction), tier 5A clear xanh, tier 5B Base 85k (cu
 
 **Gate 3 — Exit Triggers:**
 - Hard: price < 48k, BCTC Q2 BHX loss tăng, CEO/CFO từ chức
-- Soft: rank_pct < 0.3, zone q về B, DSO +10 ngày
+- Soft: rank_pct < 30, zone q về B, DSO +10 ngày
 - TP: 50% at 85k, 30% at 105k, re-examine at 120k+
 - **PASS**
 

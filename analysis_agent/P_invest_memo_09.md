@@ -62,7 +62,7 @@ Reference: `P_invest_memo_00` phần Flow chi tiết (overview), `P_invest_memo_
 
 1. **Price check** — các mã trong portfolio + watchlist (Bucket 3):
    - Giá current vs levels quan trọng (Bear × 0.9, Base, Bull)
-   - Flag mã có pct_change hôm nay > ±5%
+   - Flag mã có pct_change hôm nay vượt ±5 (field đã là điểm %, đọc thẳng)
 
 2. **Hard trigger auto-check** (per-stock):
    - Nếu price < Bear × 0.9 → **ALERT** proposal bán ngay
@@ -224,7 +224,7 @@ User confirm để đặt lệnh?
 **Logic:** trigger match → flag cảnh báo + đề xuất action, user quyết định.
 
 **Ví dụ soft triggers từ memo (output user-facing dùng wording dịch; raw token chỉ trong audit log):**
-- Xếp hạng dòng tiền thị trường rơi xuống top 70% (dưới rank_pct 0.3) trong 2 tuần
+- Xếp hạng dòng tiền thị trường rơi xuống top 70% (dưới rank_pct 30, percentile 0-100) trong 2 tuần
 - Vùng kỹ thuật khung quý chuyển từ tích cực về trung tính (zone A → B)
 - DSO quý mới tăng > 10 ngày so cùng kỳ
 - Flow NN bán ròng > 2 tuần liên tiếp

@@ -6,6 +6,11 @@ Tài liệu chứa các mẫu query MongoDB sẵn dùng cho agent. Mỗi mẫu c
 
 **Scope:** tất cả query chỉ chạy trên database `agent_db`.
 
+> **v2 (2026-07-12):** mọi `*_pct`/`pct_change` trong kết quả đã là **điểm %** (đọc thẳng, không nhân 100);
+> `industry_rank_pct`/`market_rank_pct` thang 0–100; field thiếu dữ liệu bị omit (không còn null).
+> `stock_info` đổi tên 5 field sở hữu (`free_float_pct`...). `data_briefing` chỉ còn 2 doc — xem mục 10.
+> Thêm **Workflow M** (phase & danh mục). Ngưỡng số trong các pipeline mẫu dưới đây đã cập nhật theo thang mới.
+
 **Công cụ:** dùng MongoDB tool với tham số `database: "agent_db"`, `collection: "<tên>"`, và một trong `filter` / `projection` / `sort` / `limit` / `pipeline` tuỳ thao tác.
 
 ---
@@ -24,6 +29,7 @@ Tài liệu chứa các mẫu query MongoDB sẵn dùng cho agent. Mỗi mẫu c
 10. [Briefing — toàn cảnh thị trường](#10-briefing--toàn-cảnh-thị-trường)
 11. [Vĩ mô, hàng hoá & quốc tế (`other_data`)](#11-vĩ-mô-hàng-hoá--quốc-tế-other_data)
 12. [Workflow tổng hợp theo use case](#12-workflow-tổng-hợp-theo-use-case)
+13. [Workflow M — Phase & danh mục hệ thống](#workflow-m--phase--danh-mục-hệ-thống)
 
 ---
 
@@ -44,8 +50,8 @@ collection: stock_info
 filter: { "ticker": "<ticker>" }
 projection: { "_id": 0, "ticker": 1, "ticker_name": 1, "exchange": 1,
               "industry": 1, "marketcap": 1, "category": 1,
-              "outstandingShare": 1, "freeFloatRate": 1,
-              "foreignerPercentage": 1, "foreignerRoom": 1 }
+              "outstandingShare": 1, "free_float_pct": 1,
+              "foreign_pct": 1, "foreignerRoom": 1 }
 ```
 
 ### 1.2. Snapshot phiên mới nhất
@@ -685,8 +691,8 @@ pipeline: [
 ```
 collection: stock_info
 filter: { "ticker": { "$in": [ <list từ bước trên> ] } }
-projection: { "_id": 0, "ticker": 1, "foreignerPercentage": 1, "foreignerRoom": 1,
-              "maximumForeignPercentage": 1 }
+projection: { "_id": 0, "ticker": 1, "foreign_pct": 1, "foreignerRoom": 1,
+              "max_foreign_pct": 1 }
 ```
 
 Sau đó agent ghép: mã có `foreignerRoom > 0` là còn room mua.
@@ -730,9 +736,11 @@ Filter `total_week >= 500` để loại mã có giao dịch NN nhỏ (noise). `n
 collection: news_today_feed
 filter: { "tickers": "<ticker>" }
 sort: { "created_at": -1 }
-projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1,
+projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1, "link": 1,
               "category_name": 1, "created_at": 1, "tickers": 1 }
 ```
+
+`link` = URL bài gốc nguồn ngoài (v2) — kèm khi liệt kê để khách bấm đọc.
 
 ### 8.2. Tin mới nhất hôm nay, theo loại
 
@@ -763,7 +771,7 @@ collection: news_history_feed
 filter: { "tickers": "<ticker>", "type": "news_feed" }
 sort: { "created_at": -1 }
 limit: 30
-projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1,
+projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1, "link": 1,
               "category_name": 1, "created_at": 1 }
 ```
 
@@ -854,100 +862,30 @@ pipeline: [
 
 ## 10. Briefing — toàn cảnh thị trường
 
-### 10.1. Đọc toàn bộ 6 block
+> **v2:** `data_briefing` chỉ còn 2 doc (`core` + `news_report`) — 4 block clone cũ đã xoá. Cần bảng 24 ngành /
+> 70 chỉ số vĩ mô / 6 nhóm → query collection gốc (`industry_snapshot`, `other_data`, `group_snapshot`).
+
+### 10.1. Doc core — NẠP ĐẦU MỌI PHIÊN CHAT
 
 ```
 collection: data_briefing
+filter: { "type": "core" }
 projection: { "_id": 0 }
 ```
 
-### 10.2. Chỉ lấy tổng quan thị trường + NN/TD
+Trả về ~1.5k token: thị trường (giá + breadth + trend + zone) + **phase headline** (`phase.label`,
+`phase.exposure`, `phase.as_of`) + money flow NN/TD + 6 nhóm + top moves. `as_of` = mốc dữ liệu.
 
-```
-collection: data_briefing
-filter: { "type": { "$in": ["market_snapshot", "market_nntd"] } }
-projection: { "_id": 0 }
-```
-
-### 10.3. Chỉ lấy 24 ngành (rút gọn)
-
-```
-collection: data_briefing
-pipeline: [
-  { "$match": { "type": "industry_snapshot" } },
-  { "$project": {
-      "_id": 0,
-      "industries": {
-        "$map": {
-          "input": "$data",
-          "as": "i",
-          "in": {
-            "industry_name": "$$i.industry_name",
-            "day_score": "$$i.money_flow_score.day_score",
-            "week_score": "$$i.money_flow_score.week_score",
-            "pct_change": "$$i.price.pct_change",
-            "zone_w": "$$i.technical_zone.overall.w",
-            "breadth_in": "$$i.breadth.breadth_in",
-            "breadth_out": "$$i.breadth.breadth_out"
-          }
-        }
-      }
-  } }
-]
-```
-
-### 10.4. Chỉ lấy báo cáo tổng hợp mới
+### 10.2. Báo cáo tổng hợp mới nhất
 
 ```
 collection: data_briefing
 filter: { "type": "news_report" }
 projection: { "_id": 0, "data.title": 1, "data.sapo": 1, "data.report_type": 1,
-              "data.category_name": 1, "data.tickers": 1, "data.created_at": 1,
-              "data.report_markdown": 1 }
+              "data.created_at": 1, "data.tickers": 1 }
 ```
 
-### 10.5. Chỉ lấy block vĩ mô (other_data)
-
-```
-collection: data_briefing
-filter: { "type": "other_data" }
-projection: { "_id": 0, "type": 1, "data": 1 }
-```
-
-Trả về trọn 70 chỉ số. Nếu cần gọn, aggregate thêm để filter theo group/category:
-
-```
-collection: data_briefing
-pipeline: [
-  { "$match": { "type": "other_data" } },
-  { "$project": {
-      "_id": 0,
-      "commodities": {
-        "$filter": {
-          "input": "$data",
-          "as": "d",
-          "cond": { "$eq": ["$$d.group", "commodities"] }
-        }
-      },
-      "macro": {
-        "$filter": {
-          "input": "$data",
-          "as": "d",
-          "cond": { "$eq": ["$$d.group", "macro"] }
-        }
-      },
-      "international": {
-        "$filter": {
-          "input": "$data",
-          "as": "d",
-          "cond": { "$eq": ["$$d.group", "international"] }
-        }
-      }
-  } }
-]
-```
-
-**Lưu ý:** query trực tiếp `other_data` collection (xem mục 11) thường nhẹ hơn và linh hoạt hơn. Chỉ dùng block briefing khi đã đang kéo briefing và muốn tiết kiệm round trip.
+Cần nội dung đầy đủ → thêm `"data.report_markdown": 1` (dài — chỉ khi user thật sự hỏi nội dung báo cáo).
 
 ---
 
@@ -1096,10 +1034,14 @@ Phần này mô tả chuỗi query cần thiết cho các phân tích hay gặp.
 
 **Mục tiêu:** trả lời "thị trường hôm nay thế nào", "ngành nào mạnh nhất".
 
-1. `data_briefing` lấy tất cả 6 block (xem 10.1), HOẶC:
-2. Nếu muốn projection gọn: dùng 10.2 + 10.3 + 10.4 + 10.5.
+1. `data_briefing` doc core (xem 10.1) — bức tranh + **phase headline** (nếu chưa nạp đầu phiên).
+2. Trạng thái pha của hệ: đọc `core.phase` (sâu hơn → `market_phase`, Workflow M) — nêu làm bối cảnh. Đánh giá
+   trend/breadth độc lập theo Workflow K; nếu kết luận lệch với nhãn pha của hệ, trình bày cả hai góc nhìn.
+3. "Ngành nào mạnh/yếu nhất" → `industry_snapshot` tự tổng hợp rank (xem 3.6).
+4. Cần vĩ mô → `other_data` (mục 11); cần tin nổi bật → doc news_report (10.2).
+5. Câu trả lời cần đánh giá xu hướng → thêm `market_recent` 20 phiên (Workflow K).
 
-**Tổng 1-4 query.** Dùng 10.1 là nhanh nhất, 10.2-10.5 khi cần kiểm soát kích thước output.
+**Tổng 1-4 query.**
 
 ### Workflow D — Screening cổ phiếu tiềm năng
 
@@ -1218,6 +1160,10 @@ Phần này mô tả chuỗi query cần thiết cho các phân tích hay gặp.
 
 **Mục tiêu:** bất cứ khi nào câu hỏi liên quan tới xu hướng/trend của thị trường, ngành, hoặc nhóm — VD "thị trường đang thế nào", "ngành X mạnh yếu ra sao", "VNINDEX rally có bền không", "nhóm LargeCaps đi đâu".
 
+**Lưu ý phase (v2):** nhãn pha của hệ (`data_briefing.core.phase` hoặc `market_phase`) là tín hiệu tham chiếu
+hữu ích khi phân tích trend — trích làm bối cảnh nếu liên quan. Đánh giá trend độc lập theo B1.5 vẫn là kết
+luận của agent; nếu lệch với nhãn pha của hệ, nêu cả hai góc nhìn (`K_agent_db_00` mục 4.6).
+
 **Nguyên tắc:** theo `K_agent_db_04` mục B1.5, snapshot một mình không đủ — phải xem vận động 20 phiên để phân loại 1 trong 5 pattern (đang rơi từ vùng quá mua / đang bật từ đáy / dao động biên độ lớn / ổn định / tăng đều hoặc giảm đều).
 
 **Query bắt buộc:**
@@ -1230,10 +1176,10 @@ projection: { "_id": 0, "snapshot_date": 1, "price": 1, "breadth": 1,
               "change": 1, "trend": 1 }
 
 collection: market_recent
-filter: { "ticker": "VNINDEX" }
-projection: { "_id": 0, "ticker": 1,
-              "recent_trend": { "$slice": 20 } }
+filter: {}
+projection: { "_id": 0, "index": 1, "series.date": 1, "series.trend": 1 }
 ```
+*(1 doc duy nhất; `series` mới→cũ, mỗi item có `trend` 4 khung — cấu trúc thống nhất với industry/group_recent.)*
 
 Ngành (nếu user hỏi về ngành cụ thể):
 ```
@@ -1261,7 +1207,7 @@ projection: { "_id": 0, "group_name": 1, "group_type": 1,
               "series": { "$slice": 20 } }
 ```
 
-**Lưu ý cấu trúc `market_recent`:** trend nằm ở array riêng `recent_trend[].market_trend`, không chung với `recent_price`. Xem `K_agent_db_01` để chắc chắn đọc đúng field.
+**Lưu ý cấu trúc `market_recent`:** trend nằm NGAY TRONG `series[].trend` (cùng item với price) — cấu trúc thống nhất cả 3 cấp. Xem `K_agent_db_01` khối D.
 
 **Phân tích:** với 20 phiên trend, đọc theo 5 pattern của B1.5 `K_agent_db_04` cho từng khung (w/m/q/y). Mô tả vận động trước khi đưa kết luận về vị trí hiện tại.
 
@@ -1273,7 +1219,7 @@ projection: { "_id": 0, "group_name": 1, "group_type": 1,
 - Khi chuẩn bị đưa khuyến nghị hành động dựa trên trend
 - Khi chạy Workflow D (screening) hoặc B6/B7 trong `K_agent_db_04` — Step 1 cần Workflow K cho thị trường/ngành
 
-**Workflow C (tóm tắt thị trường hôm nay) dùng `data_briefing`** vẫn giữ nguyên, nhưng nếu câu trả lời cần đánh giá trend/xu hướng thì phải query thêm `market_recent` theo Workflow K. `data_briefing` chỉ clone snapshot hôm nay, không có 20 phiên.
+**Workflow C (tóm tắt thị trường hôm nay) dùng `data_briefing` doc core** vẫn giữ nguyên, nhưng nếu câu trả lời cần đánh giá trend/xu hướng thì phải query thêm `market_recent` theo Workflow K. Doc core chỉ có ảnh hiện tại (+ phase headline), không có 20 phiên.
 
 ---
 
@@ -1303,7 +1249,7 @@ Tin mới hôm nay theo loại cơ bản (ví dụ lấy tin trong nước hôm 
 ```
 collection: news_today_feed
 filter: { "news_type": "trong_nuoc" }
-projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1,
+projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1, "link": 1,
               "category_name": 1, "created_at": 1, "tickers": 1 }
 sort: { "created_at": -1 }
 limit: 20
@@ -1320,7 +1266,7 @@ filter: {
     "Pháp luật", "Tham vấn chính sách"
   ]}
 }
-projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1,
+projection: { "_id": 0, "title": 1, "sapo": 1, "article_slug": 1, "link": 1,
               "category_name": 1, "created_at": 1, "tickers": 1 }
 sort: { "created_at": -1 }
 limit: 20
@@ -1428,16 +1374,101 @@ sort: { "created_at": -1 }
 
 ---
 
+---
+
+## Workflow M — Phase & danh mục hệ thống
+
+**Mục tiêu:** mọi câu về pha thị trường, tỷ lệ nắm giữ, 3 danh mục (Phòng Thủ / Sóng Ngành / Mạo Hiểm),
+sổ lệnh, hiệu suất. Ngữ nghĩa + luật trình bày + ngưỡng: `K_agent_db_06`. Schema: `K_agent_db_01` Section I.
+
+### M.1. Pha hiện tại + diễn giải (câu "thị trường đang pha nào / nên cầm bao nhiêu %")
+
+```
+collection: market_phase
+projection: { "_id": 0, "history_60": 0 }
+```
+
+1 doc: `phase`/`exposure`/`held_days` + 7 chỉ số (kèm comment) + 4 đoạn `comments`. Trả lời nhanh chỉ cần
+headline có sẵn ở `data_briefing.core.phase` — query này khi khách hỏi SÂU (chỉ số nào, vì sao, sắp đổi chưa).
+
+### M.2. Lịch sử pha (câu "2022 hệ làm gì", "lần downtrend gần nhất")
+
+```
+collection: market_phase_history
+filter: { "date": { "$gte": "2022-01-01", "$lte": "2022-12-31" } }
+projection: { "_id": 0, "date": 1, "phase_label": 1, "market_exposure": 1 }
+sort: { "date": 1 }
+```
+
+Kể chuyện chuyển pha: nhóm các đoạn `phase_label` liên tục + mốc exposure về 0/bật lại. LUÔN filter date range.
+
+### M.3. Danh mục hiện tại (câu "đang cầm gì", "sao mã X bị loại", "mã Y sắp vào chưa")
+
+```
+collection: phase_basket
+filter: { "product": "CORE" }        // CONSERVATIVE | CORE | AGGRESSIVE — tên nói = display_name_vi
+projection: { "_id": 0 }
+```
+
+Doc tự đủ: `held`/`book`/`adds`/`removes` + `rank` (status từng mã/ngành) + `stock_cmt`/`sector_cmt` +
+`next_rebalance_in`. Trình bày: nhóm "chờ vào"/"sắp ra" nêu TRƯỚC nhóm nắm giữ ổn định; downtrend (`held={}`)
+→ "100% tiền mặt", `book`/`rank` là danh mục THAM KHẢO.
+
+### M.4. Sổ lệnh 1 mã / thống kê lệnh (dán nhãn BACKTEST)
+
+```
+collection: phase_trading
+filter: { "ticker": "VCB" }                            // + "product" nếu hỏi riêng 1 danh mục
+projection: { "_id": 0 }
+sort: { "entry_date": -1 }
+```
+
+Lệnh đang mở: `filter: { "status": "open" }`. Thống kê ("tỷ lệ thắng"): tự đếm `return_pct > 0` / tổng,
+nêu định nghĩa dùng (lãi TB = TB lệnh thắng · lỗ TB = TB lệnh thua · kỳ vọng/lệnh = TB tất cả).
+
+### M.5. Sóng ngành (câu "hệ đang đánh ngành nào")
+
+```
+collection: phase_industry
+projection: { "_id": 0, "history_60": 0 }
+```
+
+`states` ≥ 2 = đang giữ; 1 = vào kỳ cơ cấu tới; map mã ngắn → tên ngành đầy đủ khi nói. KHÁC với rank
+dòng tiền ngành (3.6) — một cái là danh mục hệ, một cái là dòng tiền; đừng trộn.
+
+### M.6. Hiệu suất cửa sổ ngắn (câu "tuần này/tháng này danh mục chạy sao")
+
+```
+collection: phase_perf
+filter: { "product": { "$in": ["CORE", "FNX"] }, "date": { "$gte": "<ngày đầu cửa sổ>" } }
+projection: { "_id": 0 }
+sort: { "date": 1 }
+```
+
+Compound từng product: `hiệu suất = Π(1 + ret_1d_1x) − 1` (×100 khi nói) — so CORE với FNX cùng cửa sổ.
+BẮT BUỘC nhãn *"gross chưa phí/thuế — số chính thức NET xem bảng công bố"*. Số dài hạn/tổng kết: KHÔNG tính
+từ đây — trích bảng FROZEN `K_agent_db_06` mục 4.
+
+### Khi nào Workflow M bắt buộc
+
+- Câu có: "pha", "uptrend/downtrend", "nên cầm bao nhiêu", "danh mục", "rổ", "hệ thống mua/bán gì",
+  "sao mã X bị loại/được thêm", "hiệu suất", "tỷ lệ thắng", "sóng ngành".
+- Khi khuyến nghị cần bối cảnh trạng thái hệ — headline phase/exposure có sẵn trong doc core, không cần query thêm.
+
+---
+
 ## Checklist trước khi trả lời user
 
 Trước khi trả về câu trả lời cuối, agent nên tự hỏi:
 
 1. Đã dùng số liệu mới nhất chưa? Kiểm tra `snapshot_date`, `latest.date`, hoặc `update_date` trong data.
-2. Có trình bày đơn vị rõ ràng không? (tỷ đồng, phần trăm, cổ phiếu, USD/ounce, USD/thùng, đơn vị gốc của `other_data`...)
-3. Có lỡ dùng ký hiệu nội bộ không? 3 nhóm cần dịch theo K hygiene (`K_agent_db_00` mục 5): (a) ký hiệu DB raw (VSI, zone AAA, day_score, f382, POC, w_trend...), (b) taxonomy nội bộ (Kịch bản A-G/E1-E3, Pitfall F1-F12, B5/B6/B7, D1-D4, HIGH/MID/LOW impact, logic gate, framework chấm điểm), (c) thuật ngữ tiếng Anh chưa dịch (mean-reversion, exhaustion, Value Area, DuPont, sell on news, priced-in, confluence, divergence, smart money, hawkish/dovish). Xem bảng dịch đầy đủ ở `K_agent_db_00` mục 5, `K_agent_db_04` các phần A-F, và `K_agent_db_05` phần 9.
+2. Có trình bày đơn vị rõ ràng không? `*_pct` ĐÃ là điểm % — không nhân 100 (ngoại lệ cần nhân: `*_trend`, `exposure`, tỷ trọng, ratio finstats cũ); tiền tỷ đồng; `other_data.value` đọc kèm `unit`.
+3. Có lỡ dùng ký hiệu nội bộ không? 3 nhóm cần dịch theo K hygiene (system prompt mục 5.5 + `K_agent_db_00` mục 5): (a) ký hiệu DB raw (VSI, zone AAA, day_score, f382, POC, w_trend...), (b) taxonomy nội bộ (Kịch bản A-G/E1-E3, Pitfall F1-F12, B5/B6/B7, D1-D4, HIGH/MID/LOW impact, logic gate, framework chấm điểm), (c) thuật ngữ tiếng Anh chưa dịch (mean-reversion, exhaustion, Value Area, DuPont, sell on news, priced-in, confluence, divergence, smart money, hawkish/dovish). Xem bảng dịch đầy đủ ở `K_agent_db_00` mục 5.2, bảng taxonomy đầu `K_agent_db_04`, `K_agent_db_05` phần 9, và `K_agent_db_06` (phase).
 4. Có đưa ít nhất một luận điểm dòng tiền không? DB này mạnh về dòng tiền — không tận dụng là bỏ phí.
 5. Nếu câu hỏi nhạy vĩ mô (mã/ngành thuộc bảng mapping Workflow I), có dùng `other_data` chưa?
 6. **Nếu câu hỏi liên quan trend (thị trường/ngành/nhóm), đã chạy Workflow K chưa?** Query cả snapshot và recent 20 phiên, đọc theo 5 pattern (B1.5 `K_agent_db_04`)?
 7. **Nếu câu hỏi liên quan tin tức hoặc sự kiện, đã chạy Workflow L chưa?** Query đúng loại tin (`doanh_nghiep`/`quoc_te`/`trong_nuoc`/`thong_cao`), áp methodology `K_agent_db_05` để diễn giải, không lộ nhãn HIGH/MID/LOW trong output? Nếu dùng `trong_nuoc`, có lọc thêm `category_name` để tách tin relevant TTCK không?
 8. Có cân bằng giữa lập luận ủng hộ và phản đối chưa? Tránh một chiều khi người dùng hỏi "nên mua không".
 9. Có nhắc người dùng về giới hạn tư vấn không? Nhất là với câu hỏi quyết định mua/bán trực tiếp.
+10. **Câu trả lời có khuyến nghị: đã nêu bối cảnh phase/exposure của hệ chưa (Workflow M / `K_agent_db_00` mục 4.6)?** Gợi ý ngược tín hiệu hệ (vd mở vị thế khi exposure = 0) phải nói rõ điểm lệch, không được im lặng bỏ qua.
+11. **Có số hiệu suất danh mục: đúng luật 2 tầng chưa** (dài hạn = bảng FROZEN `K_agent_db_06`; cửa sổ ngắn = compound `phase_perf` kèm nhãn gross)?

@@ -118,7 +118,7 @@ Lấy field: `name`, `value`, `unit`, `pct_change` (phiên gần nhất), `w_pct
    - `change.w_pct`, `m_pct`, `q_pct`, `y_pct`
    - `breadth.breadth_in/out/neu` (rổ FNXINDEX, không phải toàn HOSE — xem `K_agent_db_01` mục D)
 
-2. `market_recent` slice 5 phiên (`recent_price[0..4]`):
+2. `market_recent` slice 5 phiên (`series[0..4].price` — v2: 1 array `series` sort mới → cũ):
    - Tính GTGD trung bình tuần, biến động tuần từ `price.close`, `price.trading_value`
    - **Lưu ý:** `market_recent` KHÔNG có `money_flow_score` (xem `K_agent_db_01` mục D). Để có chuỗi 5 phiên dòng tiền cấp thị trường, dùng aggregate từ `industry_snapshot.money_flow_score.week_score` **18 ngành whitelist** (cấp ngành) hoặc `group_snapshot.money_flow_score.day_score` 6 nhóm.
 
@@ -128,7 +128,7 @@ Lấy field: `name`, `value`, `unit`, `pct_change` (phiên gần nhất), `w_pct
 
 5. `market_nntd` slice 5 phiên — net_value tuần, top mua/bán ròng tuần
 
-6. `data_briefing` block market — breadth_in/out toàn thị trường phiên cuối tuần
+6. `data_briefing` doc `core` — `market.breadth` (in/out/neu, rổ FNXINDEX) phiên cuối tuần (v2: 4 block clone cũ đã bỏ, chỉ còn doc `core` + `news_report`)
 
 7. `other_data` filter group `macro.exchange_rate` + `macro.monetary` (lãi suất liên ngân hàng, OMO, tỷ giá VCB)
 

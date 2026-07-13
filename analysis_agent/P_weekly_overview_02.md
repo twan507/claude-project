@@ -178,9 +178,9 @@ Phần tin tức + catalyst là PRIMARY signal cơ bản, không có technical c
 
 **Lưu ý:** `market_snapshot` không có field `range_position`. Vị thế giá trong biên độ tuần/tháng/quý tự tính từ `price.close` và `technical_indicator.ohl.{w|m|q|y}.prev_high/prev_low`.
 
-`market_recent` slice 20 phiên (`recent_price[0..19]`) — xác nhận vận động giá + volume trend (KHÔNG có `money_flow_score`, có `recent_trend` riêng nhưng pack này **cấm dùng trend**).
+`market_recent` slice 20 phiên (`series[0..19].price` — v2: 1 array `series` sort mới → cũ) — xác nhận vận động giá + volume trend (KHÔNG có `money_flow_score`; mỗi item `series[]` có `trend` nhưng pack này **cấm dùng trend**).
 
-**KHÔNG query `market_snapshot.trend` và `market_recent.recent_trend` — pack này cấm dùng trend (rule giữ nguyên từ pack cũ).**
+**KHÔNG query `market_snapshot.trend` và `series[].trend` trong `market_recent` — pack này cấm dùng trend (rule giữ nguyên từ pack cũ).**
 
 ### 4.2. Methodology
 
@@ -258,6 +258,6 @@ Bảng kháng cự + hỗ trợ 4 khung (tuần / tháng / quý / năm), mỗi k
    - Render spec: `O_weekly_overview_00`
 3. **Fundamental-driven callout** đã đặt ở intro top file cho phần 9 — không lặp lại trong từng sub-section
 4. **18 ngành whitelist** áp dụng cho mọi aggregate + filter mention; source "24 ngành" → "**18 ngành whitelist**" (Nguyên tắc 2 master)
-5. **Trend cấm dùng** (rule giữ nguyên từ pack cũ): KHÔNG query `market_snapshot.trend`, `market_recent.recent_trend`, `industry_snapshot.trend`, `industry_recent.recent_trend` ở mọi sub-section của file này
+5. **Trend cấm dùng** (rule giữ nguyên từ pack cũ): KHÔNG query `market_snapshot.trend`, `industry_snapshot.trend`, và `series[].trend` trong `market_recent`/`industry_recent` ở mọi sub-section của file này
 6. **Conviction + Horizon + Disconfirming** (Nguyên tắc 3 master): áp dụng chính ở Checkpoint 1 (`_03`); file này chỉ chuẩn bị input (sector bias preview ở 6.3 + cảnh báo trap ở 2.5 + 3 kịch bản fundamental-driven ở 4.6)
 7. **Cap technical tổng phần 6+7+8+9 (trừ 9.1+9.2)**: tuân master mục 4.1 — self-audit trước render

@@ -75,7 +75,7 @@ Các pattern strict reject (không flex+downgrade):
 - [ ] **DB raw symbols đã dịch** (`vsi`, `day_score`, `week_score`, `zone`, percentile)?
 - [ ] **Taxonomy nội bộ đã dịch** (Kịch bản A/B/C/E1/E2/E3, framework chấm điểm, HIGH/MID/LOW impact)?
 - [ ] **Thuật ngữ EN đã dịch sang VN** (mean-reversion, exhaustion, dead-cat bounce, etc.) — đặc biệt audience KH?
-- [ ] **Unit conversion** (BCTC sang tỷ đồng, ratios sang %, lãi suất % nhân 100)?
+- [ ] **Unit conversion** theo `K_agent_db_00` mục 6 (BCTC sang tỷ đồng; `*_pct` ĐÃ là điểm % — không nhân 100; ratio finstats + lãi suất `other_data` còn thập phân — nhân 100)?
 - [ ] **Citation 4 nhóm** đầy đủ (Tổng hợp DB / finext.vn URL / PDF user upload / Web external)?
 
 ### 1.6. Audience awareness audit (3 điểm)

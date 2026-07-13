@@ -11,7 +11,7 @@ Bộ 2 agent độc lập phục vụ phân tích cổ phiếu Việt Nam. Mỗi
 | Agent | Folder | Mục đích | Số file |
 |---|---|---|---|
 | **analysis_agent** | `analysis_agent/` | Phân tích cổ phiếu Việt Nam đa giai đoạn, output MD final structured (memo, báo cáo tuần, khuyến nghị mua, single-stock deep report) | 49 |
-| **db_agent** | `db_agent/` | Phân tích single-shot nhanh: tra cứu, query MongoDB `agent_db`, đưa nhận định lẻ không qua workflow đa stage | 7 |
+| **db_agent** | `agent_db/` | Phân tích single-shot nhanh: tra cứu, query MongoDB `agent_db`, đưa nhận định lẻ không qua workflow đa stage. v2 (fnx05): audience NĐT khách Finext, thêm tầng phase & danh mục | 7 |
 
 ### 1.2. Use case từng agent
 
@@ -38,7 +38,7 @@ Tạo 2 project riêng trong Claude Desktop app:
 | Project name (đề xuất) | Source folder | Custom Instructions | Knowledge files |
 |---|---|---|---|
 | `Analysis Agent` | `analysis_agent/` | Paste nội dung `analysis_agent/system_prompt.md` | Upload toàn bộ file `.md` còn lại trong folder (48 file) |
-| `DB Agent` | `db_agent/` | Paste nội dung `db_agent/system_prompt.md` | Upload `agent_db_00` đến `agent_db_05` (6 file) |
+| `DB Agent` | `agent_db/` | Paste nội dung `agent_db/system_prompt.md` | Upload `agent_db_01` đến `agent_db_06` (6 file) |
 
 ### 2.2. Khi cần update file
 
@@ -48,7 +48,7 @@ Khi sửa `system_prompt.md` của agent nào → paste lại vào ô Custom Ins
 
 ### 2.3. MongoDB connection
 
-`analysis_agent` và `db_agent` đều giả định có quyền read MongoDB database tên `agent_db`. Tools để query DB không nằm trong project knowledge — phải được provide qua Claude Desktop integration / MCP server cấu hình bên ngoài. Schema 25 collection và query patterns được document trong `agent_db_01.md` (db_agent) và `K_agent_db_01.md` (analysis_agent).
+`analysis_agent` và `db_agent` đều giả định có quyền read MongoDB database tên `agent_db`. Tools để query DB không nằm trong project knowledge — phải được provide qua Claude Desktop integration / MCP server cấu hình bên ngoài. Schema 31 collection và query patterns được document trong `agent_db_01.md` (db agent) và `K_agent_db_01.md` (analysis_agent).
 
 ### 2.4. Behavioral guidelines (`CLAUDE.md`)
 
@@ -72,7 +72,7 @@ Pack vận hành theo kiến trúc module 3 layer:
 
 | Pack | Files | Mục đích |
 |---|---|---|
-| `K_agent_db` | 6 (`_00` master + `_01` đến `_05`) | Knowledge MongoDB `agent_db` chứng khoán VN (25 collection) |
+| `K_agent_db` | 7 (`_00` master + `_01` đến `_06`) | Knowledge MongoDB `agent_db` chứng khoán VN (31 collection, gồm tầng phase & danh mục ở `_06`) |
 | `K_sector_framework` | 1 | Khung phân tích ngành CFA institutional buy-side (DD/MP/SI/PM/ESG + per-sector quick-ref cho 18 ngành whitelist + Industry 4.0 lens) |
 | `P_invest_memo` | 10 (`_00` master + `_01` đến `_09`) | Quy trình đầu tư cá nhân, horizon 1-6 tháng, long only, portfolio < 1 triệu USD |
 | `P_weekly_overview` | 5 (`_00` master + `_01` đến `_04`) | Broadcast tổng quan thị trường tuần 12 phần fundamental-driven, audience nội bộ + KH |
@@ -234,7 +234,7 @@ Pack K mới (1 file `K_sector_framework.md`) cung cấp khung phân tích ngàn
 
 ---
 
-## 5. `db_agent` — chi tiết
+## 5. DB agent (`agent_db/`) — chi tiết
 
 ### 5.1. Vai trò
 
@@ -249,28 +249,28 @@ Use case điển hình:
 
 | File | Vai trò |
 |---|---|
-| `system_prompt.md` | Meta-rules (paste vào Custom Instructions) — 88 dòng, simpler analysis_agent system_prompt |
-| `agent_db_00.md` | Master: mục đích, scope, manifest, domain rules, K hygiene, quy đổi đơn vị |
-| `agent_db_01.md` | Schema 25 collection + URL pattern finext.vn |
-| `agent_db_02.md` | Query patterns 12 workflow A-L |
-| `agent_db_03.md` | Anti-patterns + case study lỗi quá khứ |
-| `agent_db_04.md` | Methodology diễn giải chỉ báo + PTCB 4 type doanh nghiệp |
+| `system_prompt.md` | v2 — file resident duy nhất (paste vào Custom Instructions): vai trò, tone, bản đồ collection, đơn vị, phase (tín hiệu tham chiếu), khuyến nghị + hiệu suất 2 tầng, meta-rules, bảng dịch rút gọn, manifest. Gộp `agent_db_00` cũ (đã nghỉ hưu) |
+| `agent_db_01.md` | Schema 31 collection (+ Section I phase & danh mục) + URL pattern finext.vn |
+| `agent_db_02.md` | Query patterns 13 workflow A-M (M = phase & danh mục) |
+| `agent_db_03.md` | Anti-patterns 10 case (case 9-10 mới: bối cảnh phase, hiệu suất 2 tầng) |
+| `agent_db_04.md` | Methodology diễn giải chỉ báo + PTCB 4 type doanh nghiệp + bảng dịch taxonomy đầu file |
 | `agent_db_05.md` | News methodology — 4 loại tin + framework chấm impact |
+| `agent_db_06.md` | Phase & 3 danh mục hệ thống: 4 trạng thái, exposure, 7 chỉ số, bộ số FROZEN + disclaimer |
 
 ### 5.3. Quan hệ với `K_agent_db_*` của analysis_agent
 
-Content của 6 file `agent_db_*` (db_agent) gần **identical 99%** với 6 file `K_agent_db_*` (analysis_agent). Khác biệt chỉ:
-- File name prefix
-- Internal cross-reference (`agent_db_XX` vs `K_agent_db_XX`)
-- Reference đến system_prompt section number (2 system_prompt khác nhau)
-- 1 vài legacy comment ("Rule 6") trong K_agent_db_04 (analysis_agent)
+Content của 6 file `agent_db_01..06` (db agent) gần **identical** với `K_agent_db_01..06` (analysis_agent) — port 2026-07-13. Khác biệt chỉ:
+- File name prefix + internal cross-reference (`agent_db_XX` vs `K_agent_db_XX`)
+- Reference đến system_prompt section number (db agent: mục 5/8.x/9; analysis: mục 5.x + `K_agent_db_00` mục 4.x/5.x/6)
+- `K_agent_db_00` là file riêng của analysis_agent (db agent v2 gộp master vào system_prompt; analysis giữ `_00` theo rule master-first)
+- Audience: db agent = NĐT khách Finext (clarify nới lỏng); analysis = analyst nội bộ (clarify 2 câu giữ nguyên)
 
 **Đây là chấp nhận có chủ đích**: 2 agent độc lập về deployment (2 Claude Desktop Project riêng), nên knowledge base duplicate. Trade-off: maintenance burden khi update methodology phải apply 2 chỗ; lợi ích: 2 agent hoàn toàn không coupling, có thể swap/extend độc lập.
 
 **Lưu ý:** `K_sector_framework` (analysis_agent) **không** có bản sao trong db_agent — đây là pack chuyên cho deep-dive analysis workflow, không phục vụ single-shot lookup.
 
 **Convention khi update methodology:**
-- Sửa 1 nguồn (ưu tiên `db_agent/agent_db_*` vì đơn giản hơn) → manual port sang nguồn còn lại
+- Sửa 1 nguồn (ưu tiên `agent_db/agent_db_*` vì đơn giản hơn) → manual port sang nguồn còn lại
 - Hoặc dùng git để track diff giữa 2 nguồn, đảm bảo content sync
 
 ---
@@ -321,7 +321,7 @@ Content của 6 file `agent_db_*` (db_agent) gần **identical 99%** với 6 fil
 - **Nhóm 2 — Taxonomy nội bộ:** "Kịch bản A-G/E1-E3", "Pitfall F1-F12", "HIGH/MID/LOW impact", "framework chấm điểm", tên section như "B5/B6/B7"
 - **Nhóm 3 — Thuật ngữ EN chưa dịch:** "mean-reversion", "exhaustion", "Value Trap", "dead-cat bounce", "priced-in"...
 
-Bảng dịch đầy đủ ở `K_agent_db_00` mục 5 (analysis_agent) hoặc `agent_db_00` mục 5 (db_agent).
+Bảng dịch đầy đủ ở `K_agent_db_00` mục 5 (analysis_agent) hoặc system prompt mục 9 (db agent v2).
 
 **Exception:** `article_slug` / `report_slug` khi ghép thành URL `https://finext.vn/news/{slug}` là output hợp lệ.
 
@@ -449,7 +449,7 @@ File `CLAUDE.md` ở root chứa 4 nguyên tắc behavioral chung cho mọi sess
 
 ### 12.1. Agent không hiểu request
 
-- Verify đã upload đúng files vào project knowledge (analysis_agent: 29 file, db_agent: 6 file)
+- Verify đã upload đúng files vào project knowledge (analysis_agent: 50 file knowledge + system_prompt paste, db agent: 6 file `agent_db_01..06` + system_prompt paste)
 - Verify Custom Instructions đã paste đúng `system_prompt.md` của agent đó
 - Re-upload knowledge nếu vừa sửa file gốc
 
@@ -479,7 +479,7 @@ Project knowledge đã đủ context cho AI hoạt động. Nhưng nếu cần d
 2. **`README.md`** ở root (file này) — kiến trúc tổng thể
 3. Tuỳ task:
    - Sửa analysis_agent → đọc `analysis_agent/system_prompt.md` + `analysis_agent/KERNEL_SKELETON.md` + master file của pack liên quan (`*_00.md`)
-   - Sửa db_agent → đọc `db_agent/system_prompt.md` + `db_agent/agent_db_00.md`
+   - Sửa db agent → đọc `agent_db/system_prompt.md` (v2 — master gộp vào đây)
 
 ---
 

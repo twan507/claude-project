@@ -33,11 +33,11 @@ File index của project knowledge. Agent đọc file này đầu session để 
 
 ### K_agent_db
 
-**Mục đích:** Knowledge base về dữ liệu chứng khoán Việt Nam trong MongoDB `agent_db`. Bao gồm schema 25 collection, query patterns, anti-patterns, methodology diễn giải chỉ báo (dòng tiền, technical zone, trend đa khung, PTCB theo 4 type doanh nghiệp), methodology phân tích tin tức 4 loại (doanh nghiệp, quốc tế, trong nước, thông cáo).
+**Mục đích:** Knowledge base về dữ liệu chứng khoán Việt Nam trong MongoDB `agent_db` (pipeline fnx05 v2). Bao gồm schema 31 collection (gồm khối phase & danh mục hệ thống), query patterns 13 workflow A-M, anti-patterns, methodology diễn giải chỉ báo (dòng tiền, technical zone, trend đa khung, PTCB theo 4 type doanh nghiệp), methodology phân tích tin tức 4 loại (doanh nghiệp, quốc tế, trong nước, thông cáo), và tầng phase & 3 danh mục hệ thống.
 
-**Master:** `K_agent_db_00`
+**Master:** `K_agent_db_00` (7 file: master + `_01` đến `_06`)
 
-**Trigger:** Mọi query về cổ phiếu Việt Nam, thị trường VN, ticker, ngành, BCTC, dòng tiền, khối ngoại, technical, tin tức chứng khoán VN, hoặc khi cần số liệu định lượng từ `agent_db`.
+**Trigger:** Mọi query về cổ phiếu Việt Nam, thị trường VN, ticker, ngành, BCTC, dòng tiền, khối ngoại, technical, tin tức chứng khoán VN, hoặc khi cần số liệu định lượng từ `agent_db`. Riêng `K_agent_db_06` (phase & danh mục): chỉ đọc khi user hỏi đích danh về pha thị trường / danh mục hệ thống / hiệu suất / sổ lệnh, hoặc cần bối cảnh phase cho khuyến nghị inline (`K_agent_db_00` mục 4.6). **Các P pack không dùng tầng phase** — giữ methodology regime riêng của từng pack.
 
 **Depends:** Không có.
 
@@ -85,7 +85,7 @@ Pack chia 5 file con: `_00` master + `_01` pre-flight + Stage 1 first half (ph�
 
 **Philosophy fundamental-driven:** 3 kịch bản phần 9 trigger PRIMARY là vĩ mô/cơ bản/chính sách/catalyst, technical chỉ confirmation phụ ≤30%. Cap technical toàn báo cáo ≤15%. Whitelist 18 ngành áp dụng default; user yêu cầu override được cho ngành ngoài whitelist. Mỗi call có conviction HIGH/MID/LOW + horizon 1-2 tuần / 2-4 tuần + 1-2 disconfirming signal.
 
-Pack độc lập với `P_invest_memo` và `P_vbse_strategy` — không đọc state file invest cycle hay thesis monthly. **Không sử dụng chỉ báo trend nội bộ** (`market_snapshot.trend`, `industry_snapshot.trend`, `*_recent.recent_trend`) — audience có thể là KH.
+Pack độc lập với `P_invest_memo` và `P_vbse_strategy` — không đọc state file invest cycle hay thesis monthly. **Không sử dụng chỉ báo trend nội bộ** (`market_snapshot.trend`, `industry_snapshot.trend`, `series[].trend` trong các collection `*_recent`) — audience có thể là KH.
 
 **Master:** `P_weekly_overview_00`
 

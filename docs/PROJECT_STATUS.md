@@ -1,6 +1,6 @@
 # Project Status
 
-Trạng thái dự án Claude Code Vietnam Stock Analysis. Cập nhật: 2026-05-30 (rev 5).
+Trạng thái dự án Claude Code Vietnam Stock Analysis. Cập nhật: 2026-07-13 (rev 6 — port agent_db v2/fnx05 vào cả 2 agent).
 
 Project gồm **2 agent hoàn toàn độc lập** — mỗi agent là 1 Claude project riêng trên Claude Desktop/App với system prompt + project knowledge files riêng. **Không có cross-agent dependency hay runtime sharing** — agent này không đọc file/state của agent kia. Việc 2 agent có nội dung tương tự (vd schema DB) chỉ là **đồng bộ với cùng nguồn DB**, không phải shared knowledge.
 
@@ -14,7 +14,7 @@ Project gồm **2 agent hoàn toàn độc lập** — mỗi agent là 1 Claude 
 | Agent | Directory | Vai trò | Status |
 |---|---|---|---|
 | **analysis_agent** | [analysis_agent/](../analysis_agent/) | Multi-pack analyst (K/P/O layered architecture) — broadcast tuần, chiến lược tháng, memo deep-dive | ✅ Active |
-| **db_agent** | [db_agent/](../db_agent/) | Monolithic stock analyst — tra cứu DB + phân tích ad-hoc | ✅ Active |
+| **db_agent** | [agent_db/](../agent_db/) | Monolithic stock analyst v2 — tra cứu DB + phân tích ad-hoc, audience NĐT khách Finext, tầng phase & danh mục | ✅ Active |
 
 Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 
@@ -24,7 +24,7 @@ Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 
 | Pack | Files | Status | Last major change |
 |---|---|---|---|
-| `K_agent_db` | 6 (master + 5) | ✅ Active | 2026-05-30 — schema 25 collection, History block thêm, stock_highlight bỏ, rank ngành tự tổng hợp |
+| `K_agent_db` | 7 (master + 6) | ✅ Active | 2026-07-13 — port bộ agent_db v2 (fnx05): 31 collection (+6 phase), đơn vị `*_pct` = điểm % / `rank_pct` 0-100, 13 workflow A-M, `data_briefing` 2 doc, omit-null, thêm `K_agent_db_06` phase & danh mục (tín hiệu tham chiếu, P pack không dùng) |
 | `K_sector_framework` | 1 | ✅ Active | 2026-05-30 — new pack distill CFA Sector Analysis Framework (universal DD/MP/SI/PM/ESG + per-sector quick-ref cho 18 ngành whitelist + Industry 4.0 lens) |
 | `P_invest_memo` | 10 (master + 9) | ✅ Active | Pre-2026-05 — stable; 2026-05-30 thêm pointer K_sector_framework ở `_07` Phần 3 |
 | `P_weekly_overview` | 5 (master + 4) | ✅ Active | 2026-05-30 — refactor từ `P_weekly_market` (fundamental-driven + whitelist 18 + conviction/horizon/disconfirming) |
@@ -35,12 +35,12 @@ Chi tiết pack catalog từng agent: xem [PACK_CATALOG.md](./PACK_CATALOG.md).
 | `O_vbse_strategy` | 1 (master) | ✅ Active | 2026-05-30 — new render spec 2 mode flex |
 | `O_stock_report` | 1 (master) | ✅ Active | 2026-05-30 — new render spec 6-7 phần rigid + 3 depth mode + audience flex (K hygiene khác nội bộ vs KH) |
 
-### db_agent — Monolithic knowledge base
+### db_agent (`agent_db/`) — Monolithic knowledge base v2
 
 | File | Status | Last major change |
 |---|---|---|
-| `system_prompt.md` | ✅ Active | 2026-05-30 — manifest 25 collection |
-| `agent_db_00..05` | ✅ Active | 2026-05-30 — same schema sync với K_agent_db |
+| `system_prompt.md` | ✅ Active | 2026-07-12 (v2) + 2026-07-13 (v2.1) — gộp `agent_db_00` cũ vào system prompt; audience NĐT khách; v2.1 hạ phase từ luật subordination xuống tín hiệu tham chiếu |
+| `agent_db_01..06` | ✅ Active | 2026-07-12 — schema fnx05 v2 (31 collection, đơn vị mới, phase); `_06` mới (phase & danh mục); sync với `K_agent_db_01..06` |
 
 ### template_agent — XOÁ
 
@@ -82,12 +82,14 @@ Pack `template_agent` (document-to-pptx normalizer + brander) đã được xoá
 
 ### Sync DB schema giữa 2 agent (CHỈ là đồng bộ với DB, không phải shared knowledge)
 
-`analysis_agent/K_agent_db_*` và `db_agent/agent_db_*` có cùng schema content **vì cùng query 1 DB** — không phải vì có cơ chế shared knowledge. Mỗi agent đọc file knowledge của riêng mình, không có cross-reference giữa 2 agent.
+`analysis_agent/K_agent_db_*` và `agent_db/agent_db_*` có cùng schema content **vì cùng query 1 DB** — không phải vì có cơ chế shared knowledge. Mỗi agent đọc file knowledge của riêng mình, không có cross-reference giữa 2 agent.
 
 Quy tắc giữ riêng:
-- **Naming prefix:** `K_agent_db_*` (analysis) vs `agent_db_*` (db) — KHÔNG được mix
+- **Naming prefix:** `K_agent_db_*` (analysis) vs `agent_db_*` (db, thư mục `agent_db/`) — KHÔNG được mix
 - **Framing:** "Pack" (analysis) vs "Bộ tài liệu này" (db)
-- **Cross-refs nội bộ:** luôn dùng đúng prefix của agent đó
+- **Cross-refs nội bộ:** luôn dùng đúng prefix của agent đó; pointer system prompt khác nhau (db v2: mục 5/8.x/9; analysis: mục 5.x + `K_agent_db_00`)
+- **Master file:** db agent v2 gộp master vào system_prompt; analysis giữ `K_agent_db_00` riêng (rule master-first mục 5.7)
+- **Audience khác nhau:** db = NĐT khách (clarify nới lỏng); analysis = analyst nội bộ (clarify 2 câu) — KHÔNG port policy audience giữa 2 agent
 - Khi update schema (vd thêm/bỏ collection), phải update cả 2 nơi riêng biệt
 
 ## 4. Cross-cutting rules áp dụng mọi pack analysis_agent
@@ -120,5 +122,5 @@ Quy tắc giữ riêng:
 | Workflow chi tiết | File `_NN` tier tương ứng của pack |
 | Render output | File `O_*_00` tương ứng |
 | Kernel router | `analysis_agent/KERNEL_SKELETON.md` |
-| Meta rules | `analysis_agent/system_prompt.md` + `db_agent/system_prompt.md` |
+| Meta rules | `analysis_agent/system_prompt.md` + `agent_db/system_prompt.md` |
 | Project knowledge listing | `README.md` mục 3 |

@@ -1,8 +1,13 @@
 # K_agent_db_01 — Collections Schema
 
-Tài liệu mô tả schema đầy đủ của 25 collection trong `agent_db`. Mỗi mục có: cấu trúc doc, giải nghĩa field, cách agent nên dùng, và cảnh báo nếu có.
+Tài liệu mô tả schema đầy đủ của **31 collection** trong `agent_db`. Mỗi mục có: cấu trúc doc, giải nghĩa field, cách agent nên dùng, và cảnh báo nếu có.
 
-Chi tiết về cách **diễn giải** chỉ báo (ngưỡng percentile, kịch bản, PTCB theo 4 type, pitfalls) xem ở `K_agent_db_04`. File này tập trung vào schema và công thức gốc.
+> **v2 (2026-07-12) — pipeline fnx05 đã chuẩn hoá dữ liệu, 3 thay đổi lớn so với v1:**
+> 1. **Đơn vị điểm phần trăm:** mọi field `*_pct`/`pct_change` đã là **điểm %** (`w_pct: -1.06` = giảm 1.06%) — ĐỌC THẲNG, không nhân 100. `industry_rank_pct`/`market_rank_pct` = percentile **0–100**. Ngoại lệ giữ nguyên: `*_trend` (0..1), `exposure` (0..2), tỷ trọng `held`/`book` (0..1), tỷ lệ trong `stock_finstats` (thập phân, chờ curated), `other_data.value` (đọc kèm `unit`). Bảng đầy đủ: `K_agent_db_00` mục 6.
+> 2. **Omit null:** field không có dữ liệu bị BỎ khỏi doc (không còn `null`/`NaN`) — field vắng mặt = "chưa có dữ liệu", không phải 0.
+> 3. **Thêm Section I — khối phase & danh mục** (6 collection mirror từ hệ phase); `stock_info` rename 5 field sở hữu sang `*_pct`; `data_briefing` chỉ còn 2 doc (`core` + `news_report`).
+
+Chi tiết về cách **diễn giải** chỉ báo (ngưỡng percentile, kịch bản, PTCB theo 4 type, pitfalls) xem ở `K_agent_db_04`; phase & danh mục xem `K_agent_db_06`. File này tập trung vào schema và công thức gốc.
 
 ---
 
@@ -41,12 +46,12 @@ VSI = 1.0 tương đương khối lượng hiện tại ngang trung bình 5 phi�
 ### money_flow_score.industry_rank_pct / market_rank_pct
 
 ```
-rank_pct = 1 - rank/total
+rank_pct = (1 - rank/total) × 100     — thang 0–100
 ```
 
 Rank dựa trên `week_score` giảm dần, có filter thanh khoản tối thiểu.
 
-- `rank_pct = 0.9` → mã xếp top 10% (vượt 90% còn lại)
+- `rank_pct = 90` → mã xếp top 10% (vượt 90% còn lại)
 - `rank_pct = 0` → không xếp hạng (thanh khoản quá thấp) hoặc xếp cuối — bỏ qua khi screening
 
 ### Xếp hạng ngành — KHÔNG có rank tĩnh trong DB, phải tự tổng hợp
@@ -133,20 +138,21 @@ Dùng nhất quán cho `technical_indicator`, `technical_zone`, `trend`, `change
   "marketcap": "LargeCaps",
   "category": "Dòng tiền Ổn định",
   "outstandingShare": 2089645967,
-  "freeFloatRate": 0.45,
-  "statePercentage": 0.36,
-  "foreignerPercentage": 0.55,
+  "free_float_pct": 45,
+  "state_pct": 36,
+  "foreign_pct": 55,
   "foreignerRoom": 104823000,
-  "maximumForeignPercentage": 1.0,
-  "majorHoldings": 0.41
+  "max_foreign_pct": 100,
+  "major_holdings_pct": 41
 }
 ```
 
 **Field quan trọng:**
 - `overview`, `business_area`: prose tiếng Việt, dài — chỉ lấy khi thực sự cần giới thiệu công ty, tránh kéo khi chỉ cần tra ngành.
 - `industry`, `marketcap`, `category`: đã resolve sang tên hiển thị, không phải code. Dùng trực tiếp để filter các collection khác.
+- 5 field sở hữu `free_float_pct`/`state_pct`/`foreign_pct`/`max_foreign_pct`/`major_holdings_pct`: **điểm %** (45 = 45%). *(v1 tên cũ freeFloatRate/statePercentage/... dạng thập phân — đã rename + đổi thang.)*
 - `foreignerRoom`: room còn lại nước ngoài được phép mua (số cổ phiếu).
-- `majorHoldings`: tỷ lệ sở hữu của cổ đông lớn.
+- `major_holdings_pct`: tỷ lệ sở hữu của cổ đông lớn (tổng %, KHÔNG có danh sách từng cổ đông — known gap).
 
 ---
 
@@ -161,18 +167,18 @@ Dùng nhất quán cho `technical_indicator`, `technical_zone`, `trend`, `change
   "ticker": "VNM",
   "snapshot_date": "2026-04-17",
   "price": {
-    "open": 61.3, "high": 62.7, "low": 61.3, "close": 62.0,
+    "open": 61.3, "high": 62.7, "low": 61.3, "close": 62,
     "volume": 1591100, "trading_value": 98.58,
-    "diff": 0.9, "pct_change": 0.0147,
+    "diff": 0.9, "pct_change": 1.47,
     "volume_strength_index": 1.21
   },
   "money_flow_score": {
     "day_score": 3.3, "week_score": -8.04,
-    "industry_rank_pct": 0.6, "market_rank_pct": 0.55
+    "industry_rank_pct": 60, "market_rank_pct": 55
   },
   "change": {
-    "w_pct": -0.0127, "m_pct": 0.0333,
-    "q_pct": -0.1092, "y_pct": 0.1811
+    "w_pct": -1.27, "m_pct": 3.33,
+    "q_pct": -10.92, "y_pct": 18.11
   },
   "technical_indicator": {
     "ohl":       { "w": {...}, "m": {...}, "q": {...}, "y": {...} },
@@ -295,7 +301,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
 **Cảnh báo:**
 - Đơn vị `value` cho BCTC: **đồng Việt Nam** (không phải nghìn đồng hay triệu đồng). Agent cần chia cho 10^9 để có đơn vị tỷ đồng khi trình bày.
 - Đơn vị `value` cho `Vốn hóa thị trường` trong `valuation_ratios`: **tỷ đồng**.
-- Các tỷ lệ (ROE, ROA, biên, tăng trưởng): **dạng thập phân** (0.216 nghĩa là 21.6%), cần nhân 100 khi trình bày.
+- Các tỷ lệ (ROE, ROA, biên, tăng trưởng): ⚠ vẫn **dạng thập phân** (0.216 nghĩa là 21.6%), cần nhân 100 khi trình bày — NGOẠI LỆ duy nhất còn lại của quy ước điểm % (bộ finstats cũ, sẽ đổi khi chuyển schema curated).
 - Một số `value` có thể là `NaN` — khi gặp, coi như không có data.
 
 ---
@@ -325,6 +331,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
 **Đơn vị:** tỷ đồng.
 **Dấu:** `sell_value` luôn âm. `net_value = buy_value + sell_value`.
 **week/month:** tổng cộng dồn 5 phiên / 20 phiên gần nhất (rolling).
+**⚠ Thiếu dữ liệu (v2):** mã không có giao dịch NN/TD → block `nn`/`td` bị **omit hẳn** (không còn block điền 0 như v1). Doc chỉ có `ticker` = "chưa có dữ liệu khối ngoại/tự doanh cho mã này" — KHÔNG diễn giải là "mua ròng 0".
 
 ---
 
@@ -339,16 +346,17 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
   "ticker": "VNM",
   "series": [
     {
-      "datetime": ISODate("2026-04-17T15:00:00Z"),
-      "open": 62.0, "high": 62.7, "low": 61.1, "close": 62.0,
-      "volume": 32200, "trading_value": 2.0,
-      "diff": 0.9, "pct_change": 0.0147, "vsi": 1.21
+      "datetime": "2026-04-17T15:00",
+      "open": 62, "high": 62.7, "low": 61.1, "close": 62,
+      "volume": 32200, "trading_value": 2,
+      "diff": 0.9, "pct_change": 1.47, "vsi": 1.21
     },
     ...
   ]
 }
 ```
 
+**`datetime` (v2):** string `YYYY-MM-DDTHH:MM` (cắt về phút — không còn ISODate).
 **Thứ tự:** `series[0]` là snapshot gần nhất (đã sort giảm dần).
 **Lưu ý:** số lượng element trong `series` có thể rất lớn (tầm 50-80 điểm/ngày). Khi trả về agent, nên `$slice` lấy 10-20 điểm đầu hoặc filter theo datetime.
 
@@ -396,7 +404,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
 > - Ghi note "ngoài scope whitelist mặc định" trong output để user biết
 > - Vẫn cung cấp đầy đủ data như ngành trong whitelist
 >
-> **Ảnh hưởng tới aggregate cấp thị trường:** mean/median `money_flow_score`, breadth ngành dùng proxy thị trường (xem `K_agent_db_04`, `P_vbse_strategy_02` Trục 2) **phải tính trên 18 ngành whitelist**, không phải 24.
+> **Ảnh hưởng tới aggregate cấp thị trường:** mean/median `money_flow_score`, breadth ngành dùng proxy thị trường (xem `K_agent_db_04`) **phải tính trên 18 ngành whitelist**, không phải 24.
 >
 > **Xếp hạng ngành tự tổng hợp:** DB **không lưu** `industry_rank` ngành-vs-ngành — khi báo cáo cần rank (vd "ngành nào dòng tiền mạnh nhất"), agent tự query `week_score` cho 18 ngành whitelist (default mode) hoặc danh sách user yêu cầu (override mode), sort, re-rank 1..N. Chi tiết ở mục "Xếp hạng ngành" đầu file.
 >
@@ -441,7 +449,7 @@ Mỗi `type` có bộ field khác nhau nên khi so sánh cross-type phải cẩn
     "week_score": 11.74
   },
   "breadth": { "breadth_in": 6, "breadth_out": 7, "breadth_neu": 2 },
-  "change": { "w_pct": 0.022, "m_pct": 0.039, "q_pct": 0.027, "y_pct": 0.284 },
+  "change": { "w_pct": 2.2, "m_pct": 3.9, "q_pct": 2.7, "y_pct": 28.4 },
   "technical_zone": {
     "overall": { "w": "AAA", "m": "AAA", "q": "AA", "y": "AAA" },
     "ma_zone": { ... }, "fibonacci_zone": { ... }, "volume_profile_zone": { ... }
@@ -524,7 +532,7 @@ Schema tương đồng `stock_finstats` nhưng theo ngành:
   "price": { ... },
   "money_flow_score": { "day_score": -6.2, "week_score": -18.1 },
   "breadth": { "breadth_in": 14, "breadth_out": 27, "breadth_neu": 2 },
-  "change": { "w_pct": 0.010, "m_pct": 0.045, "q_pct": -0.018, "y_pct": 0.322 },
+  "change": { "w_pct": 1.0, "m_pct": 4.5, "q_pct": -1.8, "y_pct": 32.2 },
   "technical_zone": { "overall": {...}, "ma_zone": {...}, "fibonacci_zone": {...}, "volume_profile_zone": {...} },
   "trend": { "w_trend": 0.37, "m_trend": 0.77, "q_trend": 0.37, "y_trend": 0.53 }
 }
@@ -576,7 +584,7 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
   "snapshot_date": "2026-04-17",
   "price": { ... },
   "breadth": { "breadth_in": 127, "breadth_out": 171, "breadth_neu": 33 },
-  "change": { "w_pct": 0.038, "m_pct": 0.103, "q_pct": -0.033, "y_pct": 0.465 },
+  "change": { "w_pct": 3.8, "m_pct": 10.3, "q_pct": -3.3, "y_pct": 46.5 },
   "technical_indicator": {
     "ohl": {...}, "ma": {...}, "fibonacci": {...}, "volume_profile": {...}, "pivot": {...}
   },
@@ -588,7 +596,7 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
 ```
 
 **Lưu ý kỹ thuật:**
-- `breadth` được tính từ rổ FNXINDEX (rổ lọc nội bộ), **không** phải từ toàn sàn HOSE. Con số phản ánh độ rộng cổ phiếu "chất lượng" trong rổ.
+- `breadth` được tính từ rổ FNXINDEX (rổ lọc nội bộ), **không** phải từ toàn sàn HOSE — doc có field `breadth.basis`/`trend.basis: "FNXINDEX"` tự mô tả (v2 P2). Con số phản ánh độ rộng cổ phiếu "chất lượng" trong rổ.
 - `trend` cũng tính trên rổ FNXINDEX (tỷ lệ mã trong rổ có giá trên trend line khung tương ứng).
 - Tên field là `index` (không phải `ticker`).
 
@@ -601,29 +609,24 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
 
 ```json
 {
-  "ticker": "VNINDEX",
-  "recent_price": [
+  "index": "VNINDEX",
+  "series": [
     {
-      "date": "2026-04-17",
-      "price": { "open": ..., "high": ..., "low": ..., "close": ..., "volume": ...,
-                 "trading_value": ..., "volume_strength_index": ..., "diff": ..., "pct_change": ... }
-    },
-    ...
-  ],
-  "recent_trend": [
-    {
-      "date": "2026-04-17",
-      "market_trend": { "w_trend": ..., "m_trend": ..., "q_trend": ..., "y_trend": ... }
+      "date": "2026-07-10",
+      "price": { "open": 1840.33, "high": 1845.86, "low": 1823.97, "close": 1828.34,
+                 "volume": 493196928, "trading_value": 12734.8,
+                 "volume_strength_index": 0.96, "diff": -12.36, "pct_change": -0.67 },
+      "trend": { "w_trend": 0.26, "m_trend": 0.22, "q_trend": 0.22, "y_trend": 0.2 }
     },
     ...
   ]
 }
 ```
 
-**Lưu ý không đồng nhất:**
-- `market_recent` có field `ticker` (khác `market_snapshot` và `market_itd` dùng `index`).
-- Có 2 array riêng biệt: `recent_price` (giá) và `recent_trend` (xu hướng). Index của 2 array khớp nhau theo ngày.
+**Lưu ý (đã xác minh với DB thật — sửa docs cũ mô tả sai):**
+- Khoá là `index` (+ `trend_basis: "FNXINDEX"`) + MỘT array `series` có cả `price` lẫn `trend` mỗi phiên — cấu trúc THỐNG NHẤT với `industry_recent`/`group_recent`. *(Docs bản cũ tả `ticker` + 2 array `recent_price`/`recent_trend` — schema đó không tồn tại.)*
 - **Không có** `money_flow_score` (khác `stock_recent`, `industry_recent`, `group_recent`).
+- `trend` tính trên rổ FNXINDEX (như `market_snapshot`).
 
 ---
 
@@ -660,10 +663,10 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
   "index": "VNINDEX",
   "series": [
     {
-      "datetime": ISODate("2026-04-17T15:00:00Z"),
-      "open": 1820.0, "high": 1846.2, "low": 1812.6, "close": 1817.2,
-      "volume": 0, "trading_value": NaN,
-      "diff": -2.66, "pct_change": -0.0015, "vsi": 0.89
+      "datetime": "2026-04-17T15:00",
+      "open": 1820, "high": 1846.2, "low": 1812.6, "close": 1817.2,
+      "volume": 0,
+      "diff": -2.66, "pct_change": -0.15, "vsi": 0.89
     },
     ...
   ]
@@ -671,7 +674,7 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
 ```
 
 **Lưu ý:**
-- `volume` và `trading_value` trong index thường là `0` hoặc `NaN` (index là tính toán, không có KL giao dịch).
+- `volume` trong index thường là `0`; `trading_value` không có dữ liệu thì bị omit (index là tính toán, không có KL giao dịch).
 - `series[0]` là snapshot gần nhất.
 
 ---
@@ -689,13 +692,14 @@ Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho
     "open": ..., "high": ..., "low": ..., "close": ...,
     "volume": ..., "pct_change": ...
   },
-  "change": {"w_pct": ..., "m_pct": ..., "q_pct": ..., "y_pct": ...}
+  "change": {"w_pct": ..., "m_pct": ..., "q_pct": ..., "y_pct": ...}   // điểm %
 }
 ```
 
 **Lưu ý chung:**
+- `series` sort **TĂNG dần theo ngày (cũ → mới)** — `$slice: -N` lấy N phiên MỚI nhất. ⚠ NGƯỢC với `*_recent` (mới → cũ).
 - `series` chứa toàn bộ lịch sử có sẵn — số lượng phần tử lớn (vài trăm đến vài nghìn phiên). **Luôn projection + `$slice` hoặc filter theo date range** khi query.
-- Item thiếu dữ liệu phiên cụ thể → field `null`.
+- Item thiếu dữ liệu phiên cụ thể → field bị **omit** (v2 — không còn `null`).
 - Cấu trúc đơn giản hơn `*_recent`: KHÔNG có `money_flow_score`, `trend`, `technical_zone`, `volume_strength_index`.
 
 ### `history_index` — Lịch sử chỉ số thị trường
@@ -717,7 +721,7 @@ Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho
 }
 ```
 
-**Lưu ý:** `volume` index thường là `0` hoặc `NaN` (index là tính toán). Dùng `close` để chart trend dài hạn.
+**Lưu ý:** `volume` index thường là `0` hoặc bị omit (index là tính toán). Dùng `close` để chart trend dài hạn.
 
 ---
 
@@ -774,6 +778,7 @@ Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho
   "title": "VNM công bố kết quả kinh doanh Q1/2026",
   "sapo": "Doanh thu tăng 15% so với cùng kỳ...",
   "tickers": ["VNM"],
+  "link": "https://markettimes.vn/vnm-cong-bo-ket-qua-q1-124840.html",
   "created_at": "2026-04-17T09:30:00+07:00",
   "is_processed": false
 }
@@ -781,6 +786,7 @@ Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho
 
 **Field quan trọng:**
 - `article_slug`: khoá nối với `news_today_content` (tương tự primary key).
+- `link` (v2): **URL bài báo GỐC** ở nguồn ngoài (markettimes, cafef...) — đưa khi khách muốn đọc bản gốc; khác với URL finext.vn ghép từ slug (bản trên Finext).
 - `tickers`: mảng tickers liên quan, có thể rỗng (tin vĩ mô chẳng hạn).
 - `news_type`: 4 giá trị — `doanh_nghiep` (tin doanh nghiệp niêm yết, ~55% tổng tin), `quoc_te` (tin tài chính quốc tế, ~25%), `trong_nuoc` (tin nội địa nói chung, ~25%, bucket RỘNG gồm nhiều category con), `thong_cao` (tổng hợp chỉ đạo điều hành Chính phủ/Thủ tướng hàng ngày, ~1%, hầu hết không có ticker). Khi lọc `trong_nuoc`, thường phải lọc thêm qua `category_name` để tách tin vĩ mô/chính sách liên quan TTCK khỏi tin chính trị/đối ngoại/thời sự không liên quan.
 - `is_processed`: cờ nội bộ, agent không cần quan tâm.
@@ -816,11 +822,13 @@ Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho
   "title": "NVL: Trước ĐHCĐ, Novaland công bố bổ sung nhiều nội dung quan trọng",
   "sapo": "...",
   "tickers": ["NVL"],
+  "link": "https://cafef.vn/nvl-truoc-dhcd....html",
   "created_at": "2026-04-18T23:59:00+07:00",
   "is_processed": false,
   "type": "news_feed"     // hoặc "report_feed"
 }
 ```
+*(v2: tin thường có `link` = URL bài gốc; report KHÔNG có — report là bản tổng hợp, dẫn bằng URL finext.vn/reports/{slug}.)*
 
 **Hai loại doc phân biệt qua `type`:**
 - `news_feed`: tin thường, có `article_slug`.
@@ -863,6 +871,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 
 | Loại | Pattern | Ví dụ |
 |---|---|---|
+| **Bài báo GỐC nguồn ngoài** (tin thường, v2) | field `link` có sẵn trong feed — dùng nguyên văn | `https://markettimes.vn/...html` |
 | Tin thường (`type: news_feed`) | `https://finext.vn/news/{article_slug}` | `https://finext.vn/news/nfc-dat-ke-hoach-lai-ky-luc-mot-doanh-nghiep-lan-chot-tra-co-tuc-tien-mat-50-ngay-trong-thang-5` |
 | Báo cáo tổng hợp (`type: report_feed`) | `https://finext.vn/reports/{report_slug}` | `https://finext.vn/reports/bao-cao-tong-hop-tin-tuc-quoc-te-ngay-21-04-2026` |
 
@@ -871,7 +880,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 - Output liệt kê nhiều tin/báo cáo dạng bảng hoặc danh sách → bổ sung link cho mỗi entry để user verify nhanh
 - Khi cite claim cụ thể từ tin/báo cáo cho analysis → dẫn link bên cạnh để audit trail
 
-**Lưu ý về K hygiene:** `article_slug` raw (dạng string code) thuộc diện cấm lộ trong output theo system prompt mục 5.5. Tuy nhiên URL `https://finext.vn/news/{slug}` là output user-facing hợp lệ, không tính vi phạm — khác biệt giữa ký hiệu nội bộ DB và URL công khai. Agent dẫn link URL đầy đủ, không để slug trần trong output dạng `article_slug: vnm-xyz`.
+**Lưu ý về K hygiene:** `article_slug` raw (dạng string code) thuộc diện cấm lộ trong output theo system prompt mục 5.5 + `K_agent_db_00` mục 5 (ngoại lệ URL: `K_agent_db_00` mục 5.1). Tuy nhiên URL `https://finext.vn/news/{slug}` là output user-facing hợp lệ, không tính vi phạm — khác biệt giữa ký hiệu nội bộ DB và URL công khai. Agent dẫn link URL đầy đủ, không để slug trần trong output dạng `article_slug: vnm-xyz`.
 
 **Query projection:** các workflow tin ở `K_agent_db_02` đã include sẵn `article_slug` / `report_slug` trong projection nên agent có sẵn slug trong kết quả query, không cần query thêm.
 
@@ -890,11 +899,11 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
   "name": "Vàng thế giới",
   "value": 4775.82,
   "unit": "USD/ounce",
-  "pct_change": -0.0004,
-  "w_pct": -0.0077,
-  "m_pct": 0.0617,
-  "q_pct": -0.0280,
-  "y_pct": 0.3815,
+  "pct_change": -0.04,
+  "w_pct": -0.77,
+  "m_pct": 6.17,
+  "q_pct": -2.8,
+  "y_pct": 38.15,
   "update_date": "2026-04-19",
   "group": "commodities",
   "category": "metals"
@@ -904,8 +913,8 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 **Giải nghĩa field:**
 - `value`: giá trị hiện tại của chỉ số.
 - `unit`: đơn vị gốc — đọc trực tiếp từ đây khi trình bày (USD/ounce, USD/MMBtu, USD/thùng, Đồng/kg, Triệu USD, Tỷ VNĐ, %, Nghìn người...). Với FX đơn vị có thể rỗng (`""`) vì là tỷ giá.
-- `pct_change`: biến động phiên/ngày gần nhất (thập phân).
-- `w_pct, m_pct, q_pct, y_pct`: biến động 1 tuần / 1 tháng / 1 quý / 1 năm (thập phân).
+- `pct_change`: biến động phiên/ngày gần nhất (**điểm %**).
+- `w_pct, m_pct, q_pct, y_pct`: biến động 1 tuần / 1 tháng / 1 quý / 1 năm (**điểm %**).
 - `update_date`: ngày cập nhật gần nhất — **quan trọng**, vì các chỉ số vĩ mô có thể cập nhật chậm (hàng tháng, có thể cũ tới 2-3 tuần).
 - `group`, `category`: dùng để filter theo nhóm.
 
@@ -937,7 +946,7 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 - **Tâm lý toàn cầu** ⟵ tham khảo `international.global_index` (đặc biệt S&P 500, Nikkei, Shanghai).
 
 **Cảnh báo đơn vị:**
-- Lãi suất: `value: 0.045, unit: "%"` nghĩa là 4.5% — đã dạng thập phân, nhân 100 khi trình bày.
+- Lãi suất: `value: 0.045, unit: "%"` nghĩa là 4.5% — `value` là dữ liệu GỐC đọc kèm `unit` (ngoại lệ của quy ước điểm %), nhân 100 khi trình bày. Các field `*_pct` cùng doc thì ĐÃ là điểm %.
 - Tỷ giá: đơn vị thường rỗng hoặc "VND/USD". USD NHTM bán thường quanh 25,000-26,000 VND.
 - Chỉ số vĩ mô tháng (xuất nhập khẩu, bán lẻ): `update_date` có thể là cuối tháng trước. Đơn vị "Triệu USD" hoặc "Tỷ VNĐ" đọc kỹ.
 - CPI: giá trị là chỉ số hoặc phần trăm thay đổi YoY, đọc `unit` để biết.
@@ -946,77 +955,157 @@ Khi agent muốn duyệt riêng tin hoặc riêng báo cáo, luôn thêm filter 
 
 ## H. Khối briefing
 
-### `data_briefing` — Toàn cảnh thị trường 6 block
+### `data_briefing` — 2 doc: `core` (toàn cảnh gọn) + `news_report`
 
-**Số lượng:** 6 doc
-**Cập nhật:** realtime + EOD
-**Dùng khi:** câu hỏi chung như "thị trường hôm nay thế nào", "ngành nào mạnh nhất", "tin gì nổi bật", "bức tranh vĩ mô" — 1 collection trả lời được đa số trường hợp.
+**Số lượng:** 2 doc (phân biệt qua `type`)
+**Cập nhật:** realtime + EOD — doc `core` được pipeline **ghi CUỐI CÙNG** mỗi vòng → `core.as_of` = mốc "mọi collection khác đã ghi xong vòng này" (commit marker).
+**Dùng khi:** MỌI phiên chat — query `{type: "core"}` NGAY đầu phiên để có bức tranh + phase headline; `news_report` khi hỏi "báo cáo hôm nay nói gì".
 
-**6 loại block** (phân biệt qua `type`):
+> ⚠ **v2 BREAKING:** 4 block clone cũ (`market_snapshot`/`market_nntd`/`group_snapshot`/`industry_snapshot`/`other_data`) **ĐÃ XOÁ** — cần chi tiết thì query thẳng collection gốc (nhẹ hơn và luôn tươi). Workflow C ở `K_agent_db_02` đã cập nhật theo.
 
 ```json
-// Block 1: market_snapshot - VNINDEX hôm nay
+// Doc 1: type "core" — ngân sách ~1.5k token, nạp đầu mọi phiên chat
 {
-  "type": "market_snapshot",
-  "data": [ <1 doc tương tự market_snapshot> ]
+  "type": "core",
+  "as_of": "2026-07-10",                        // mốc dữ liệu vòng ghi này
+  "market": {
+    "index": "VNINDEX",
+    "close": 1828.34, "diff": -12.36, "pct_change": -0.67,
+    "volume_strength": 0.96,
+    "breadth": { "in": 71, "out": 194, "neu": 25 },      // rổ FNXINDEX
+    "trend": { "w_trend": 0.26, "m_trend": 0.22, "q_trend": 0.22, "y_trend": 0.2 },
+    "zone": { "w": "C", "m": "B", "q": "B", "y": "AAA" }
+  },
+  "phase": { "label": "TRANSITION", "exposure": 0.7, "as_of": "2026-07-10" },
+  // ^ headline từ market_phase — as_of RIÊNG (phase = EOD đã chốt, có thể trễ hơn 1 phiên). Chi tiết: market_phase.
+  "money_flow": { "nn_latest": 1393.82, "nn_week": -2448.02, "td_latest": 0, "td_week": -920.98 },  // tỷ đồng
+  "groups": [ { "name": "LargeCaps", "pct_change": -1.11, "week_score": -19.68 } /* ×6 */ ],
+  "top_moves": {                                 // top 5 tăng/giảm (lọc thanh khoản tối thiểu)
+    "gain": [ { "t": "SHN", "pct_change": 9.42 } /* ×5 */ ],
+    "loss": [ { "t": "ABC", "pct_change": -6.9 } /* ×5 */ ]
+  }
 }
 
-// Block 2: market_nntd - NN/TD toàn thị trường
-{
-  "type": "market_nntd",
-  "data": [ <1 doc tương tự market_nntd> ]
-}
+// Doc 2: type "news_report" — 4 báo cáo daily mới nhất
+{ "type": "news_report", "data": [ { "report_slug": "...", "title": "...", "sapo": "...",
+    "report_markdown": "...", "report_type": "daily", "created_at": "...", "tickers": [...] } /* ×4 */ ] }
+```
 
-// Block 3: group_snapshot - 6 nhóm
-{
-  "type": "group_snapshot",
-  "data": [ <6 doc tương tự group_snapshot> ]
-}
+**Strategy dùng:**
+- Đầu phiên chat / câu "thị trường hôm nay thế nào" → `{type: "core"}` (1 query, ~1.5k tok).
+- `core.phase` = pha hiện tại + exposure — đủ làm bối cảnh trạng thái hệ khi khuyến nghị; hỏi sâu về chỉ số/diễn giải → `market_phase`.
+- Cần bảng 24 ngành / 70 chỉ số vĩ mô / 6 nhóm chi tiết → query collection gốc (`industry_snapshot`, `other_data`, `group_snapshot`).
+- "Báo cáo tổng hợp hôm nay" → `{type: "news_report"}`.
 
-// Block 4: industry_snapshot - 24 ngành
-{
-  "type": "industry_snapshot",
-  "data": [ <24 doc tương tự industry_snapshot> ]
-}
+---
 
-// Block 5: other_data - 70 chỉ số vĩ mô / hàng hoá / quốc tế
-{
-  "type": "other_data",
-  "data": [ <70 doc tương tự other_data> ]
-}
+## I. Khối phase & danh mục (mirror từ hệ phase — ngữ nghĩa & luật trình bày: `K_agent_db_06`)
 
-// Block 6: news_report - 4 báo cáo tổng hợp gần nhất
+Nguồn: hệ tính phase ghi mỗi EOD; fnx05 mirror sang `agent_db`. `as_of` của khối này = ngày EOD đã chốt,
+**có thể trễ hơn `data_briefing.core.as_of` 1 phiên** trong giờ giao dịch — nêu cả hai mốc khi lệch.
+
+### `market_phase` — 1 doc: pha thị trường hiện tại
+
+```json
 {
-  "type": "news_report",
-  "data": [
-    {
-      "report_slug": "...",
-      "title": "...",
-      "sapo": "...",
-      "report_markdown": "### 1. MBB: ĐHĐCĐ thông qua... ###",
-      "report_type": "daily",
-      "category_name": "Tin tức doanh nghiệp",
-      "created_at": "2026-04-18T22:00:00+07:00",
-      "tickers": ["BID", "DVN", "HAG", ...]
-    },
-    ...  // 4 báo cáo
+  "as_of": "2026-07-10",
+  "phase": "TRANSITION",              // UPTREND | DOWNTREND | SIDEWAY | TRANSITION (được dùng nguyên văn)
+  "exposure": 0.7,                    // 0..2.0 — tỷ lệ nắm giữ gợi ý (nhân 100 khi nói; >1 = margin, kèm cảnh báo)
+  "held_days": 6,                     // pha hiện tại đã giữ mấy phiên
+  "intensity": -0.76,                 // cường độ thị trường −1..+1
+  "sub_signal": "...",                // omit nếu không có | capitulation_buy_60d | sideway_bottom_buy
+  "fnx_close": 1492.78,               // giá FNXINDEX
+  "indicators": [                     // 7 chỉ số quyết định phase — bảng ngưỡng & cách nói: K_agent_db_06 mục 2
+    { "key": "breadth_slow", "indicator_key": "cau_truc_xu_huong_tang",
+      "label_vi": "Cấu trúc xu hướng tăng", "value": -0.56,
+      "threshold_note": "vượt +0.30 mới đủ điều kiện hướng TĂNG",
+      "comment": "đoạn diễn giải sinh sẵn từng phiên..." }
+    // ×7: breadth_slow · breadth_blend · breadth_aux · conf_dir · conf_flat · corr60 · px_ret20_pct (điểm %)
+  ],
+  "comments": {                       // 4 đoạn diễn giải phiên (sinh sẵn) — NỀN chính để trả lời
+    "market": "kết luận...", "condition": "điều kiện đổi trạng thái...",
+    "structure": "cấu trúc đồng thuận/mâu thuẫn...", "risk": "rủi ro + watch-item...",
+    "comment_date": "2026-07-10"      // có thể lệch as_of 1 phiên — ghi chú khi lệch
+  },
+  "history_60": [ { "d": "2026-07-10", "p": "TRANSITION", "e": 0.7 } /* ×60 phiên gần nhất */ ],
+  "schema_version": "agent_phase_v1"
+}
+```
+
+### `market_phase_history` — 1 row/phiên, FULL lịch sử (~1.620 phiên từ 2020)
+
+Cột: `date` (string) · `phase_label` (UPPER) · `market_exposure` · 7 chỉ số (`px_ret20_pct` = điểm %) ·
+`market_intensity` · `sub_signal` (omit nếu trống) · `fnx_close`. **Luôn filter `date` range** — dùng cho
+"giai đoạn 2022 hệ làm gì", "lần downtrend gần nhất khi nào", đếm số lần chuyển pha.
+
+### `phase_basket` — 3 doc = 3 danh mục (khoá `product`)
+
+```json
+{
+  "product": "CORE",                  // CONSERVATIVE | CORE | AGGRESSIVE (key cố định)
+  "display_name_vi": "Sóng Ngành",    // tên nói với khách — KHÔNG hardcode tên
+  "as_of": "2026-07-10",
+  "market_phase": "TRANSITION", "market_exposure": 0.7,
+  "n_held": 13,
+  "held": { "VCB": 0.0538, ... },     // tỷ trọng VỐN THỰC (= book × exposure, 0..1); {} = 100% tiền mặt
+  "book": { "VCB": 0.0769, ... },     // tỷ trọng TRƯỚC exposure — "sẽ vào khi hệ bật lại"
+  "adds": ["MCH"], "removes": ["HCM"],// thay đổi so phiên trước
+  "sectors": ["NGANHANG", ...],       // CHỈ CORE — ngành đang giữ; omit ở 2 danh mục kia
+  "sector_cmt": "...", "stock_cmt": "...",  // diễn giải danh mục sinh sẵn (sector_cmt chỉ CORE)
+  "comment_date": "2026-07-10",
+  "next_rebalance_in": 5,             // còn mấy phiên tới kỳ cơ cấu (chu kỳ 5 phiên)
+  "rank": [                           // bảng xếp hạng CỬA SỔ HIỆN TẠI của danh mục (~10-35 row)
+    { "level": "sector", "sector": "CHUNGKHOAN", "rank": 1, "rank_scope": "toan_nganh",
+      "composite": 0.18, "held": 1, "status": "trong_ro", "qua_cong_vao": 1,
+      "nguong_vao": 3, "nguong_giu": 8 },                       // row NGÀNH — chỉ CORE
+    { "level": "stock", "ticker": "VEA", "ten": "...", "rank": 1, "rank_scope": "toan_ro",
+      "mom120_pct": 0.57, "vma60": 8.38, "held": 1, "status": "trong_ro",
+      "qua_cong_vao": 1, "nguong_vao": 8, "nguong_giu": 14 }    // row MÃ
   ]
 }
 ```
 
-**Strategy dùng:**
-- Câu hỏi tổng quan về **giá/biến động thị trường** → lấy `type: market_snapshot`.
-- Câu hỏi về **khối ngoại** → lấy `type: market_nntd`.
-- Câu hỏi **ngành nào dẫn dắt / yếu nhất** → lấy `type: industry_snapshot`.
-- Câu hỏi **vốn hoá lớn hay nhỏ đang mạnh** → lấy `type: group_snapshot`.
-- Câu hỏi **vĩ mô, giá dầu, giá vàng, tỷ giá, lãi suất, thị trường quốc tế** → lấy `type: other_data`.
-- Câu hỏi **tin/sự kiện nổi bật** → lấy `type: news_report`.
-- Câu hỏi tổng hợp "hôm nay thế nào" → lấy `type: { $in: [...] }` với nhiều block.
+- `status`: `trong_ro` (nắm giữ) · `vung_buffer` (giữ nhưng hạng tụt = **sắp ra**) · `ung_vien` (**chờ vào** kỳ tới)
+  · `cho_tin_hieu` (đủ hạng, chưa qua cổng tín hiệu giá — CHƯA được mua) · `ngoai`.
+- `mom120_pct` = đà giá ~6 tháng (điểm %) · `vma60` = thanh khoản bình quân 60 phiên (tỷ đồng) — hai field
+  QUAN SÁT khách-an-toàn, KHÔNG phải tiêu chí chọn mã. `rank` hiển thị trần, không suy ra công thức.
+- `held` ĐỘC LẬP với hiển thị: downtrend → `held={}` nhưng `book`/`rank` vẫn có = danh mục THAM KHẢO.
 
-**Lưu ý:**
-- Nội dung block chính là **clone** từ collection nguồn, độ tươi đồng bộ cập nhật.
-- `news_report` chỉ có 4 bài, là các daily report mới nhất — không đầy đủ mọi tin.
-- Block `other_data` clone đầy đủ 70 chỉ số, là cách nhanh nhất để lấy toàn bộ bức tranh vĩ mô trong 1 query.
+### `phase_trading` — sổ lệnh backtest FULL (~1.300 đợt; khoá `ticker`/`product`/`status`)
+
+```json
+{ "product": "CORE", "ticker": "CII", "entry_date": "2020-08-07", "exit_date": "2021-05-11",
+  "n_days": 187, "entry_price": 12.74, "exit_price": 16.33, "return_pct": 28.26,
+  "avg_weight": 0.06, "status": "closed", "exit_reason": "ROTATION" }
+```
+
+- `return_pct` = **điểm %** (28.26 = +28.26%). `avg_weight` = tỷ trọng 0..1. Ngày = string `YYYY-MM-DD`.
+- `status: open` → `exit_date` omit, `exit_price`/`return_pct` = mark-to-market phiên hiện tại.
+- `exit_reason`: `HOLDING` đang giữ · `DOWNTREND` bán cả rổ (thị trường phòng thủ) · `ROTATION` (chỉ CORE —
+  ngành bị đảo ra, nhả toàn bộ mã của ngành) · `REBALANCE` (mã tự rớt hạng kỳ cơ cấu).
+- ⚠ **BACKTEST** (survivorship-biased, gross) — trích là kèm disclaimer (`K_agent_db_06` mục 5).
+
+### `phase_industry` — 1 doc: trạng thái 12 ngành của danh mục Sóng Ngành
+
+```json
+{ "as_of": "2026-07-10",
+  "states": { "CHUNGKHOAN": 3, "NGANHANG": 3, "BDS": 2, "DAUKHI": 1, "BANLE": 0, ... },  // 12 ngành MAIN
+  "history_60": [ { "d": "...", "states": {...} } /* ×60 */ ],
+  "note": "0=ngoài rổ · 1=tiềm năng · 2=đang giữ nhưng sắp ra · 3=trong rổ" }
+```
+
+Đang giữ ⟺ giá trị ≥ 2. **Độc lập `market_exposure`** — downtrend bảng KHÔNG về 0 (= "sẽ mua lại ngành nào
+khi bật lên"). Tên ngành là mã ngắn — map sang tên đầy đủ theo bảng whitelist (Section B) khi nói.
+
+### `phase_perf` — lợi nhuận TỪNG NGÀY mỗi danh mục (khoá `product`+`date`)
+
+```json
+{ "date": "2026-07-10", "product": "CORE", "ret_1d_1x": 0.0021 }
+```
+
+- `ret_1d_1x` = lợi suất ngày bản 1.0x, dạng **thập phân** (để compound: `Π(1+r)−1`, nhân 100 khi nói) — GROSS chưa phí.
+- `product = "FNX"` = benchmark mua-và-giữ FNXINDEX — luôn so cùng cửa sổ.
+- Chỉ dùng cho cửa sổ ngắn (tuần/tháng/YTD) theo luật hiệu suất 2 tầng — số dài hạn trích bảng FROZEN (`K_agent_db_06` mục 4).
 
 ---
 
@@ -1050,8 +1139,16 @@ History (lịch sử dài hạn — query on-demand):
   history_industry (24 ngành lịch sử)
   history_stock    (~500 mã lịch sử)
 
+Phase & danh mục (Section I — chi tiết K_agent_db_06):
+  market_phase          (1 doc: pha + 7 chỉ số + comment + 60 phiên)
+  market_phase_history  (1 row/phiên, full lịch sử)
+  phase_basket          (3 doc = 3 danh mục, kèm rank + comment)
+  phase_trading         (sổ lệnh backtest full)
+  phase_industry        (1 doc: trạng thái 12 ngành + 60 phiên)
+  phase_perf            (ret ngày 1.0x + benchmark FNX)
+
 Cross-level aggregates:
-  data_briefing   (tổng quan thị trường + ngành + nhóm + vĩ mô + report)
+  data_briefing   (doc core = toàn cảnh + phase headline · doc news_report)
 
 Macro / international:
   other_data (hàng hoá, FX, crypto, TPCP, global index, monetary, economy, exchange_rate)
@@ -1070,7 +1167,7 @@ News:
 2. **Không sort lại `series` trong các collection `*_recent`, `*_itd`.** Đã sort sẵn (mới nhất ở đầu). Sort thừa tốn CPU.
 
 3. **Không giả định tên field đồng nhất.**
-   - Ticker: `ticker` (stock), `industry_name` (industry), `group_name` (group), `index` (market_snapshot + market_itd), `ticker` (market_recent — bất đồng bộ).
+   - Khoá theo khối: `ticker` (stock), `industry_name` (industry), `group_name` (group), `index` (TOÀN BỘ khối market: snapshot/recent/itd + history_index).
    - Xử lý bằng cách đọc doc mẫu trước khi viết query phức tạp.
 
 4. **Không dùng `today_news.is_processed`.** Đây là cờ workflow nội bộ của pipeline build, không mang ý nghĩa phân tích.
@@ -1079,7 +1176,7 @@ News:
 
 6. **Không so sánh `valuation_ratios` giữa các `type` khác nhau.** Doanh nghiệp SXKD và NGANHANG có bộ chỉ tiêu khác. Ví dụ P/B của ngân hàng không cùng ý nghĩa với P/B của công ty sản xuất.
 
-7. **Không nhân `pct_change` với 100 để có phần trăm rồi quên nhân lại khi so sánh.** `pct_change` đã ở dạng thập phân (0.07 = 7%). Giữ nhất quán đơn vị khi dùng trong pipeline.
+7. **Không nhân `pct_change`/`*_pct` với 100.** v2: chúng ĐÃ là điểm phần trăm (`pct_change: 7` = 7%). Nhân 100 nữa là sai 100 lần. Ngoại lệ cần nhân 100 khi nói: `*_trend` (0..1), `exposure` (0..2), tỷ trọng `held`/`book`, tỷ lệ trong `stock_finstats` (bộ cũ).
 
 8. **Không hiển thị ký hiệu nội bộ ra user.** `vsi`, `day_score`, `week_score`, `zone` (AAA/AA/A/B/C), `f382`, `poc`, `period: "2025_4"` — phải dịch sang ngôn ngữ tự nhiên trong câu trả lời cuối. Bảng dịch chi tiết và ngưỡng diễn giải ở `K_agent_db_04`.
 

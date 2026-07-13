@@ -59,16 +59,15 @@ projection: { "_id": 0, "snapshot_date": 1, "price": 1, "breadth": 1,
 Query 1.2 — Vận động 20 phiên:
 ```
 collection: market_recent
-filter: { "ticker": "VNINDEX" }
-projection: { "_id": 0, "ticker": 1,
-              "recent_trend": { "$slice": 20 },
-              "recent_price": { "$slice": 20 } }
+filter: {}
+projection: { "_id": 0, "index": 1,
+              "series.date": 1, "series.price": 1, "series.trend": 1 }
 ```
 
-**Lưu ý schema:**
-- `market_recent` dùng `ticker: "VNINDEX"` (không phải `index`)
-- Trend history nằm ở array riêng `recent_trend[].market_trend`, khác với industry/group
-- 2 array `recent_price` và `recent_trend` khớp theo index ngày
+**Lưu ý schema (v2):**
+- `market_recent` là 1 doc duy nhất, khoá `index: "VNINDEX"`, MỘT array `series` sort mới → cũ (~20 phiên)
+- Mỗi item `series[]` có cả `price` lẫn `trend` (4 khung w/m/q/y) — cấu trúc thống nhất với industry/group_recent
+- KHÔNG có `money_flow_score` (khác industry_recent/group_recent)
 
 **Xử lý 4 giá trị trend tuần/tháng/quý/năm — đọc ở mức cơ bản:**
 

@@ -15,7 +15,7 @@ File này covers Checkpoint 1 (regime + sector bias với conviction + disconfir
 - Chuỗi 5 phiên `industry_recent.series[0..4].money_flow_score.day_score` aggregate mean qua 18 ngành whitelist
 
 **Input 2 — Breadth:**
-- `data_briefing` block market: breadth_in/out phiên cuối tuần
+- `data_briefing` doc `core`: `market.breadth` (in/out) phiên cuối tuần
 - Số ngành whitelist 18 có w_pct > 0 / 18
 
 **Input 3 — Khối ngoại:**

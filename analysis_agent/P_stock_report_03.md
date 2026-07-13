@@ -176,7 +176,7 @@ Length: SKIP Quick mode. 0.5 trang Standard, 1-1.5 trang Deep.
 
 **K hygiene:**
 - Quy đổi đơn vị (`K_agent_db_00` mục 6): BCTC sang tỷ đồng, ratios sang %
-- KHÔNG lộ ký hiệu raw: `m_pct`, `q_pct`, percentile fraction
+- KHÔNG lộ ký hiệu raw: `m_pct`, `q_pct`, percentile 0-100 raw (`industry_rank_pct: 90` → "top 10% ngành")
 
 Length: 0.5 trang Quick (skip peer + macro sens + forensic), 1-2 trang Standard, 2-3 trang Deep.
 
@@ -495,7 +495,7 @@ Pack áp dụng nguyên tắc: **khi mã có dòng tiền đang mạnh nhưng ca
 
 Reference `K_agent_db_00` mục 5. Trước khi finalize, agent self-check:
 
-- [ ] Đã dịch DB raw (`vsi`, `day_score`, `week_score`, `zone`, percentile fraction) sang ngôn ngữ tự nhiên
+- [ ] Đã dịch DB raw (`vsi`, `day_score`, `week_score`, `zone`, percentile 0-100) sang ngôn ngữ tự nhiên
 - [ ] Đã dịch taxonomy nội bộ (Kịch bản A/B/C/E1/E2/E3, framework chấm điểm, HIGH/MID/LOW impact) sang mô tả trực tiếp
 - [ ] Đã dịch thuật ngữ EN (mean-reversion, exhaustion, etc.) sang VN nếu audience là KH
 - [ ] Đã quy đổi đơn vị BCTC (sang tỷ đồng), ratios (sang %)
@@ -506,7 +506,7 @@ Reference `K_agent_db_00` mục 5. Trước khi finalize, agent self-check:
 
 ## 10. Output naming convention
 
-File output naming (theo `K_agent_db_00` mục 7.5):
+File output naming (theo `P_stock_report_04` mục 4.6 + `O_stock_report_00`):
 
 ```
 stock_report_<TICKER>_<YYYYMMDD>_<mode>.md

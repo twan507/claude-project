@@ -183,7 +183,7 @@ Tất cả 21 ngành còn lại → Type SXKD (Sản xuất kinh doanh / General
 **Pull:**
 - `day_score` + `week_score` hiện tại
 - `technical_zone.overall.d/w/m/q` (zone day/week/month/quarter)
-- `industry_rank_pct` + `market_rank_pct` (percentile mã trong ngành + thị trường)
+- `industry_rank_pct` + `market_rank_pct` (percentile 0-100 của mã trong ngành + thị trường; 90 = top 10%)
 - 4-tuần `week_score` recent → xu hướng dòng tiền tăng/giảm
 - VSI (volume strength index — thanh khoản)
 
@@ -231,8 +231,8 @@ Tất cả 21 ngành còn lại → Type SXKD (Sản xuất kinh doanh / General
 ### 3.6. Sub-step 1f — Corporate actions recent
 
 **Source:**
-- `data_briefing` block corporate actions nếu có
-- Web search bổ sung: "[Tên công ty] cổ tức / phát hành / ESOP / mua lại 2024 2025 2026"
+- DB KHÔNG có collection lịch sự kiện quyền (known gap — `K_agent_db_00` mục 9): dùng tin trong DB `news_today_feed`/`news_history_feed` filter ticker
+- Web search bổ sung (nguồn chính): "[Tên công ty] cổ tức / phát hành / ESOP / mua lại 2024 2025 2026"
 
 **Pull (rolling 12 tháng):**
 - Cổ tức tiền mặt + cổ tức cổ phiếu (tỷ lệ + ngày chia)
@@ -251,7 +251,7 @@ Tất cả 21 ngành còn lại → Type SXKD (Sản xuất kinh doanh / General
 **Source:**
 - `news_today_feed` (tin hôm nay)
 - `news_history_feed` (lịch sử rolling 30 ngày)
-- `data_briefing.news` block nếu có
+- `data_briefing` doc `news_report` (4 báo cáo tổng hợp daily mới nhất)
 
 **Filter:**
 - Filter ticker = mã đang phân tích
@@ -479,7 +479,7 @@ Output Bước 1: **5-8 candidate peer** ticker.
 **Bước 2: Filter thanh khoản + market cap**
 
 Cross-check với DB:
-- ADV (Average Daily Volume) ≥ 30 tỷ VND/ngày (pull từ `history_stock` 60 phiên gần nhất aggregate volume × price). Mid/Large cap có thanh khoản đủ
+- ADV (Average Daily Volume) ≥ 30 tỷ VND/ngày (pull từ `history_stock` 60 phiên gần nhất aggregate volume × price — ⚠ `series` sort TĂNG dần cũ → mới, dùng `$slice: -60` để lấy 60 phiên MỚI nhất). Mid/Large cap có thanh khoản đủ
 - Market cap top 50 trong ngành (cross-check `stock_snapshot.valuation_ratios.market_cap`)
 - **EXCLUDE:**
   - Market cap < 1.000 tỷ VND (small cap, info quality kém, dễ manipulation)
@@ -509,7 +509,7 @@ Output expected: **Bảng peer compare** (1 row = 1 mã, gồm mã chính + 3-5 
 
 ### 3.13. Sub-step 1m — ADV / Liquidity tier
 
-**Source:** `history_stock` 60 phiên gần nhất
+**Source:** `history_stock` 60 phiên gần nhất (⚠ `series` sort TĂNG dần cũ → mới — dùng `$slice: -60`; 10 phiên gần nhất = `$slice: -10`)
 
 **Pull:**
 - ADV tháng = avg(price × volume) trong 60 phiên gần nhất → tỷ VND/ngày
@@ -527,8 +527,8 @@ Output expected: **Bảng peer compare** (1 row = 1 mã, gồm mã chính + 3-5 
 ### 3.14. Sub-step 1n — Earnings calendar
 
 **Source:**
-- `data_briefing` block earnings calendar nếu DB có
-- Web search: "[Tên công ty] họp ĐHCĐ [năm] / công bố BCTC quý [N]"
+- DB KHÔNG có lịch earnings/ĐHCĐ (known gap — `K_agent_db_00` mục 9)
+- Web search (nguồn chính): "[Tên công ty] họp ĐHCĐ [năm] / công bố BCTC quý [N]"
 - IR section trên website công ty (qua web search)
 
 **Pull:**

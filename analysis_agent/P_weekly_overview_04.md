@@ -147,7 +147,7 @@ Chạy 12 câu trước khi present báo cáo. Vi phạm câu nào sửa rồi m
 
 ### 5.4. K hygiene + nguồn (chuẩn institutional)
 
-10. **K hygiene:** ký hiệu DB raw đã dịch hết, không còn `week_score: 18`, `industry_rank_pct: 0.9`, `vsi: 2.1` raw trong output? Số liệu định lượng đã quy đổi đơn vị (BCTC: tỷ đồng, % thập phân nhân 100)?
+10. **K hygiene:** ký hiệu DB raw đã dịch hết, không còn `week_score: 18`, `industry_rank_pct: 90`, `vsi: 2.1` raw trong output? Số liệu định lượng đã quy đổi đơn vị theo `K_agent_db_00` mục 6 (BCTC: tỷ đồng; `*_pct` ĐÃ là điểm % — KHÔNG nhân 100; ngoại lệ nhân 100: `*_trend`, ratio finstats)?
 11. **Mỗi claim định lượng có nguồn** truy được: collection + field, hoặc URL web search? Tin có dẫn link `https://finext.vn/news/<slug>` hoặc URL gốc?
 
 ### 5.5. Checkpoint + structural
@@ -160,7 +160,7 @@ Chạy 12 câu trước khi present báo cáo. Vi phạm câu nào sửa rồi m
 
 - `market_recent` query rỗng tuần → báo user, hỏi có muốn dùng phiên cuối tuần trước đó không
 - `industry_snapshot` thiếu 1-2 ngành whitelist 18 → ghi note "ngành X chưa có dữ liệu phiên cuối tuần", tiếp tục với 16-17 ngành còn lại
-- `stock_nntd` rỗng → query `data_briefing` block NN/TD thay thế
+- `stock_nntd` không có block `nn`/`td` cho mã → v2: block bị omit = "không có dữ liệu NN/TD cho mã này", KHÔNG phải mua ròng 0. NN/TD cấp thị trường query `market_nntd` trực tiếp (block clone trong `data_briefing` đã bỏ từ v2)
 - `news_history_feed` rỗng tuần → tăng tỷ trọng web search cho phần 8
 - `industry_finstats` thiếu valuation_ratios 1 ngành → ghi note + skip cột P/E phân vị cho ngành đó
 

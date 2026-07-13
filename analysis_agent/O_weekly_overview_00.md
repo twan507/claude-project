@@ -241,7 +241,7 @@ Sub-section flex. Cap technical = 0%.
 ### 4.4. Breadth phiên cuối tuần
 
 - Số ngành whitelist 18 tăng/giảm: [N tăng / M giảm / K trung tính]
-- Số mã toàn thị trường tăng/giảm: [N tăng / M giảm] (từ `data_briefing`)
+- Số mã toàn thị trường tăng/giảm: [N tăng / M giảm] (từ `data_briefing` doc `core`, `market.breadth` — rổ FNXINDEX)
 
 ### 4.5. Khối ngoại/Tự doanh tuần
 
@@ -643,7 +643,7 @@ Nhà đầu tư tự cân nhắc dựa trên tình hình tài chính cá nhân, 
 - Bias: Quan tâm / Trung tính / Cần thận trọng
 - Magnitude: Small / Material / Significant
 - Persistence: Transitory / Trending / Structural
-- Trend indicator: CẤM dùng (`market_snapshot.trend`, `industry_snapshot.trend`, `group_snapshot.trend`, `*_recent.recent_trend`)
+- Trend indicator: CẤM dùng (`market_snapshot.trend`, `industry_snapshot.trend`, `group_snapshot.trend`, `series[].trend` trong `*_recent`)
 
 ### 4.2. Source citation
 

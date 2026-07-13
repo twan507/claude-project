@@ -80,7 +80,7 @@ projection: { "_id": 0, "industry_name": 1, "type": 1,
 **Lưu ý đơn vị:**
 - BCTC absolute values: VND (chia 10⁹ → tỷ đồng khi trình bày)
 - Vốn hoá: đã là tỷ đồng
-- Tỷ lệ (ROE, ROA, biên, growth): thập phân (nhân 100 → %)
+- Tỷ lệ trong finstats (ROE, ROA, biên, growth): thập phân (nhân 100 → %) — riêng các field `*_pct`/`pct_change` ngoài finstats ĐÃ là điểm %, đọc thẳng (`K_agent_db_00` mục 6)
 
 ### Tiêu chí đạt Funnel B
 
@@ -145,7 +145,7 @@ Ngành phải thoả ít nhất **3/4 tiêu chí**:
 
 ### Workaround khi data không đủ
 
-Nếu ngành có `NaN` ở một số trường quan trọng (thường là ngành nhỏ, ít mã):
+Nếu ngành thiếu dữ liệu ở một số trường quan trọng — v2: field bị omit khỏi doc, không còn `NaN` (thường là ngành nhỏ, ít mã):
 
 - Data thiếu > 50% chỉ số B1-B4 → loại ngành khỏi universe (không đủ visibility)
 - Data thiếu 20-50% → dùng các chỉ số còn lại, downgrade yêu cầu từ 3/4 xuống 2/3

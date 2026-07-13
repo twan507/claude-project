@@ -539,7 +539,7 @@ Reference `K_agent_db_00` mục 5. Thêm dịch riêng pack này:
 
 ## 6. Citation — 4 nhóm cho pack này
 
-Reference `K_agent_db_00` mục 5.3 + system prompt mục 7. Apply cho pack:
+Reference system prompt mục 5.2 (source attribution) + `K_agent_db_00` mục 10 (output contract). Apply cho pack:
 
 | Loại data | Format | Ví dụ |
 |---|---|---|
@@ -672,7 +672,7 @@ trong báo cáo cần được xem xét lại.
 
 ## 9. Output naming convention
 
-File output naming theo `P_stock_report_04` mục 4.6 + `K_agent_db_00` mục 7.5:
+File output naming theo `P_stock_report_04` mục 4.6:
 
 ```
 Single mode:
@@ -715,4 +715,4 @@ Agent check trước Stage 3 finalize:
 | `P_stock_report_00..04` | Source content — render spec này consume content |
 | `K_agent_db_00` mục 5 | K hygiene rules — apply cho mọi render |
 | `K_agent_db_00` mục 6 | Unit conversion rules — apply cho bảng số liệu |
-| System prompt mục 7 | Citation 4 nhóm — apply cho mọi claim |
+| System prompt mục 5.2 | Source attribution — mọi claim định lượng có nguồn truy được |

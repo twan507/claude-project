@@ -140,7 +140,7 @@ Các term ở Nhóm A có thể có nghĩa khác trong context khác. Khi nghi n
 | Long / Short | vị thế trading ("Long position") | tính từ thời gian ("long-term", "short-term") |
 | Position | vị thế trading ("size position") | competitive position, value chain position (dịch là "vị thế cạnh tranh / vị thế trong chuỗi giá trị" — KHÔNG dịch chữ "position" gốc) |
 | Entry / Exit | vào/thoát lệnh trading | entry point pipeline, exit code workflow (giữ EN) |
-| Trend | prose nói xu hướng giá/ngành | field name DB (`trend_state`, `recent_trend`) |
+| Trend | prose nói xu hướng giá/ngành | field name DB (`w_trend`, `series[].trend`) |
 | Signal | prose nói tín hiệu thị trường | placeholder template `[Signal X]`, field name |
 | Zone | prose nói vùng giá | field name (`technical_zone.overall`), label `Zone A/B/C` |
 | Phase | giai đoạn (prose chung) | Phase 1/2/3 portfolio construction (giữ EN, code-like) |

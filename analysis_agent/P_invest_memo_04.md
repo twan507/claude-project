@@ -108,7 +108,7 @@ Mỗi tiêu chí 1-3 điểm. Thang điểm:
 
 **Data source:**
 - Trading value trung bình: tính từ stock_recent 20 phiên (đã có từ tier 2)
-- marketcap, freeFloatRate: từ stock_info
+- marketcap, free_float_pct: từ stock_info (v2 đổi tên từ freeFloatRate, giá trị là điểm % — 45 = 45%)
 
 **Tác động bucket xuống tier 5:**
 
@@ -154,7 +154,7 @@ Mã vào shortlist qua đường C (fail B) chắc chắn có catalyst mạnh �
 - Mã không có NN giao dịch → chấm 1đ (không có signal), không loại
 - Xu hướng quan trọng hơn giá trị tuyệt đối: tuần gần nhất tăng mua so với các tuần trước = tín hiệu tốt hơn là giá trị tháng cao
 
-**Data source:** stock_nntd (đã có tier 2). Check thêm `foreignerRoom` từ stock_info — mã cạn room thì NN mua ít ý nghĩa hơn.
+**Data source:** stock_nntd (đã có tier 2). Lưu ý v2: mã không có giao dịch NN/TD thì block `nn`/`td` bị omit hẳn khỏi doc — hiểu là "không có dữ liệu", chấm 1đ theo rule trên, KHÔNG phải "mua ròng 0". Check thêm `foreignerRoom` từ stock_info — mã cạn room thì NN mua ít ý nghĩa hơn.
 
 ### Tiêu chí 6 — Đồng đều điểm dòng tiền 5 phiên (kỹ thuật — flow)
 
@@ -316,7 +316,7 @@ Nếu có mismatch → flag và report trong checkpoint.
 
 5 tiêu chí này dùng data đã có từ tier 2:
 - Tiêu chí 1: stock_finstats vs industry_finstats
-- Tiêu chí 3: trading value trung bình + marketcap + freeFloatRate
+- Tiêu chí 3: trading value trung bình + marketcap + free_float_pct
 - Tiêu chí 4: catalyst map từ tier 2
 - Tiêu chí 5: stock_nntd
 - Tiêu chí 6: stock_recent day_score 5 phiên + week_score

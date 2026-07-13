@@ -11,8 +11,6 @@ File này giải thích **cách đọc và áp dụng** các chỉ báo trong `a
 - `K_agent_db_03` — lỗi tránh, cách xử lý khi sai giả định
 - `K_agent_db_04` (file này) — methodology: ngưỡng, kịch bản, quy tắc diễn giải
 
-**Lưu ý về nhãn "Rule 6" trong tài liệu này:** Các chỗ nhắc "Rule 6" hoặc "Rule 6 file 00" là shorthand theo phiên bản cũ của system prompt. Trong architecture hiện tại, đây là K hygiene — system prompt mục 5.5 + `K_agent_db_00` mục 5. Nội dung bên dưới giữ nguyên văn vì giá trị methodology không phụ thuộc naming.
-
 ### Khi nào đọc file này
 
 - **Đầu session phân tích phức tạp** — đọc toàn file 1 lần để internalize framework
@@ -21,11 +19,39 @@ File này giải thích **cách đọc và áp dụng** các chỉ báo trong `a
 
 ### Nguyên tắc chủ đạo
 
+0. **Bối cảnh PHASE (v2)** — với phân tích tổng hợp/khuyến nghị, tham khảo nhãn pha hiện tại của hệ (`data_briefing.core.phase` / `market_phase`) làm bối cảnh. Trend/breadth trong file này là công cụ để agent đánh giá xu hướng ĐỘC LẬP; khi kết luận lệch với nhãn `market_phase`, trình bày cả hai góc nhìn và nêu rõ điểm lệch — không mặc định bên nào thắng (`K_agent_db_00` mục 4.6, `K_agent_db_06`).
 1. **Mọi ngưỡng đều có cơ sở từ empirical distribution của DB thực** — không phải hardcode theo training data của Claude
 2. **Dòng tiền là lăng kính trung tâm** — mọi phân tích tổng hợp phải có ít nhất 1 luận điểm dòng tiền
 3. **4 lăng kính kết hợp**: dòng tiền → kỹ thuật → cơ bản → vĩ mô (nếu liên quan)
 4. **3 lớp đồng pha**: thị trường → ngành → mã, chỉ có tín hiệu khỏe khi ít nhất 2 lớp đồng thuận
 5. **Đa khung w/m/q/y** không bao giờ suy từ khung này sang khung khác, chỉ đọc theo mức độ đồng pha
+
+### Bảng dịch taxonomy nội bộ → cách nói với user (K hygiene)
+
+Bảng tra nhanh cho rule K hygiene (system prompt mục 5.5 + `K_agent_db_00` mục 5): taxonomy dưới đây là công cụ nội bộ của file này, KHÔNG lộ tên ra output — thay bằng mô tả trực tiếp ở cột phải. Ký hiệu DB raw xem bảng `K_agent_db_00` mục 5.2; thuật ngữ tin tức xem `K_agent_db_05` phần 9.
+
+| Internal | Mô tả cho user |
+|---|---|
+| Kịch bản A (đồng pha trung tính tích cực) | Thị trường tăng khỏe đồng đều 4 khung, chưa cực đoan |
+| Kịch bản B (ngắn yếu + dài khỏe) | Điều chỉnh ngắn hạn trong xu hướng dài vẫn mạnh, cơ hội mua pullback |
+| Kịch bản C (ngắn yếu + dài cũng yếu) | Cả ngắn và dài đều yếu, tránh bắt đáy, bounce có thể chỉ là hồi kỹ thuật |
+| Kịch bản D (ngắn quá mua + dài chưa) | Điều chỉnh ngắn sắp tới trong uptrend dài, chờ tuần pullback mới vào |
+| Kịch bản E (đồng pha quá mua) | Cảnh báo đỉnh lớn, cả thị trường lan toả cực đoan, giảm tỷ trọng |
+| Kịch bản F (đồng pha quá bán) | Cảnh báo đáy lớn, canh tích luỹ dần, không all-in vì đáy có thể kéo dài |
+| Kịch bản G (sóng hồi trung hạn) | Rally trung hạn từ đáy dài hạn, chưa xác nhận dài hạn, rủi ro cao |
+| Kịch bản E1 (đã tăng nhưng còn khoẻ) | Mã đã có sóng tăng rõ nhưng chưa có dấu hiệu cạn lực |
+| Kịch bản E2 (chưa tăng nhưng dòng tiền quay lại) | Mã đang tích luỹ hoặc vừa đảo chiều đáy, tín hiệu sớm chưa xác nhận |
+| Kịch bản E3 (rủi ro cao, tránh vào) | Mã có nhiều cảnh báo đồng thời, không nên mua |
+| warning mean-reversion | Cảnh báo khả năng đảo chiều do quá mua hoặc quá bán |
+| exhaustion | Rally đuối hơi, cạn lực tăng |
+| dead-cat bounce | Hồi kỹ thuật trong downtrend, không bền |
+| confluence level | Vùng giao nhau của nhiều mức hỗ trợ hoặc kháng cự, mạnh hơn mức đơn |
+| Value Area | Vùng giá chấp nhận, nơi diễn ra khoảng 70% giao dịch |
+| Value Trap | Bẫy giá trị, P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued |
+| DuPont decomposition | Tách ROE thành 3 thành phần: biên lợi nhuận × vòng quay tài sản × đòn bẩy |
+| Golden Ratio retracement | Mức Fibonacci 61.8%, mức hỗ trợ sâu nhất; vượt xuống là cấu trúc trend có thể đã gãy |
+| whip-saw | Dao động biên độ lớn, rally rồi sập lặp nhiều lần |
+| B5/B6/B7, Pitfall F1-F12, Workflow A-M, Bước 1/2/3 | Không nhắc tên section/workflow, làm theo flow tự nhiên |
 
 ---
 
@@ -103,10 +129,10 @@ Trong đó:
 
 ### A3. industry_rank_pct & market_rank_pct
 
-**Công thức:** `rank_pct = 1 - rank/total`
+**Công thức:** `rank_pct = (1 - rank/total) × 100` — thang **0–100** (v2)
 
-- rank_pct = 0.9 → mã xếp trong top 10% (vượt qua 90% còn lại)
-- rank_pct = 0.5 → mã ở mức trung vị
+- rank_pct = 90 → mã xếp trong top 10% (vượt qua 90% còn lại)
+- rank_pct = 50 → mã ở mức trung vị
 - rank_pct = 0 → xếp cuối hoặc không đủ điều kiện xếp hạng (thanh khoản quá thấp)
 
 **Ranking dựa trên week_score** giảm dần, có filter thanh khoản tối thiểu (mã có trading_value quá thấp bị gán rank_pct = 0).
@@ -115,21 +141,21 @@ Trong đó:
 
 | rank_pct | Mô tả |
 |---|---|
-| ≥ 0.9 | Top 10%, dẫn đầu |
-| 0.75 → 0.9 | Top 25%, mạnh |
-| 0.5 → 0.75 | Trên trung vị |
-| 0.25 → 0.5 | Dưới trung vị |
-| 0.01 → 0.25 | Bottom 25%, yếu |
+| ≥ 90 | Top 10%, dẫn đầu |
+| 75 → 90 | Top 25%, mạnh |
+| 50 → 75 | Trên trung vị |
+| 25 → 50 | Dưới trung vị |
+| 1 → 25 | Bottom 25%, yếu |
 | = 0 | Không xếp hạng hoặc bottom thực — bỏ qua, không phân tích sâu |
 
 **Kết hợp industry_rank_pct và market_rank_pct** (4 kịch bản):
 
 | industry_rank_pct | market_rank_pct | Đọc |
 |---|---|---|
-| Cao (≥ 0.7) | Cao (≥ 0.7) | **Leader toàn diện** — dẫn đầu trong ngành mạnh, ưu tiên cao |
-| Cao (≥ 0.7) | Thấp (< 0.5) | **Leader ngành yếu** — nổi bật trong ngành đang bị bỏ lại, rủi ro khi ngành điều chỉnh kéo theo |
-| Thấp (< 0.5) | Cao (≥ 0.7) | **Hiếm** — ngành mạnh nhưng mã yếu trong ngành, cân nhắc tại sao yếu |
-| Thấp (< 0.5) | Thấp (< 0.5) | **Yếu toàn diện** — tránh |
+| Cao (≥ 70) | Cao (≥ 70) | **Leader toàn diện** — dẫn đầu trong ngành mạnh, ưu tiên cao |
+| Cao (≥ 70) | Thấp (< 50) | **Leader ngành yếu** — nổi bật trong ngành đang bị bỏ lại, rủi ro khi ngành điều chỉnh kéo theo |
+| Thấp (< 50) | Cao (≥ 70) | **Hiếm** — ngành mạnh nhưng mã yếu trong ngành, cân nhắc tại sao yếu |
+| Thấp (< 50) | Thấp (< 50) | **Yếu toàn diện** — tránh |
 
 **Industry_rank (ngành):** số nguyên 1-24, sort theo week_score ngành giảm dần. Rank 1 = ngành có week_score cao nhất.
 
@@ -222,11 +248,11 @@ Có thể viết tắt "xu hướng tuần/tháng/quý/năm" nhưng KHÔNG đư�
 
 **3 collection có trend history:**
 
-- `market_recent.recent_trend[]` — trend 4 khung mỗi phiên, 20 phiên gần nhất. Mỗi item có `{date, market_trend: {w_trend, m_trend, q_trend, y_trend}}`
+- `market_recent.series[].trend` — trend 4 khung mỗi phiên, 20 phiên gần nhất
 - `industry_recent.series[].trend` — trend 4 khung mỗi phiên trong series ngành
 - `group_recent.series[].trend` — trend 4 khung mỗi phiên trong series nhóm
 
-Lưu ý: `market_recent` có cấu trúc khác 2 cái kia — trend nằm ở array riêng `recent_trend`, không chung với `recent_price`. Kiểm tra schema ở `K_agent_db_01` trước khi viết query.
+Cả 3 cấp cùng cấu trúc `series[].trend` (v2 đã xác minh với DB thật — bản docs cũ tả `market_recent` có array `recent_trend` riêng là SAI). Schema ở `K_agent_db_01` khối D.
 
 **Stock không có trend riêng** — dùng `technical_zone` của snapshot + chuỗi giá qua `stock_recent` để suy vận động kỹ thuật.
 
@@ -247,7 +273,7 @@ Lưu ý: `market_recent` có cấu trúc khác 2 cái kia — trend nằm ở ar
 1. **Query snapshot** (market/industry/group) — biết vị trí hiện tại (4 giá trị w/m/q/y)
 2. **Query recent 20 phiên** — biết đang đi đâu, đã trải qua pattern nào. Đọc theo 5 pattern ở trên cho từng khung thời gian.
 
-**Cách mô tả cho user (đã dịch, theo Rule 6):**
+**Cách mô tả cho user (theo K hygiene):**
 
 - Không nói "xu hướng tuần rơi từ 0.86 xuống 0.35" (lộ raw nếu không có % đi kèm)
 - Nói: "Xu hướng tuần rơi từ 86% xuống 35% qua 4 phiên — đây là đang rơi từ vùng quá mua, không phải điều chỉnh bình thường"
@@ -283,7 +309,7 @@ w_trend yếu không có nghĩa y_trend sắp đảo. Thị trường có cấu 
 
 Khi cả 4 khung cùng báo một điều, tỷ lệ tín hiệu đúng tăng lên rất cao. Khi các khung lệch pha, phải đọc theo kịch bản cụ thể.
 
-**Lưu ý dịch thuật (Rule 6):** 7 kịch bản dưới đây (A-G) là taxonomy NỘI BỘ để agent hiểu và gọi ra framework. KHÔNG nhắc tên "Kịch bản A/B/C/..." trong output cho user. Khi áp dụng, mô tả trực tiếp hiện tượng theo ngôn ngữ tự nhiên (bảng dịch đầy đủ ở `K_agent_db_00` mục 5.3). Ví dụ: thay vì "Thị trường đang ở Kịch bản G", nói "Thị trường đang trong pha rally trung hạn từ đáy dài hạn, dài hạn chưa xác nhận".
+**Lưu ý dịch thuật (K hygiene):** 7 kịch bản dưới đây (A-G) là taxonomy NỘI BỘ để agent hiểu và gọi ra framework. KHÔNG nhắc tên "Kịch bản A/B/C/..." trong output cho user. Khi áp dụng, mô tả trực tiếp hiện tượng theo ngôn ngữ tự nhiên (bảng dịch taxonomy ở đầu file này). Ví dụ: thay vì "Thị trường đang ở Kịch bản G", nói "Thị trường đang trong pha rally trung hạn từ đáy dài hạn, dài hạn chưa xác nhận".
 
 **7 kịch bản chính:**
 
@@ -395,7 +421,7 @@ Tương tự cho nhóm và thị trường: index tăng mạnh nhưng market tre
 
 Theo B1.5, query cả:
 - `market_snapshot.trend` — điểm hiện tại
-- `market_recent.recent_trend` (slice 20) — vận động
+- `market_recent.series` (mỗi item có `trend`) — vận động
 
 Đánh giá theo 5 pattern B1.5:
 - Snapshot cả 4 khung > 0.75 VÀ recent cho thấy đã ở cao nhiều phiên liên tiếp → cảnh báo đỉnh lớn đồng pha, không screening mua mới
@@ -418,7 +444,7 @@ Query `stock_snapshot` với filter `industry` ∈ ngành đã chọn và:
 - `technical_zone.overall.w` ∈ (A, AA, AAA)
 - `technical_zone.overall.m` ∈ (A, AA, AAA)
 - `money_flow_score.day_score` ≥ 13 (top 25% phiên hôm nay)
-- `money_flow_score.market_rank_pct` ≥ 0.6
+- `money_flow_score.market_rank_pct` ≥ 60
 - `price.volume_strength_index` ≥ 1.3
 
 **Step 4: Confirm bằng cơ bản**
@@ -440,7 +466,7 @@ Theo B1.5, query cả:
 - `industry_snapshot` của ngành user hỏi → điểm hiện tại
 - `industry_recent` của ngành (slice 20) → vận động qua 20 phiên
 
-Trình bày cho user (đã dịch theo Rule 6, KHÔNG dùng raw, KHÔNG nhắc tên section):
+Trình bày cho user (theo K hygiene, KHÔNG dùng raw, KHÔNG nhắc tên section):
 - Xếp hạng ngành (trong 24 ngành)
 - Điểm dòng tiền tuần
 - Xu hướng 4 khung hiện tại + so với 10 phiên trước (cải thiện / xấu đi / ổn định / dao động biên độ lớn)
@@ -624,8 +650,9 @@ Không có bộ chỉ tiêu chung cho mọi cổ phiếu. `stock_finstats` có 4
 - BCTC absolute (Net Revenue, Total Assets, Equity, Net Income...): **đồng Việt Nam** — chia 10⁹ để có tỷ đồng
 - Vốn hoá thị trường trong `valuation_ratios.value`: **đã là tỷ đồng**
 - NN/TD (`buy_value`, `sell_value`, `net_value`): **đã là tỷ đồng**
-- Tỷ lệ (ROE, ROA, margin, pct_change): **dạng thập phân** — nhân 100 để có %
-- Lãi suất trong `other_data`: dạng thập phân (0.045 = 4.5%)
+- Tỷ lệ trong `stock_finstats`/`industry_finstats` (ROE, ROA, margin, growth): ⚠ **dạng thập phân** — nhân 100 khi nói (NGOẠI LỆ còn lại của quy ước v2, chờ schema curated)
+- `pct_change`/`*_pct` ở price/change/other_data: **ĐÃ là điểm %** (v2) — đọc thẳng, KHÔNG nhân 100
+- Lãi suất trong `other_data`: `value` gốc thập phân đọc kèm `unit` (0.045 = 4.5%)
 
 **Lookup benchmark ngành:**
 
@@ -893,7 +920,7 @@ Hiểu seasonality giúp đọc đúng QoQ: Q4 xây dựng giảm so với Q3 c�
 
 Đây là phần ứng dụng thực tế — gộp dòng tiền, kỹ thuật, cơ bản vào kịch bản quyết định. Agent nên lưu bảng criteria này trong đầu khi phân tích mã.
 
-**Lưu ý dịch thuật (Rule 6):** Tên "Kịch bản E1/E2/E3" là taxonomy NỘI BỘ. KHÔNG nhắc "Kịch bản E1", "E2", "E3" trong output. Mô tả trực tiếp bằng ngôn ngữ tự nhiên: "mã đã tăng nhưng còn khoẻ" (E1), "mã đang tích luỹ, dòng tiền bắt đầu quay lại" (E2), "mã có nhiều cảnh báo đồng thời, rủi ro cao" (E3). Bảng dịch đầy đủ ở `K_agent_db_00` mục 5.3.
+**Lưu ý dịch thuật (K hygiene):** Tên "Kịch bản E1/E2/E3" là taxonomy NỘI BỘ. KHÔNG nhắc "Kịch bản E1", "E2", "E3" trong output. Mô tả trực tiếp bằng ngôn ngữ tự nhiên: "mã đã tăng nhưng còn khoẻ" (E1), "mã đang tích luỹ, dòng tiền bắt đầu quay lại" (E2), "mã có nhiều cảnh báo đồng thời, rủi ro cao" (E3). Bảng dịch taxonomy ở đầu file này.
 
 ### E1. Kịch bản "Đã tăng nhưng còn khoẻ"
 
@@ -903,7 +930,7 @@ Mã đã có sóng tăng rõ nhưng tín hiệu dòng tiền, kỹ thuật, cơ 
 
 | Lăng kính | Tiêu chí |
 |---|---|
-| Dòng tiền | week_score ≥ 6 (top 25%); day_score gần đây dương hoặc gần 0; market_rank_pct ≥ 0.7; VSI trong 1-3 (có volume nhưng chưa spike cực đoan) |
+| Dòng tiền | week_score ≥ 6 (top 25%); day_score gần đây dương hoặc gần 0; market_rank_pct ≥ 70; VSI trong 1-3 (có volume nhưng chưa spike cực đoan) |
 | Kỹ thuật | overall.w ∈ {A, AA, AAA}; overall.m ∈ {AA, AAA}; overall.q ∈ {A, AA, AAA}; giá trên MA20, MA60; chưa vượt VAH khung tháng quá xa |
 | Cơ bản | P/E không vượt 150% median ngành; ROE ≥ median ngành; biên không co hẹp QoQ; tăng trưởng LNST dương 2 quý gần nhất |
 | Vĩ mô (nếu nhạy) | Chỉ số liên quan (dầu, thép, lãi suất) đang trong trend tích cực hoặc ổn định |
@@ -920,7 +947,7 @@ Mã đang tích luỹ hoặc vừa đảo chiều đáy, có tín hiệu sớm n
 
 | Lăng kính | Tiêu chí |
 |---|---|
-| Dòng tiền | week_score từ âm chuyển sang gần 0 hoặc nhẹ dương; day_score bật lên dương mạnh 2-3 phiên gần nhất; market_rank_pct tăng từ thấp (< 0.3) lên ≥ 0.5 |
+| Dòng tiền | week_score từ âm chuyển sang gần 0 hoặc nhẹ dương; day_score bật lên dương mạnh 2-3 phiên gần nhất; market_rank_pct tăng từ thấp (< 30) lên ≥ 50 |
 | Kỹ thuật | overall.w chuyển từ B/C lên B hoặc A; ma_zone đảo chiều (giá bắt đầu cắt lên ma20); VSI ≥ 1.3 trong phiên bật |
 | Cơ bản | Định giá rẻ hơn median ngành; hiệu quả chưa cải thiện nhưng không xấu đi; chưa có warning sign (ICR vẫn trên 2, LNST không âm kéo dài) |
 | Vĩ mô | Ngành có catalyst sắp tới hoặc giá hàng hoá liên quan bắt đầu hồi |
@@ -937,7 +964,7 @@ Mã có nhiều cảnh báo đồng thời, không nên mua dù giá đang rẻ 
 
 | Lăng kính | Warning |
 |---|---|
-| Dòng tiền | week_score ≤ -15 (bottom 15%); market_rank_pct < 0.3 hoặc = 0; day_score âm kéo dài 5+ phiên |
+| Dòng tiền | week_score ≤ -15 (bottom 15%); market_rank_pct < 30 hoặc = 0; day_score âm kéo dài 5+ phiên |
 | Kỹ thuật | overall.w = C; ma đảo xếp hạng (ma5 < ma20 < ma60); giá dưới ma20 và đang rơi xa; fibonacci_zone = C (vượt f618) |
 | Cơ bản | P/E cao hơn 150% median ngành + ROE thấp; ICR < 2; LNST âm 2+ quý liên tiếp; biên co hẹp 3-4 quý |
 | Vĩ mô | Ngành đang gặp headwind có cấu trúc (regulatory risk, lãi suất tăng với bank nhỏ, USD tăng với xuất khẩu) |
@@ -979,7 +1006,7 @@ Khi user yêu cầu phân tích chi tiết một mã, theo chuỗi 10 bước:
 
 Các tình huống agent dễ đọc sai. Mỗi pitfall có chẩn đoán và cách xử lý đúng.
 
-**Lưu ý dịch thuật (Rule 6):** Tên "Pitfall F1/F2/.../F12" là taxonomy NỘI BỘ để agent tra cứu. KHÔNG nhắc "pitfall F2", "F5", "F12"... trong output. Khi áp dụng pitfall vào phân tích cho user, mô tả trực tiếp hiện tượng (VD: thay vì "đây là pitfall F5 bẫy giá trị", nói "đây là bẫy giá trị — P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued"). Cũng không nhắc thuật ngữ tiếng Anh chưa dịch như "exhaustion", "dead-cat bounce", "Value Trap" — dịch theo bảng ở `K_agent_db_00` mục 5.3.
+**Lưu ý dịch thuật (K hygiene):** Tên "Pitfall F1/F2/.../F12" là taxonomy NỘI BỘ để agent tra cứu. KHÔNG nhắc "pitfall F2", "F5", "F12"... trong output. Khi áp dụng pitfall vào phân tích cho user, mô tả trực tiếp hiện tượng (VD: thay vì "đây là pitfall F5 bẫy giá trị", nói "đây là bẫy giá trị — P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued"). Cũng không nhắc thuật ngữ tiếng Anh chưa dịch như "exhaustion", "dead-cat bounce", "Value Trap" — dịch theo bảng taxonomy ở đầu file này.
 
 ### F1. Day_score dương mạnh nhưng week_score âm
 
@@ -1013,7 +1040,7 @@ Các tình huống agent dễ đọc sai. Mỗi pitfall có chẩn đoán và c�
 
 ### F4. Market_rank_pct cao nhưng ngành yếu
 
-**Tình huống:** mã có market_rank_pct = 0.85 (top 15% thị trường), nhưng ngành nó thuộc xếp gần cuối khi tự tổng hợp rank theo `week_score` qua 18 ngành whitelist (vd rank 17/18) và trend ngành < 0.3.
+**Tình huống:** mã có market_rank_pct = 85 (top 15% thị trường), nhưng ngành nó thuộc xếp gần cuối khi tự tổng hợp rank theo `week_score` qua 18 ngành whitelist (vd rank 17/18) và trend ngành < 0.3.
 
 **Diễn giải sai:** "Mã mạnh, mua."
 

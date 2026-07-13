@@ -99,7 +99,7 @@ Chạy checklist trước khi render. Vi phạm câu nào sửa rồi mới rend
 ### 2.6. K hygiene + nguồn + branding
 
 21. K hygiene: ký hiệu DB raw đã dịch, taxonomy nội bộ không lộ ra?
-22. Số liệu đã quy đổi đơn vị (tỷ đồng, % thập phân nhân 100)?
+22. Số liệu đã quy đổi đơn vị theo `K_agent_db_00` mục 6 (BCTC: tỷ đồng; `*_pct` ĐÃ là điểm % — KHÔNG nhân 100; ngoại lệ nhân 100: `*_trend`, ratio finstats)?
 23. Mỗi claim định lượng có nguồn (collection + field / URL web search)?
 24. Tin có dẫn link finext.vn hoặc URL gốc?
 25. Branding info đã render đúng (custom / default branded / plain)?

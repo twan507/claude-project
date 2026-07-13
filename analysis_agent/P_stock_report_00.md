@@ -47,7 +47,7 @@ Pack tuân các nguyên tắc cross-cutting đã quy định trong project + 2 n
 2. **No command words** — observation/luận điểm, không "mua/bán/giảm tỷ trọng/stop loss". Wording lịch sự, mềm
 3. **No probability %** cho kịch bản — dùng if-then trigger objective
 4. **K hygiene** — không lộ ký hiệu DB raw + taxonomy nội bộ (xem `K_agent_db_00` mục 5)
-5. **Source attribution** — mọi claim định lượng có nguồn truy được (citation 4 nhóm — xem `K_agent_db_00` mục 5.3 + system prompt)
+5. **Source attribution** — mọi claim định lượng có nguồn truy được (citation 4 nhóm — xem `O_stock_report_00` mục 6 + system prompt mục 5.2)
 6. **Web search song song DB** — khi cần tin tức / context vĩ mô, bắt buộc query DB VÀ web search song song (`K_agent_db_00` mục 2)
 
 ### Pack-specific
@@ -162,7 +162,7 @@ Chi tiết ở `O_stock_report_00`. Tóm tắt:
 - Audit trail metadata cuối báo cáo (audit trail data sources + timestamps)
 - Audience flex (nội bộ / KH) → ảnh hưởng K hygiene + wording mềm/cứng
 - Render branded optional (VBSE / Finext / plain) — render binary out of scope, MD final là deliverable
-- Citation 4 nhóm (xem `K_agent_db_00` mục 5.3 + system prompt mục 7)
+- Citation 4 nhóm (xem `O_stock_report_00` mục 6 + system prompt mục 5.2)
 - Naming: `stock_report_<TICKER>_<YYYYMMDD>_<mode>.md` (mode = quick/standard/deep)
 
 ## 8. Trigger / Activation

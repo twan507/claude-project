@@ -138,8 +138,8 @@ Ngành bảo hiểm nhỏ (10 mã), tiêu chí nới hơn để có universe đ�
 ### Workaround khi data không đủ
 
 - Mã không có stock_finstats (< 1% universe): loại thẳng khỏi universe
-- Mã có `NaN` ở > 50% chỉ tiêu: loại
-- Mã có `NaN` ở 20-50% chỉ tiêu: đánh giá với chỉ tiêu còn lại, downgrade yêu cầu từ 3/4 xuống 2/3 (SXKD/CK/BH) hoặc 3/5 xuống 2/4 (NGANHANG)
+- Mã thiếu dữ liệu (field bị omit khỏi doc — v2 không còn `NaN`) ở > 50% chỉ tiêu: loại
+- Mã thiếu dữ liệu ở 20-50% chỉ tiêu: đánh giá với chỉ tiêu còn lại, downgrade yêu cầu từ 3/4 xuống 2/3 (SXKD/CK/BH) hoặc 3/5 xuống 2/4 (NGANHANG)
 - Mã mới niêm yết < 4 quý: chỉ đánh giá valuation + ROE, bỏ qua growth
 
 ### Ngưỡng tham khảo theo type
@@ -295,11 +295,11 @@ Không ngưỡng cứng để loại — đây là **ranking tool**. Xếp hạn
 - B: sideways
 - C: downtrend dài hạn — cảnh báo
 
-**A3. market_rank_pct (xếp hạng dòng tiền toàn thị trường):**
-- ≥ 0.9: top 10%
-- 0.75-0.9: top 25%
-- 0.5-0.75: trên trung vị
-- < 0.5: dưới trung vị (rank thấp)
+**A3. market_rank_pct (xếp hạng dòng tiền toàn thị trường — percentile 0-100):**
+- ≥ 90: top 10%
+- 75-90: top 25%
+- 50-75: trên trung vị
+- < 50: dưới trung vị (rank thấp)
 
 **A4. week_score (điểm dòng tiền tuần):**
 - > 20: tốt
@@ -471,14 +471,14 @@ Universe gốc: [X] mã trong ngành → pass D ([Y]) → pass B ([Z]) → pass 
 Bảng shortlist (Top [N]):
 | # | Ticker | Type | Bucket | Đường vào | Zone w | Zone m | Zone q | Zone y | market_rank_pct | week_score |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1 | ... | SXKD | 1 | B∩D | AA | AA | A | AA | 0.85 | 25 |
-| 2 | ... | SXKD | 2 | B∩D | B | A | AA | AAA | 0.70 | 12 |
-| 3 | ... | SXKD | 3 | B∩D | C | C | AA | A | 0.55 | -5 |
-| 4 | ... | NGANHANG | 1 | C∩D (catalyst) | A | A | B | B | 0.60 | 18 |
+| 1 | ... | SXKD | 1 | B∩D | AA | AA | A | AA | 85 | 25 |
+| 2 | ... | SXKD | 2 | B∩D | B | A | AA | AAA | 70 | 12 |
+| 3 | ... | SXKD | 3 | B∩D | C | C | AA | A | 55 | -5 |
+| 4 | ... | NGANHANG | 1 | C∩D (catalyst) | A | A | B | B | 60 | 18 |
 ...
 
 Lý do rank:
-- Ticker #1: rank 1 vì zone q+y đồng AA trở lên, market_rank_pct 0.85, week_score 25. Fundamental pass 4/4. Bucket 1.
+- Ticker #1: rank 1 vì zone q+y đồng AA trở lên, market_rank_pct 85, week_score 25. Fundamental pass 4/4. Bucket 1.
 - Ticker #2: rank 2 vì zone q+y mạnh nhưng tuần đang pullback (zone w=B). Bucket 2.
 ...
 
@@ -489,7 +489,7 @@ Lý do rank:
 Bảng tổng hợp tất cả shortlist:
 | Ticker | Ngành | Bucket | Đường | market_rank_pct | week_score | Zone q | Zone y | NN 1 tháng (tỷ) |
 |---|---|---|---|---|---|---|---|---|
-| ... | ... | 1 | B∩D | 0.85 | 25 | AA | AA | +120 |
+| ... | ... | 1 | B∩D | 85 | 25 | AA | AA | +120 |
 ...
 
 ## 5. Lựa chọn sát nút
@@ -507,7 +507,7 @@ Bảng tổng hợp tất cả shortlist:
 ## 6. Flags kỹ thuật chuyển sang tier 3
 
 Các cảnh báo cho tier 3 (chấm điểm):
-- Mã [X]: market_rank_pct 0.45 — chỉ dưới trung vị, điểm ranking tiêu chí 5 (dòng tiền NN/TD) có thể thấp
+- Mã [X]: market_rank_pct 45 — chỉ dưới trung vị, điểm ranking tiêu chí 5 (dòng tiền NN/TD) có thể thấp
 - Mã [Y]: catalyst play, thesis phụ thuộc sự kiện. Tier 3 cần đánh giá kỹ tiêu chí 4 (catalyst cá thể)
 - Mã [Z]: trading value 6 tỷ/phiên — sát ngưỡng D. Tier 6 sizing constraint 5% ADV per-phiên = ~300 triệu; với N=3 phiên build → max tổng vị thế ~900 triệu (≈3-4% portfolio). Nếu conviction High target 6-8% → phải giảm size thực tế. Công thức đầy đủ `P_invest_memo_08` Section 3.4
 - Mã [W]: catalyst play nhưng rơi Bucket 3 — thị trường có thể priced-in tiêu cực hoặc chưa nhận ra catalyst. User review kỹ catalyst trước khi quyết định giữ/loại
@@ -551,14 +551,14 @@ Case: tier 1 đã chọn 3 ngành (A, B, D). Agent chạy tier 2 cho từng ngà
 
 | Rank | Ticker | Zone q | Zone y | market_rank_pct | week_score | Bucket |
 |---|---|---|---|---|---|---|
-| 1 | Mã a1 | AA | AAA | 0.88 | 28 | 1 |
-| 2 | Mã a2 | AA | AA | 0.82 | 22 | 1 |
-| 3 | Mã a3 | AAA | AA | 0.75 | 15 | 2 (zone w=B pullback) |
-| 4 | Mã a4 | A | AA | 0.70 | 18 | 1 |
-| 5 | Mã a5 | AA | A | 0.65 | 8 | 2 |
-| 6 | Mã M | A | B | 0.55 | 12 | 2 (catalyst play) |
-| 7 | Mã a6 | A | A | 0.52 | 3 | 2 |
-| 8 | Mã a7 | B | AA | 0.48 | -2 | 3 (zone w+m đều C) |
+| 1 | Mã a1 | AA | AAA | 88 | 28 | 1 |
+| 2 | Mã a2 | AA | AA | 82 | 22 | 1 |
+| 3 | Mã a3 | AAA | AA | 75 | 15 | 2 (zone w=B pullback) |
+| 4 | Mã a4 | A | AA | 70 | 18 | 1 |
+| 5 | Mã a5 | AA | A | 65 | 8 | 2 |
+| 6 | Mã M | A | B | 55 | 12 | 2 (catalyst play) |
+| 7 | Mã a6 | A | A | 52 | 3 | 2 |
+| 8 | Mã a7 | B | AA | 48 | -2 | 3 (zone w+m đều C) |
 
 ### Ngành B — 28 mã
 

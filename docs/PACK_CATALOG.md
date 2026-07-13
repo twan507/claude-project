@@ -10,22 +10,23 @@ Multi-pack analyst agent dùng kernel routing pattern. Đọc `KERNEL_SKELETON.m
 
 ### Knowledge layer
 
-#### `K_agent_db` — 6 files
+#### `K_agent_db` — 7 files
 
-**Mục đích:** Knowledge base về MongoDB `agent_db` chứng khoán VN. Schema 25 collection, query patterns, anti-patterns, methodology diễn giải chỉ báo + tin tức.
+**Mục đích:** Knowledge base về MongoDB `agent_db` chứng khoán VN (pipeline fnx05 v2). Schema 31 collection, query patterns, anti-patterns, methodology diễn giải chỉ báo + tin tức, tầng phase & danh mục hệ thống.
 
 | File | Nội dung |
 |---|---|
-| `K_agent_db_00` | Master — mục đích, scope, manifest, domain rules, K hygiene, quy đổi đơn vị, output rules, **whitelist 18 ngành default + override** (mục 4.5) |
-| `K_agent_db_01` | Schema 25 collection (8 khối: Stock/Industry/Group/Market/History/News/Other/Briefing) + URL pattern finext.vn + **Xếp hạng ngành tự tổng hợp** |
-| `K_agent_db_02` | Query patterns 12 workflow (A-L) — bao gồm `Section 3.6` rank ngành tự tổng hợp aggregate |
-| `K_agent_db_03` | Anti-patterns — case study lỗi quá khứ + cách sửa |
-| `K_agent_db_04` | Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone, PTCB 4 type doanh nghiệp) |
+| `K_agent_db_00` | Master — mục đích, scope, manifest, domain rules (**whitelist 18 ngành** mục 4.5, **phase = tín hiệu tham chiếu** mục 4.6, luật hiệu suất 2 tầng mục 4.3), K hygiene + bảng dịch DB raw (mục 5), quy đổi đơn vị v2 điểm % (mục 6), omit-null + known gaps (mục 9), output contract |
+| `K_agent_db_01` | Schema 31 collection (8 khối cũ + **Section I phase & danh mục**) + URL pattern finext.vn + **Xếp hạng ngành tự tổng hợp** |
+| `K_agent_db_02` | Query patterns 13 workflow (A-M; **M = phase & danh mục**) — bao gồm `Section 3.6` rank ngành tự tổng hợp aggregate |
+| `K_agent_db_03` | Anti-patterns 10 case — case 9-10 mới (bối cảnh phase khi khuyến nghị, hiệu suất 2 tầng) |
+| `K_agent_db_04` | Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone, PTCB 4 type doanh nghiệp) + **bảng dịch taxonomy đầu file** |
 | `K_agent_db_05` | News methodology (4 loại tin, framework chấm impact, case study, bảng dịch thuật ngữ EN) |
+| `K_agent_db_06` | Phase & 3 danh mục hệ thống — 4 trạng thái + exposure, 7 chỉ số, cơ chế cơ cấu, bộ số hiệu suất FROZEN + 6 disclaimer bắt buộc. **Chỉ đọc khi user hỏi đích danh; P pack không dùng tầng phase** |
 
 **Dependencies:** Không (knowledge layer độc lập).
 
-**Status:** ✅ Active. Schema được sync với `db_agent/agent_db_*` (cùng schema, framing khác).
+**Status:** ✅ Active (2026-07-13 — port từ agent_db v2). Schema được sync với `agent_db/agent_db_*` (cùng schema, framing khác).
 
 ---
 
@@ -255,21 +256,21 @@ Multi-pack analyst agent dùng kernel routing pattern. Đọc `KERNEL_SKELETON.m
 
 ---
 
-## db_agent — Monolithic Knowledge Base
+## db_agent (`agent_db/`) — Monolithic Knowledge Base v2
 
-Single-shot stock analyst agent. Knowledge base 6 file phẳng (không có layered architecture). Dùng để tra cứu DB ad-hoc.
+Single-shot stock analyst agent, audience NĐT khách hàng Finext (v2, 2026-07-12). Knowledge base 6 file phẳng + system prompt resident (không có layered architecture). Dùng để tra cứu DB ad-hoc.
 
 ### Files
 
 | File | Nội dung |
 |---|---|
-| `system_prompt.md` | Vai trò agent + tone + manifest 6 file + 4 meta-rules bất biến |
-| `agent_db_00` | Master — mục đích, scope, manifest, domain rules (gồm 4.5 whitelist 18 ngành default + override), K hygiene, quy đổi đơn vị |
-| `agent_db_01` | Schema 25 collection (đồng bộ với `K_agent_db_01`) — schema mỗi collection, **Xếp hạng ngành tự tổng hợp**, whitelist callout, History block |
-| `agent_db_02` | Query patterns 12 workflow (đồng bộ với `K_agent_db_02`) |
-| `agent_db_03` | Anti-patterns (đồng bộ với `K_agent_db_03`) |
-| `agent_db_04` | Methodology diễn giải chỉ báo (đồng bộ với `K_agent_db_04`) |
+| `system_prompt.md` | v2 — file resident duy nhất, gộp `agent_db_00` cũ: vai trò + tone + bản đồ collection + đơn vị + phase (tín hiệu tham chiếu, v2.1) + khuyến nghị & hiệu suất 2 tầng + meta-rules + bảng dịch rút gọn + manifest |
+| `agent_db_01` | Schema 31 collection (đồng bộ với `K_agent_db_01`) — 8 khối + Section I phase & danh mục, **Xếp hạng ngành tự tổng hợp**, whitelist callout |
+| `agent_db_02` | Query patterns 13 workflow A-M (đồng bộ với `K_agent_db_02`) |
+| `agent_db_03` | Anti-patterns 10 case (đồng bộ với `K_agent_db_03`) |
+| `agent_db_04` | Methodology diễn giải chỉ báo + bảng dịch taxonomy đầu file (đồng bộ với `K_agent_db_04`) |
 | `agent_db_05` | News methodology (đồng bộ với `K_agent_db_05`) |
+| `agent_db_06` | Phase & 3 danh mục hệ thống (đồng bộ với `K_agent_db_06`) |
 
 **Dependencies:** Không (standalone).
 

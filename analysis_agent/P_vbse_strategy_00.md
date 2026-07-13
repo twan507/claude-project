@@ -57,7 +57,7 @@ Khung tư duy tổng quát, structure flex theo phát hiện thực tế của t
 - Không khuyến nghị giao dịch ngắn hạn (intraday, T+) — horizon 1-3 tháng forward.
 - Không gán % xác suất kịch bản (tuân `K_agent_db_00` mục 4.3).
 - Không dùng từ command (mua/bán/giảm tỷ trọng/stop loss) — diễn đạt qua observation/luận điểm.
-- **Không sử dụng chỉ báo trend nội bộ** (`*.trend`, `recent_trend`) nếu báo cáo render branded cho audience KH. Khi render plain (nội bộ) thì được dùng, nhưng phải dịch ra ngôn ngữ tự nhiên.
+- **Không sử dụng chỉ báo trend nội bộ** (`*.trend`, `series[].trend` trong `*_recent`) nếu báo cáo render branded cho audience KH. Khi render plain (nội bộ) thì được dùng, nhưng phải dịch ra ngôn ngữ tự nhiên.
 
 ## 2. Naming & lưu trữ
 

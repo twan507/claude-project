@@ -6,13 +6,6 @@ File này cung cấp khung diễn giải và phương pháp phân tích bốn lo
 
 Trong hệ thống tài liệu methodology của agent, `K_agent_db_05` đứng ở vị trí bổ sung cho `K_agent_db_04`. `K_agent_db_04` chuyên về diễn giải các chỉ báo định lượng (dòng tiền, trend, kỹ thuật, cơ bản), còn `K_agent_db_05` chuyên về diễn giải thông tin định tính (tin tức và sự kiện). Hai file kết hợp tạo nên bức tranh phân tích đầy đủ: khi có tín hiệu từ chỉ báo, `K_agent_db_04` cho biết diễn giải thế nào; khi có tin tức, `K_agent_db_05` cho biết tin có ý nghĩa gì và tác động ra sao. Phần cuối file này (phần 8) đặc biệt hướng dẫn cách kết hợp hai loại phân tích này để ra kết luận có độ tin cậy cao hơn là dùng riêng rẽ.
 
-**Lưu ý về nhãn "Rule N" trong tài liệu này:** Các chỗ nhắc "Rule 0", "Rule 6", "file 00" là shorthand theo phiên bản cũ của system prompt. Trong architecture hiện tại:
-
-- Rule 0 (mode Zalo/Phân tích mặc định) đã bỏ khỏi K pack. Output style nay do O pack quyết (nếu có O active) hoặc Default Kernel. Các chỗ hướng dẫn "format output theo Rule 0" trong file này cần hiểu là "format output theo layer style đang active"
-- Rule 6 (K hygiene, không lộ ký hiệu raw và taxonomy) tương ứng với system prompt mục 5.5 + `K_agent_db_00` mục 5
-
-Nội dung bên dưới giữ nguyên văn vì giá trị methodology không phụ thuộc naming.
-
 ### Quan hệ với các file khác
 
 `K_agent_db_01` mô tả schema bốn collection tin tức là `news_today_feed`, `news_today_content`, `news_history_feed`, và `news_history_content`, cùng với cấu trúc doc và các field metadata. `K_agent_db_02` có Workflow L ở phần cuối cung cấp query patterns mẫu cho bốn loại tin. `K_agent_db_03` chuyên về các lỗi xử lý dữ liệu định lượng, không cover tin tức nên không trùng lặp với file này. `K_agent_db_04` chuyên về diễn giải chỉ báo và phân tích cơ bản theo 4 type doanh nghiệp. `K_agent_db_05` hoàn thiện lăng kính thứ tư của agent là tin tức, đi kèm với dòng tiền, trend kỹ thuật, và cơ bản doanh nghiệp.
@@ -352,7 +345,7 @@ Tin đồn mang tính chất hình sự — chẳng hạn lãnh đạo bị bắ
 
 ### 5.7. Các pattern đặc thù của doanh nghiệp Việt Nam
 
-**Chia cổ tức bằng cổ phiếu** có ý nghĩa khác hẳn thị trường phương Tây. Trên thế giới, hành động này thường bị xem là pha loãng giá trị vô nghĩa. Tuy nhiên văn hoá đầu tư cá nhân tại Việt Nam rất ưa chuộng các đợt chia cổ phiếu trong giai đoạn thị trường uptrend, bởi việc điều chỉnh giá kỹ thuật xuống mức thấp tạo ra ảo giác cổ phiếu rẻ hơn, thu hút dòng tiền đầu cơ mới. Ngược lại trong thị trường downtrend, tin chia cổ phiếu bị thị trường cực kỳ ruồng rẫy vì làm tăng lượng cung cổ phiếu trôi nổi trong bối cảnh cạn kiệt thanh khoản. Agent khi đọc tin chia cổ phiếu phải xác định đang ở pha thị trường nào trước khi kết luận tác động.
+**Chia cổ tức bằng cổ phiếu** có ý nghĩa khác hẳn thị trường phương Tây. Trên thế giới, hành động này thường bị xem là pha loãng giá trị vô nghĩa. Tuy nhiên văn hoá đầu tư cá nhân tại Việt Nam rất ưa chuộng các đợt chia cổ phiếu trong giai đoạn thị trường uptrend, bởi việc điều chỉnh giá kỹ thuật xuống mức thấp tạo ra ảo giác cổ phiếu rẻ hơn, thu hút dòng tiền đầu cơ mới. Ngược lại trong thị trường downtrend, tin chia cổ phiếu bị thị trường cực kỳ ruồng rẫy vì làm tăng lượng cung cổ phiếu trôi nổi trong bối cảnh cạn kiệt thanh khoản. Agent khi đọc tin chia cổ phiếu phải xác định đang ở pha thị trường nào trước khi kết luận tác động — tham chiếu nhãn pha của hệ trong `market_phase` và/hoặc trend đa khung `K_agent_db_04` (xem 8.0), không phán đoán chay.
 
 **Phát hành ESOP** có ý nghĩa kép tuỳ vào tỷ lệ và điều kiện. Nếu tỷ lệ ESOP duy trì ở mức hợp lý (dưới 1.5% số lượng cổ phiếu đang lưu hành) và có điều kiện hoàn thành KPI cụ thể, nó đóng vai trò khích lệ nhân tài. Nhưng lịch sử lạm dụng ESOP với tỷ lệ lớn hơn 3-5% mỗi năm, giá bán rẻ hơn nhiều so với thị giá, đi kèm thời hạn hạn chế chuyển nhượng lỏng lẻo, sẽ bị thị trường định giá khắt khe như hành vi bòn rút tài sản của cổ đông nhỏ lẻ để tư lợi cho giới tinh hoa quản trị. Agent phải nhận diện đây là một điểm trừ lớn về chất lượng quản trị doanh nghiệp.
 
@@ -460,6 +453,22 @@ Nguyên tắc tổng quát: tin càng tích cực bao nhiêu trong khi giá đã
 
 Phần này là điểm giao giữa file này và `K_agent_db_04` — mô tả cách agent kết hợp phân tích tin với các chỉ báo định lượng đã có (dòng tiền, trend, kỹ thuật, cơ bản) để ra kết luận có độ tin cậy cao hơn so với dùng riêng rẽ mỗi loại.
 
+### 8.0. Bối cảnh pha thị trường (v2 — nguồn dữ liệu đã có)
+
+Khi kết hợp tin với chỉ báo, xác định **bối cảnh pha thị trường hiện tại**: nhãn pha của hệ đọc từ
+`market_phase` (headline có sẵn trong `data_briefing.core.phase`), kết hợp đánh giá trend đa khung độc lập của
+agent (`K_agent_db_04`) — hai góc nhìn lệch nhau thì nêu cả hai (`K_agent_db_00` mục 4.6). Cùng một tin, thông điệp
+đổi theo pha:
+
+- **DOWNTREND (exposure 0):** hệ đang đứng ngoài — tin tốt mã lẻ thường chỉ ở mức "điểm cộng cho danh sách
+  theo dõi, chờ hệ bật lại"; nếu agent đánh giá tin đủ mạnh để cân nhắc vị thế, nói rõ đây là quan điểm ngược
+  tín hiệu hệ. Tin xấu = xác nhận thêm cho phòng thủ.
+- **UPTREND:** tin xấu mã lẻ đọc nghiêm hơn (rủi ro riêng trong thị trường thuận); tin tốt dễ được dòng tiền hưởng ứng.
+- **TRANSITION/SIDEWAY:** tin có vai trò chất xúc tác lớn nhất — kiểm tra chéo dòng tiền (8.1) quyết định.
+- Các đoạn dưới đây (8.1–8.3) nhắc "pha thị trường"/"uptrend/downtrend" (vd tin chia cổ phiếu ở phần 5.7):
+  từ v2 có thêm nhãn pha của hệ trong `market_phase` để tham chiếu, bên cạnh đánh giá trend đa khung của agent
+  — không phán đoán chay không nguồn.
+
 ### 8.1. Nguyên tắc chung — tin không thay thế chỉ báo
 
 Agent không bao giờ ra quyết định chỉ dựa trên tin. Mỗi tin tức sau khi được diễn giải phải được kiểm tra chéo với ít nhất một chỉ báo định lượng từ `K_agent_db_04` để xác nhận hoặc bác bỏ hướng tác động. Có bốn tình huống điển hình xảy ra khi kết hợp.
@@ -542,7 +551,7 @@ Ngoài các thuật ngữ trong bảng, một số thuật ngữ viết tắt th
 
 **Bước 7 — Xử lý nếu có đa tin đồng thời.** Nếu trong session có nhiều tin thuộc các loại khác nhau, áp dụng thứ tự ưu tiên từ trên xuống ở phần 6.1 — vĩ mô trước, ngành sau, cổ phiếu cụ thể cuối cùng. Kiểm tra confluence hay divergence. Nếu có divergence, tin tiêu cực ở cấp độ cụ thể hơn có sức mạnh phủ quyết.
 
-**Bước 8 — Soạn output theo nguyên tắc K hygiene.** Rà soát lần cuối output trước khi send: không lộ ký hiệu DB raw, không lộ taxonomy nội bộ (bao gồm "HIGH/MID/LOW impact", "logic gate", "framework chấm điểm"), không để nguyên thuật ngữ tiếng Anh chưa dịch. Mô tả trực tiếp tác động, cơ chế, hành động bằng ngôn ngữ tự nhiên. Format output theo layer style đang active (O pack nếu có, hoặc Default của Kernel theo system prompt mục 6).
+**Bước 8 — Soạn output theo nguyên tắc K hygiene.** Rà soát lần cuối output trước khi send: không lộ ký hiệu DB raw, không lộ taxonomy nội bộ (bao gồm "HIGH/MID/LOW impact", "logic gate", "framework chấm điểm"), không để nguyên thuật ngữ tiếng Anh chưa dịch. Mô tả trực tiếp tác động, cơ chế, hành động bằng ngôn ngữ tự nhiên. Tone và format theo layer output đang active (O pack nếu có, ngược lại Default Kernel — system prompt mục 6).
 
 **Dẫn link nguồn khi cần:** khi output liệt kê nhiều tin/báo cáo dạng bảng hoặc cite claim cụ thể, bổ sung URL bài gốc bên cạnh mỗi entry để user verify. Pattern: `https://finext.vn/news/{article_slug}` cho tin thường, `https://finext.vn/reports/{report_slug}` cho báo cáo tổng hợp. Khi user explicit yêu cầu "dẫn link" hoặc "cho link bài báo", bắt buộc đưa URL đầy đủ. Chi tiết pattern và K hygiene exception xem `K_agent_db_01` section F (Khối tin tức).
 
@@ -562,4 +571,4 @@ Khi phân tích cơ bản doanh nghiệp kết hợp với tin doanh nghiệp: x
 
 Khi gặp mâu thuẫn tín hiệu giữa tin và chỉ báo định lượng: xem các pitfall F1-F12 trong `K_agent_db_04` — nhiều pitfall đã cover các tình huống mâu thuẫn tương tự.
 
-Khi soạn output cuối cùng: xem system prompt mục 6 (Output style framework) cho layer đang active, `K_agent_db_00` mục 5 (K hygiene — cấm lộ ký hiệu nội bộ và taxonomy), cùng bảng dịch thuật ngữ ở phần 9 của file này.
+Khi soạn output cuối cùng: xem system prompt mục 5.5 + `K_agent_db_00` mục 5 (K hygiene — cấm lộ ký hiệu nội bộ và taxonomy), cùng bảng dịch thuật ngữ ở phần 9 của file này.

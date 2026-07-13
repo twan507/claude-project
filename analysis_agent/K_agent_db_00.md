@@ -1,10 +1,12 @@
 # K_agent_db_00 — Master file
 
+> **v2 (2026-07-13):** đồng bộ với pipeline fnx05 v2. Thay đổi lớn: (1) đơn vị `*_pct` chuyển sang **điểm phần trăm** đọc thẳng, `rank_pct` thang **0–100** (mục 6 + 5.2); (2) DB từ 25 lên **31 collection** — thêm khối phase & danh mục (`K_agent_db_06`, mục 4.6); (3) `data_briefing` chỉ còn 2 doc (`core` + `news_report`); (4) field thiếu dữ liệu bị **omit** khỏi doc, không còn `null`/`NaN` (mục 9); (5) query patterns 13 workflow A–M.
+
 ## 1. Mục đích & scope
 
-Pack `K_agent_db` cung cấp knowledge base cho phân tích chứng khoán Việt Nam dựa trên MongoDB `agent_db`. Pack chứa schema, query patterns, anti-patterns, methodology diễn giải chỉ báo, và methodology phân tích tin tức.
+Pack `K_agent_db` cung cấp knowledge base cho phân tích chứng khoán Việt Nam dựa trên MongoDB `agent_db`. Pack chứa schema, query patterns, anti-patterns, methodology diễn giải chỉ báo, methodology phân tích tin tức, và tầng phase & danh mục hệ thống.
 
-**Input kỳ vọng:** query về ticker/ngành/thị trường VN, tin tức, BCTC, dòng tiền, technical, vĩ mô trong nước.
+**Input kỳ vọng:** query về ticker/ngành/thị trường VN, tin tức, BCTC, dòng tiền, technical, vĩ mô trong nước, pha thị trường, danh mục hệ thống.
 
 **Output kỳ vọng:** số liệu định lượng đã quy đổi đơn vị, diễn giải methodology bằng ngôn ngữ tự nhiên (không lộ ký hiệu raw), context tin tức có nguồn.
 
@@ -13,39 +15,45 @@ Pack `K_agent_db` cung cấp knowledge base cho phân tích chứng khoán Việ
 - Không thay thế model DCF chuyên sâu của analyst lâu năm
 - Không hỗ trợ tư vấn cho retail/client cuối — pack này giả định audience là analyst/broker nội bộ (xem mục 4.4)
 - Không thực hiện ghi dữ liệu vào DB, chỉ đọc (find, aggregate)
+- Không đặt lệnh, không thao tác tài khoản, không có dữ liệu lệnh thật/tài khoản cá nhân
 
 ## 2. Nguồn dữ liệu
 
 Pack dùng 2 nguồn song song:
 
-**MongoDB `agent_db`** là nguồn CHÍNH cho số liệu định lượng (giá, dòng tiền, BCTC, kỹ thuật, vĩ mô từ `other_data`, tin tức trong DB). Quyền read-only. Schema chi tiết ở `K_agent_db_01`, pipeline mẫu ở `K_agent_db_02`.
+**MongoDB `agent_db`** là nguồn CHÍNH cho số liệu định lượng (giá, dòng tiền, BCTC, kỹ thuật, phase, danh mục, vĩ mô từ `other_data`, tin tức trong DB). Quyền read-only. Cập nhật liên tục trong phiên + EOD. Schema chi tiết ở `K_agent_db_01`, pipeline mẫu ở `K_agent_db_02`.
 
 **Web search** BẮT BUỘC cho: tin tức hiện tại, sự kiện vĩ mô quốc tế, benchmark ngành ngoài VN, phân tích bên ngoài, xác minh thông tin không có trong DB. Không được dùng training data thay thế web search.
 
-**Domain rule về tin tức:** khi user hỏi về tin tức, sự kiện hiện tại, bối cảnh vĩ mô, hoặc cần ngữ cảnh mới nhất, bắt buộc query DB (`news_today_feed`, `news_history_feed`, block news trong `data_briefing`, `other_data`) VÀ gọi web search song song. Không trả lời từ trí nhớ.
+**Domain rule về tin tức:** khi user hỏi về tin tức, sự kiện hiện tại, bối cảnh vĩ mô, hoặc cần ngữ cảnh mới nhất, bắt buộc query DB (`news_today_feed`, `news_history_feed`, doc `news_report` trong `data_briefing`, `other_data`) VÀ gọi web search song song. Không trả lời từ trí nhớ. Nếu runtime không có web search: trả lời từ DB + ghi rõ "chưa đối chiếu được tin mới ngoài hệ thống" với sự kiện đang diễn biến — tuyệt đối không lấp chỗ trống bằng training data.
 
 **Ghi nguồn khi trình bày tin:**
 - Tin từ DB: "theo dữ liệu tin tức trong hệ thống ngày [DD/MM]"
 - Tin từ web: "theo [tên báo / URL]" hoặc trích dẫn cụ thể
 
+**Luật query (bắt buộc):** chỉ đọc các collection trong schema `K_agent_db_01` — thấy tên lạ (kể cả `temp_*`/`old_*`) thì bỏ qua · luôn có projection, không `find({})` trần trên collection theo mã · `history_*`/`*_itd` bắt buộc filter khoá + `$slice` · không `$lookup`/`$out`/`$merge`/`$where` · kết quả ước quá ~50KB thì thu hẹp trước khi chạy.
+
 ## 3. Manifest file con
 
-Pack có 5 file con reference (số hiệu là reference index, không phải thứ tự thực thi):
+Pack có 6 file con reference (số hiệu là reference index, không phải thứ tự thực thi):
 
 **`K_agent_db_01` — Collections schema**
-25 collection trong `agent_db`. Tra khi cần hiểu cấu trúc document trước khi query.
+31 collection trong `agent_db` (8 khối cũ + Section I khối phase & danh mục) + công thức chỉ báo gốc + URL pattern finext.vn. Tra khi cần hiểu cấu trúc document trước khi query.
 
 **`K_agent_db_02` — Query patterns**
-12 workflow pipeline (ký hiệu A đến L). Dùng làm template, thay placeholder. Không tự sáng chế pipeline phức tạp khi đã có template phù hợp.
+13 workflow pipeline (ký hiệu A đến M; M = phase & danh mục). Dùng làm template, thay placeholder. Không tự sáng chế pipeline phức tạp khi đã có template phù hợp.
 
 **`K_agent_db_03` — Anti-patterns**
-Gallery các lỗi thật gặp trong quá khứ + cách sửa. Đọc khi nghi vấn, đặc biệt trước câu hỏi phân tích phức tạp lần đầu trong session.
+Gallery 10 case lỗi thật gặp trong quá khứ + cách sửa. Đọc khi nghi vấn, đặc biệt trước câu hỏi phân tích phức tạp lần đầu trong session.
 
 **`K_agent_db_04` — Interpretation & methodology**
-Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone), phương pháp PTCB riêng cho 4 type doanh nghiệp (SXKD, NGANHANG, CHUNGKHOAN, BAOHIEM), kịch bản ticker, pitfalls. Đọc đầu session khi có câu hỏi phân tích chi tiết hoặc gặp chỉ báo chưa chắc cách đọc.
+Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone), phương pháp PTCB riêng cho 4 type doanh nghiệp (SXKD, NGANHANG, CHUNGKHOAN, BAOHIEM), kịch bản ticker, pitfalls. **Đầu file có bảng dịch taxonomy nội bộ** (tham chiếu từ mục 5.3). Đọc đầu session khi có câu hỏi phân tích chi tiết hoặc gặp chỉ báo chưa chắc cách đọc.
 
 **`K_agent_db_05` — News methodology**
-Methodology phân tích 4 loại tin (`doanh_nghiep`, `quoc_te`, `trong_nuoc`, `thong_cao`), framework chấm điểm impact nội bộ, case study thị trường VN, workflow đa tin, bảng dịch thuật ngữ tiếng Anh. Đọc đầu session khi câu hỏi liên quan tin tức, chính sách vĩ mô, hoặc yêu cầu bối cảnh sự kiện.
+Methodology phân tích 4 loại tin (`doanh_nghiep`, `quoc_te`, `trong_nuoc`, `thong_cao`), framework chấm điểm impact nội bộ, case study thị trường VN, workflow đa tin, bảng dịch thuật ngữ tiếng Anh (phần 9). Đọc đầu session khi câu hỏi liên quan tin tức, chính sách vĩ mô, hoặc yêu cầu bối cảnh sự kiện.
+
+**`K_agent_db_06` — Phase & 3 danh mục hệ thống**
+4 trạng thái pha, exposure, 7 chỉ số, cơ chế cơ cấu 3 danh mục, bộ số hiệu suất chính thức FROZEN + disclaimer bắt buộc, known gaps. Đọc khi user hỏi đích danh về pha thị trường / danh mục hệ thống / hiệu suất / sổ lệnh (xem scope ở mục 4.6).
 
 Agent đọc file con theo nhu cầu query, không bắt buộc đọc hết đầu session.
 
@@ -79,6 +87,10 @@ Skip clarification khi: tra cứu đơn lẻ ("VNM giá bao nhiêu", "KLGD HPG h
 
 **Xác suất scenario** (ví dụ "40%/45%/15%"): CHỈ được đưa khi có cơ sở định lượng (mô hình, backtest, base rate historical). Không gán theo cảm nhận. Nếu chỉ là định tính, dùng ngôn ngữ định tính: "kịch bản cơ sở", "khả năng cao", "rủi ro đuôi".
 
+**Giới hạn cơ sở "backtest":** sổ `phase_trading`/`phase_perf` trong DB là backtest của HỆ PHASE danh mục (survivorship-biased, gross) — chỉ dùng khi trả lời câu hỏi trực tiếp về hệ phase, luôn kèm disclaimer `K_agent_db_06` mục 5. KHÔNG dùng làm base rate để gán xác suất cho kịch bản VNINDEX hoặc mã riêng lẻ.
+
+**Hiệu suất 3 danh mục hệ — luật 2 tầng** (chi tiết `K_agent_db_06` mục 4): số tổng kết/dài hạn (CAGR, Sharpe, MaxDD, theo năm) CHỈ trích bảng FROZEN kèm disclaimer, không tự tính; cửa sổ ngắn (tuần/tháng/YTD) được compound từ `phase_perf` nhưng bắt buộc dán nhãn "gross chưa trừ phí/thuế".
+
 **Phân bổ % danh mục:** được phép (user là analyst nội bộ), nhưng phải gắn với giả định rõ về khung thời gian, mức rủi ro, vốn ban đầu giả định.
 
 **Target giá:** chỉ nói khi có mức kỹ thuật xác định (Fibonacci, pivot, volume profile POC). Đây là mô tả mức kỹ thuật, không phải dự báo điểm đến. Không dùng "target" theo nghĩa "giá sẽ về" trừ khi có model định giá độc lập.
@@ -86,6 +98,8 @@ Skip clarification khi: tra cứu đơn lẻ ("VNM giá bao nhiêu", "KLGD HPG h
 ### 4.4. Giới hạn tư vấn
 
 Pack giả định user là analyst/broker nội bộ, được phép nhận khuyến nghị cụ thể. Nếu project chuyển cho audience khác (retail, client cuối, intern chưa chứng chỉ), cần swap sang K pack phù hợp — pack này không phục vụ được vì constraint nội dung rộng hơn mức cho phép retail.
+
+**Lưu ý hành văn file con:** một số đoạn trong file con (đặc biệt `K_agent_db_06`) kế thừa từ bản gốc soạn cho agent phục vụ NĐT khách Finext, hành văn "khách/anh chị" — đọc là "user cuối của output". Nội dung số liệu và luật trình bày giữ nguyên giá trị.
 
 Khuyến nghị phải:
 - Gắn với giả định rõ: khung thời gian, mức rủi ro, vốn giả định
@@ -106,6 +120,16 @@ Danh sách 18 mã ngắn (user nhập) ↔ tên DB chuẩn (`industry_name` / `i
 
 Khi user nhập mã ngắn (vd "DAUKHI", "NGANHANG"): map sang tên chuẩn DB để query; xuất báo cáo dùng tên đầy đủ, không lộ mã ngắn.
 
+**Lưu ý riêng tầng phase:** `phase_industry` chỉ theo dõi **12 ngành** của rổ Sóng Ngành — taxonomy KHÁC với whitelist 18 ngành phân tích. Không trộn hai danh sách (một cái là danh mục hệ, một cái là scope phân tích dòng tiền).
+
+### 4.6. Tín hiệu phase của hệ thống — nguồn tham chiếu (MỚI v2)
+
+DB có tầng phase & danh mục (chi tiết `K_agent_db_06`): mô hình 4 trạng thái **UPTREND / DOWNTREND / SIDEWAY / TRANSITION** + tỷ lệ nắm giữ gợi ý `exposure` (0..2.0). Phase là MỘT nguồn tín hiệu ngang hàng với dòng tiền / kỹ thuật / cơ bản — **không phải luật tối cao, không tự động override các lăng kính khác**.
+
+- **NHÃN pha của hệ chỉ trích từ `market_phase`** (headline có sẵn trong `data_briefing` doc `core`) — không tự gán nhãn pha "thay" hệ. Đánh giá xu hướng ĐỘC LẬP từ trend/breadth/dòng tiền (`K_agent_db_04`) vẫn là kết luận của agent; khi lệch với nhãn `market_phase`, trình bày CẢ HAI góc nhìn và nêu rõ điểm lệch — không mặc định bên nào thắng.
+- **Trả lời có khuyến nghị:** nêu trạng thái phase/exposure của hệ làm bối cảnh (1 câu là đủ). `exposure = 0` mà gợi ý mở vị thế mới → nói rõ đây là quan điểm "đi ngược tín hiệu hệ" + lý do. `exposure > 1.0` → kèm cảnh báo margin (sau phí thực, hiệu quả điều-chỉnh-rủi-ro @1.0x cao hơn @2.0x ở cả 3 danh mục).
+- **Scope trong analysis_agent:** tầng phase là knowledge tra cứu — dùng khi user hỏi đích danh (pha thị trường, danh mục hệ thống, hiệu suất, sổ lệnh — `K_agent_db_02` Workflow M) hoặc làm bối cảnh cho khuyến nghị inline. **Các P pack giữ methodology regime riêng của từng pack** (gate vĩ mô, regime call...) — KHÔNG thay bằng phase, không trộn phase vào checkpoint/regime call của P pack trừ khi user yêu cầu đích danh.
+
 ## 5. K hygiene — ký hiệu cần dịch trước khi output
 
 Rule K hygiene ở system prompt mục 5.5 bắt buộc dịch ký hiệu raw và taxonomy nội bộ sang ngôn ngữ tự nhiên. Pack này định nghĩa 3 nhóm cần dịch và bảng dịch tương ứng.
@@ -113,13 +137,13 @@ Rule K hygiene ở system prompt mục 5.5 bắt buộc dịch ký hiệu raw v�
 ### 5.1. Ba nhóm ký hiệu
 
 **Nhóm 1 — Ký hiệu DB raw:**
-`vsi`, `VSI`, `day_score`, `week_score`, `zone` với giá trị `A/AA/AAA/B/C`, `f382`/`f500`/`f618`, `poc`/`val`/`vah`, `r1`/`s1`, `period: "2025_4"`, `m_pct`/`w_pct`/`q_pct`/`y_pct`, `w_trend`/`m_trend`/`q_trend`/`y_trend`, `rank_pct`, `industry_rank_pct`, `market_rank_pct`.
+`vsi`, `VSI`, `day_score`, `week_score`, `zone` với giá trị `A/AA/AAA/B/C`, `f382`/`f500`/`f618`, `poc`/`val`/`vah`, `r1`/`s1`, `period: "2025_4"`, `m_pct`/`w_pct`/`q_pct`/`y_pct`, `w_trend`/`m_trend`/`q_trend`/`y_trend`, `rank_pct`, `industry_rank_pct`, `market_rank_pct`, các key phase (`breadth_slow`, `breadth_blend`, `breadth_aux`, `conf_dir`, `conf_flat`, `corr60`, `px_ret20_pct`, `exposure`, `held`, `book`), status rank (`trong_ro`/`vung_buffer`/`ung_vien`/`cho_tin_hieu`/`ngoai`), `exit_reason` (`HOLDING`/`DOWNTREND`/`ROTATION`/`REBALANCE`).
 
 **Nhóm 2 — Taxonomy nội bộ methodology (từ file 04, 05):**
 - Tên kịch bản trend đa khung: "Kịch bản A/B/C/D/E/F/G"
 - Tên kịch bản ticker: "Kịch bản E1/E2/E3"
 - Tên pitfall: "Pitfall F1" đến "F12"
-- Tên section hoặc workflow: "B5", "B6", "B7", "C6", "D1-D4", "Workflow A-L", "Bước 1/2/3 của B7"
+- Tên section hoặc workflow: "B5", "B6", "B7", "C6", "D1-D4", "Workflow A-M", "Bước 1/2/3 của B7"
 - Tên 4 kịch bản SXKD: "Value Play", "Value Trap", "Growth at Premium", "Cycle Top"
 - Tên nhãn chấm điểm tin: "HIGH/MID/LOW impact", "logic gate", "framework chấm điểm", "impact score", "điểm X/Y"
 
@@ -132,80 +156,77 @@ Thuật ngữ tiếng Anh trong phân tích tin tức (bảng dịch đầy đ�
 
 Viết tắt thông dụng có thể giữ nguyên: Fed, FOMC, CPI, NFP, PCE, PMI, DXY, VIX, FDI, FII, ESOP, M&A. Giải thích ngắn khi dùng lần đầu trong session.
 
+**Exception — 4 nhãn pha thị trường:**
+
+`UPTREND` / `DOWNTREND` / `SIDEWAY` / `TRANSITION` là tên hiển thị chính thức của hệ phase (đã publish trên UI Finext) — được dùng NGUYÊN VĂN trong output, không cần dịch. Ngưỡng công bố của 7 chỉ số phase (±0.30 · 0.45 · 0.35 · −10%) cũng được phép nói; công thức/trọng số/cách kết hợp thì KHÔNG BAO GIỜ (xem `K_agent_db_06` mục 2).
+
 **Exception — Slug trong URL finext.vn:**
 
-`article_slug` và `report_slug` thuộc Nhóm 1 (ký hiệu DB raw), cấm lộ dạng trần trong output (ví dụ không viết `article_slug: vnm-bao-cao-q1`). Tuy nhiên khi ghép vào URL đầy đủ `https://finext.vn/news/{article_slug}` hoặc `https://finext.vn/reports/{report_slug}`, đây là output user-facing hợp lệ — URL công khai, không phải ký hiệu nội bộ DB. Chi tiết pattern xem `K_agent_db_01` section F (URL pattern — Dẫn link finext.vn).
+`article_slug` và `report_slug` thuộc Nhóm 1 (ký hiệu DB raw), cấm lộ dạng trần trong output (ví dụ không viết `article_slug: vnm-bao-cao-q1`). Tuy nhiên khi ghép vào URL đầy đủ `https://finext.vn/news/{article_slug}` hoặc `https://finext.vn/reports/{report_slug}`, đây là output user-facing hợp lệ — URL công khai, không phải ký hiệu nội bộ DB. Field `link` (URL bài báo GỐC nguồn ngoài, có sẵn trong news feed từ v2) cũng là output hợp lệ, dùng nguyên văn. Chi tiết pattern xem `K_agent_db_01` section F (URL pattern — Dẫn link finext.vn).
 
 ### 5.2. Bảng dịch ký hiệu DB sang ngôn ngữ tự nhiên
+
+⚠ Đơn vị theo quy ước v2 (mục 6): `*_pct` đã là điểm %, `rank_pct` thang 0–100.
 
 | DB raw | Cách nói với user |
 |---|---|
 | `vsi: 2.1` | thanh khoản gấp 2.1 lần trung bình 5 phiên |
-| `technical_zone.overall.w: "AAA"` | vùng kỹ thuật rất mạnh khung tuần |
-| `technical_zone.overall.w: "AA"` | vùng kỹ thuật mạnh khung tuần |
-| `technical_zone.overall.w: "A"` | vùng kỹ thuật tích cực khung tuần |
-| `technical_zone.overall.w: "B"` | vùng kỹ thuật trung tính khung tuần |
-| `technical_zone.overall.w: "C"` | vùng kỹ thuật yếu khung tuần |
+| `technical_zone.overall.w: "AAA"/"AA"/"A"/"B"/"C"` | vùng kỹ thuật khung tuần: rất mạnh / mạnh / tích cực / trung tính / yếu |
 | `day_score: 68` | điểm dòng tiền ngày 68 |
-| `week_score: -18` | dòng tiền tuần âm 18, đang rút ra |
+| `week_score: -18` | dòng tiền tuần âm 18, đang bị rút ra |
 | `breadth_in: 127, breadth_out: 171` | 127 mã tăng, 171 mã giảm, bên bán thắng thế |
-| `industry_rank_pct: 0.9` | top 10% mạnh nhất ngành (percentile mã trong ngành) |
-| `market_rank_pct: 0.95` | top 5% mạnh nhất thị trường (percentile mã trong thị trường) |
+| `industry_rank_pct: 90` | top 10% mạnh nhất ngành (percentile 0–100 của mã trong ngành) |
+| `market_rank_pct: 95` | top 5% mạnh nhất thị trường (percentile 0–100 của mã trong thị trường) |
 | Rank ngành-vs-ngành | DB không lưu — tự tổng hợp sort `week_score` (dòng tiền tuần) qua 18 ngành whitelist; xem `K_agent_db_01` mục "Xếp hạng ngành" |
 | `fibonacci.w.f382: 1763` | hỗ trợ Fibonacci 38.2% khung tuần quanh 1763 |
 | `volume_profile.w.poc: 1750` | vùng giá tập trung giao dịch quanh 1750 |
 | `volume_profile.w.val / vah` | biên dưới / biên trên vùng giá chấp nhận |
-| `nn.week.net_value: 4.2` | khối ngoại mua ròng 4.2 tỷ tuần qua |
-| `ROE: 0.23` | ROE 23% |
-| `period: "2025_4"` | Q4/2025 |
-| `period: "2025_5"` | năm 2025 |
-| `m_pct: 0.062` | tăng 6.2% trong tháng qua |
-| `w_pct: 0.04` | tăng 4% trong tuần qua |
-| `q_pct: -0.033` | giảm 3.3% trong quý qua |
-| `y_pct: 0.46` | tăng 46% trong năm qua |
-| `w_trend: 0.35` | xu hướng tuần 35% (35% số mã đang trên đường trend tuần) |
-| `m_trend: 0.68` | xu hướng tháng 68% |
-| `q_trend: 0.28` | xu hướng quý 28% |
-| `y_trend: 0.32` | xu hướng năm 32% |
+| `nn.week.net_value: 4.2` | khối ngoại mua ròng 4.2 tỷ tuần qua (block `nn`/`td` vắng mặt = không có dữ liệu, KHÔNG phải "mua ròng 0") |
+| `ROE: 0.23` (trong `stock_finstats`) | ROE 23% (bộ finstats còn thập phân — nhân 100) |
+| `period: "2025_4"` / `"2025_5"` | Q4/2025 / cả năm 2025 |
+| `w_pct: -1.06` | giảm 1.06% trong tuần qua (điểm % — đọc thẳng, KHÔNG nhân 100) |
+| `m_pct: 6.2` / `q_pct: -3.3` / `y_pct: 46` | tăng 6.2% tháng / giảm 3.3% quý / tăng 46% năm (cùng quy ước điểm %) |
+| `w_trend: 0.35` | xu hướng tuần 35% (35% số mã đang trên đường trend tuần — tỷ lệ 0..1, nhân 100 khi nói) |
+| **Phase:** `breadth_slow` | Cấu trúc xu hướng tăng (vượt +0.30 mới đủ điều kiện TĂNG) |
+| `breadth_blend` / `breadth_aux` | Cấu trúc xu hướng giảm (dưới −0.30 → GIẢM) / Tín hiệu xu hướng suy yếu |
+| `conf_dir` / `conf_flat` | Độ tin cậy xu hướng / Độ tin cậy Sideway |
+| `corr60` | Mức độ lan tỏa dòng tiền (dưới 0.35 = dòng dẫn dắt hẹp) |
+| `px_ret20_pct` | Quán tính biến động giá (lợi suất 20 phiên, điểm %) |
+| `exposure: 0.85` | tỷ lệ nắm giữ gợi ý 85% (thang 0..2.0, nhân 100 khi nói; >1.0 = có margin, kèm cảnh báo) |
+| `market_intensity` | thước đo cường độ thị trường (−1 tới +1) |
+| rank `status`: `trong_ro`/`vung_buffer`/`ung_vien`/`cho_tin_hieu`/`ngoai` | đang nắm giữ / đang giữ nhưng sắp ra / chờ vào / đủ hạng chờ tín hiệu giá / ngoài danh mục |
+| `exit_reason`: `HOLDING`/`DOWNTREND`/`ROTATION`/`REBALANCE` | đang giữ / bán cả rổ do thị trường phòng thủ / đảo ngành / cơ cấu định kỳ |
 
-### 5.3. Bảng dịch taxonomy nội bộ sang mô tả trực tiếp
+### 5.3. Bảng dịch taxonomy nội bộ
 
-| Internal | Mô tả cho user |
-|---|---|
-| Kịch bản A (đồng pha trung tính tích cực) | Thị trường tăng khỏe đồng đều 4 khung, chưa cực đoan |
-| Kịch bản B (ngắn yếu + dài khỏe) | Điều chỉnh ngắn hạn trong xu hướng dài vẫn mạnh, cơ hội mua pullback |
-| Kịch bản C (ngắn yếu + dài cũng yếu) | Cả ngắn và dài đều yếu, tránh bắt đáy, bounce có thể chỉ là hồi kỹ thuật |
-| Kịch bản D (ngắn quá mua + dài chưa) | Điều chỉnh ngắn sắp tới trong uptrend dài, chờ tuần pullback mới vào |
-| Kịch bản E (đồng pha quá mua) | Cảnh báo đỉnh lớn, cả thị trường lan toả cực đoan, giảm tỷ trọng |
-| Kịch bản F (đồng pha quá bán) | Cảnh báo đáy lớn, canh tích luỹ dần, không all-in vì đáy có thể kéo dài |
-| Kịch bản G (sóng hồi trung hạn) | Rally trung hạn từ đáy dài hạn, chưa xác nhận dài hạn, rủi ro cao |
-| Kịch bản E1 (đã tăng nhưng còn khoẻ) | Mã đã có sóng tăng rõ nhưng chưa có dấu hiệu cạn lực |
-| Kịch bản E2 (chưa tăng nhưng dòng tiền quay lại) | Mã đang tích luỹ hoặc vừa đảo chiều đáy, tín hiệu sớm chưa xác nhận |
-| Kịch bản E3 (rủi ro cao, tránh vào) | Mã có nhiều cảnh báo đồng thời, không nên mua |
-| warning mean-reversion | Cảnh báo khả năng đảo chiều do quá mua hoặc quá bán |
-| exhaustion | Rally đuối hơi, cạn lực tăng |
-| dead-cat bounce | Hồi kỹ thuật trong downtrend, không bền |
-| confluence level | Vùng giao nhau của nhiều mức hỗ trợ hoặc kháng cự, mạnh hơn mức đơn |
-| Value Area | Vùng giá chấp nhận, nơi diễn ra khoảng 70% giao dịch |
-| Value Trap | Bẫy giá trị, P/E rẻ phản ánh kỳ vọng xấu có cơ sở, không phải undervalued |
-| DuPont decomposition | Tách ROE thành 3 thành phần: biên lợi nhuận × vòng quay tài sản × đòn bẩy |
-| Golden Ratio retracement | Mức Fibonacci 61.8%, mức hỗ trợ sâu nhất; vượt xuống là cấu trúc trend có thể đã gãy |
-| whip-saw | Dao động biên độ lớn, rally rồi sập lặp nhiều lần |
-| B5, B6, B7, Workflow E, Bước 1/2/3 | Không nhắc tên section, làm theo flow tự nhiên |
+Bảng dịch taxonomy đầy đủ (Kịch bản A–G, E1–E3, thuật ngữ kỹ thuật EN như mean-reversion / exhaustion / Value Trap / DuPont / Golden Ratio / whip-saw) đặt ở **đầu `K_agent_db_04`** (mục "Bảng dịch taxonomy nội bộ"). Thuật ngữ tin tức: `K_agent_db_05` phần 9. Nhãn phase và status danh mục: bảng 5.2 trên + `K_agent_db_06`.
 
-## 6. Quy đổi đơn vị
+## 6. Quy đổi đơn vị (v2 — pipeline fnx05 đã chuẩn hoá)
 
-- **BCTC** (`Net Revenue`, `Total Assets`, `Total Equity`, `Net Income`): giá trị là **đồng**. Chia 10^9 ra tỷ đồng. Ví dụ `9864419377152` thành 9.864 tỷ đồng.
-- **Vốn hoá thị trường** trong `valuation_ratios`: đã là **tỷ đồng**, giữ nguyên.
-- **Khối ngoại / Tự doanh** (`buy_value`, `sell_value`, `net_value`): đã là **tỷ đồng**.
-- **Tỷ lệ** (ROE, ROA, Gross Margin, pct_change, các `*_pct`): dạng **thập phân**, nhân 100 ra %.
-- **`other_data.value`**: luôn đọc `unit` kèm (USD/ounce, USD/thùng, Đồng/kg, %, Triệu USD, Tỷ VND).
-- **Lãi suất** trong `other_data`: `value: 0.045, unit: "%"` bằng 4.5% (đã ở dạng thập phân, nhân 100 khi nói).
+| Field / suffix | Quy ước | Ví dụ |
+|---|---|---|
+| mọi `*_pct`, `pct_change` | **ĐIỂM PHẦN TRĂM** — đọc thẳng, KHÔNG nhân 100 | `w_pct: -1.06` = giảm 1.06% |
+| `industry_rank_pct` / `market_rank_pct` | percentile **0–100** | `90` = vượt 90% mã (top 10%) |
+| `*_trend` | **tỷ lệ 0..1** (ngoại lệ có chủ đích) — nhân 100 khi nói | `w_trend: 0.35` = 35% số mã trên trend tuần |
+| `exposure` / `market_exposure` | thang **0..2.0** — nhân 100 khi nói; >1.0 = dùng margin | `0.85` = nắm 85% |
+| `held` / `book` / `avg_weight` | tỷ trọng **0..1** — nhân 100 khi nói | `0.0909` = 9.09% danh mục |
+| `ret_1d_1x` (phase_perf) | lợi suất ngày **thập phân** — compound `Π(1+r)−1`, nhân 100 khi nói | `0.0021` = +0.21% |
+| BCTC trong `stock_finstats` (Doanh thu, Tổng tài sản…) | **đồng** — chia 10^9 ra tỷ đồng | `9864419377152` → 9.864 tỷ đồng |
+| tỷ lệ trong `stock_finstats` (ROE, biên, tăng trưởng) | ⚠ còn **thập phân** (bộ cũ, chờ curated) — nhân 100 khi nói | `0.216` = 21.6% |
+| Vốn hoá trong `valuation_ratios` · GTGD (`trading_value`) · NN/TD (`buy/sell/net_value`) | **tỷ đồng** | — |
+| `volume`, share counts, `foreignerRoom`, breadth | số nguyên (cổ phiếu / số mã) | — |
+| `vsi` / `volume_strength_index` | lần so trung bình 5 phiên | `2.1` = gấp 2.1 lần |
+| `other_data.value` | đọc kèm `unit`; lãi suất unit `%` là thập phân (`0.045` = 4.5%) — riêng các field `*_pct` cùng doc ĐÃ là điểm % | — |
+| ngày `date`/`as_of` | string `YYYY-MM-DD` · intraday (`*_itd`) `YYYY-MM-DDTHH:MM` | — |
+
+Field không có trong doc = không có dữ liệu (pipeline omit null) — nói "chưa có dữ liệu", không đoán, không coi là 0.
 
 ## 7. Độ tươi dữ liệu
 
-- `snapshot_date`, `latest.date`: nếu không phải hôm nay, ghi rõ "số liệu đến phiên [DD/MM]"
+- `data_briefing` doc `core` → `as_of` = mốc dữ liệu vòng ghi mới nhất; không phải hôm nay thì ghi "số liệu đến phiên [DD/MM]"
+- `market_phase.as_of` (EOD đã chốt) có thể trễ hơn `core.as_of` (realtime) 1 phiên trong giờ giao dịch — lệch thì nêu cả hai mốc; lệch >1 phiên thì cảnh báo dữ liệu phase cũ
 - `other_data.update_date`: chỉ số vĩ mô tháng (CPI, XNK, PMI) có thể cũ 2-3 tuần, luôn ghi chú ngày cập nhật
+- BCTC công bố trễ 1-2 tháng sau quý — check `period` mới nhất, ghi rõ "số cơ bản đến Qx/YYYY"
 - Tin từ DB: rolling 30 ngày, luôn đối chiếu web search để lấy tin mới hơn nếu có
 
 ## 8. Lăng kính phân tích cốt lõi
@@ -217,7 +238,9 @@ Dòng tiền là lăng kính trung tâm. DB `agent_db` được tối ưu cho ph
 2. Kỹ thuật (MA, Fibonacci, volume profile, zone)
 3. Cơ bản (định giá, BCTC, tăng trưởng)
 
-**Lồng vĩ mô khi liên quan** (gợi ý mapping ngành và chỉ số cần theo dõi):
+Pha hệ thống (`market_phase`) là tín hiệu tham chiếu bổ sung cho phân tích tổng hợp/khuyến nghị — trích làm bối cảnh theo mục 4.6, không đứng trên các lăng kính khác.
+
+**Lồng vĩ mô khi liên quan** (gợi ý mapping ngành và chỉ số cần theo dõi — chi tiết `K_agent_db_02` Workflow I):
 
 - Dầu khí: Dầu Brent, WTI
 - Thép: quặng sắt, than cốc, HRC
@@ -232,10 +255,11 @@ Khi mã hoặc ngành nhạy vĩ mô, kéo `other_data` và web search tin quố
 ## 9. Xử lý lỗi và thiếu dữ liệu
 
 - Query rỗng thì báo "chưa có dữ liệu cho [X]", đề xuất hướng thay thế nếu có
-- Field `null` hoặc `NaN` thì bỏ qua, không đoán
+- **Field vắng mặt trong doc = không có dữ liệu** (pipeline v2 omit null, không còn `null`/`NaN`) — bỏ qua, không đoán, KHÔNG coi là 0. Ví dụ: mã không có block `nn` = không có dữ liệu khối ngoại, không phải "mua ròng 0"
 - Ticker không có trong `stock_info` thì báo "Mã [X] không có trong hệ thống, kiểm tra lại", không đoán mã tương tự
-- `data_briefing` thiếu block nào thì tiếp tục với block còn lại, ghi chú phần thiếu
+- `data_briefing` chỉ có 2 doc (`core` + `news_report`) — cần bảng ngành / vĩ mô / nhóm chi tiết thì query thẳng collection gốc (`industry_snapshot`, `other_data`, `group_snapshot`)
 - Web search không có kết quả thì báo "không tìm được tin gần đây về [X]", không bịa
+- **Known gaps — hệ thống KHÔNG có, nói thẳng thay vì query lung tung:** lịch cổ tức & sự kiện quyền (GDKHQ, ESOP, phát hành thêm, ngày ĐHCĐ) · danh sách cổ đông lớn chi tiết (chỉ có tỷ lệ tổng `major_holdings_pct`) · dữ liệu lệnh/tài khoản cá nhân. Các câu này: dùng tin tức trong DB + web search, nói rõ giới hạn
 
 ## 10. Output contract
 
@@ -243,8 +267,9 @@ Pack này sinh ra **structured content** để layer trên (P pack, O pack) tiê
 
 - Số liệu định lượng phải đã quy đổi đơn vị theo mục 6
 - Ký hiệu DB raw phải đã dịch theo bảng mục 5.2
-- Taxonomy nội bộ phải đã thay bằng mô tả trực tiếp theo bảng mục 5.3
+- Taxonomy nội bộ phải đã thay bằng mô tả trực tiếp (bảng taxonomy đầu `K_agent_db_04`, xem mục 5.3)
 - Mỗi claim có nguồn truy được: tên collection + field, hoặc URL web search
 - Thông tin vĩ mô tháng hoặc tin tức có ghi chú ngày cập nhật
+- Số hiệu suất danh mục hệ (nếu có) đúng luật 2 tầng + kèm disclaimer theo `K_agent_db_06` mục 4-5
 
 Pack KHÔNG tự quyết format output cuối (heading, xưng hô, length, tone). Layer O quyết nếu có O pack active, ngược lại fall back Default Kernel (xem system prompt mục 6).

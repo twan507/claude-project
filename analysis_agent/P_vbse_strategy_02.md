@@ -53,7 +53,7 @@ File này detail Trục 2 của framework 6 trục. Dependency: `P_vbse_strategy
 **(e) Sentiment proxy thanh khoản**
 
 - Thanh khoản trung bình tháng vs trung bình 6 tháng — phản ánh đám đông tham gia
-- Cross-check với `data_briefing.breadth_in/out` cho breadth phiên (chỉ làm cross-check, không driver)
+- Cross-check với `data_briefing` doc `core` (`market.breadth.in/out`) cho breadth phiên (chỉ làm cross-check, không driver)
 
 ### 2.3. TERTIARY — Minh hoạ phụ (~5-10% nội dung, BẮT BUỘC ≤20%)
 
@@ -79,7 +79,7 @@ File này detail Trục 2 của framework 6 trục. Dependency: `P_vbse_strategy
 | Breadth giá mã | `stock_snapshot` filter `industry ∈ 18` | `change.m_pct > 0`, `change.q_pct > 0` count / total | PRIMARY |
 | **Breadth cơ bản** | `industry_finstats` (18 doc whitelist) | `financial_statements.quarterly` EPS YoY > 0 count | PRIMARY |
 | Sentiment thanh khoản | `market_recent.series` (20 phiên) + `market_snapshot.volume_profile` | volume trung bình tháng vs trung bình 6 tháng | SECONDARY |
-| Breadth phiên cross-check | `data_briefing` | `breadth_in`, `breadth_out` | SECONDARY |
+| Breadth phiên cross-check | `data_briefing` doc `core` | `market.breadth.in/out` | SECONDARY |
 | Beta VN vs MSCI EM | Web search | — | SECONDARY |
 | Technical đa khung VNINDEX | `market_snapshot` | `technical_zone.overall.w/m/q/y`, `ma_zone`, `fibonacci_zone`, `volume_profile_zone` | TERTIARY (minh hoạ) |
 | Chuỗi giá+volume 20 phiên | `market_recent` | `series` (sort giảm dần) | TERTIARY (visualization) |

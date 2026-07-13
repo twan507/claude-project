@@ -39,7 +39,7 @@ Dùng dạng observation/luận điểm phân tích, **không dùng từ command
 - Không khuyến nghị position cụ thể với level giá vào/ra/stop
 - Không dùng từ command trực tiếp
 - Không gán xác suất % cho kịch bản — dùng if-then trigger (xem `K_agent_db_00` mục 4.3)
-- **Không sử dụng chỉ báo trend nội bộ** (`market_snapshot.trend`, `industry_snapshot.trend`, `group_snapshot.trend`, `*_recent.recent_trend`) — pack này có thể render cho KH; trend chỉ dùng ở pack audience nội bộ chuyên sâu
+- **Không sử dụng chỉ báo trend nội bộ** (`market_snapshot.trend`, `industry_snapshot.trend`, `group_snapshot.trend`, `series[].trend` trong các collection `*_recent`) — pack này có thể render cho KH; trend chỉ dùng ở pack audience nội bộ chuyên sâu
 - Không phân tích portfolio cá nhân, không suggest rebalance
 - Ngành ngoài 18 ngành whitelist không xuất hiện trong báo cáo
 

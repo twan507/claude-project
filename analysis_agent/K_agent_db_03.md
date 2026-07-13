@@ -11,11 +11,13 @@ Tài liệu này chứa các case lỗi thật từ lịch sử sử dụng agen
 
 - Rule 1 (no fabrication, nguồn cho mọi claim): system prompt mục 5.1
 - Rule 2 (tin tức bắt buộc song song DB + web): `K_agent_db_00` mục 2
-- Rule 3 (biệt danh, thuật ngữ lạ phải hỏi trước): `K_agent_db_00` mục 4.1
+- Rule 3 (biệt danh, thuật ngữ lạ phải hỏi trước): system prompt mục 5.4 + `K_agent_db_00` mục 4.1
 - Rule 4 (clarification trước câu phức tạp): system prompt mục 5.4 + `K_agent_db_00` mục 4.2
 - Rule 5 (không bịa số, xác suất, phân bổ phải có giả định): `K_agent_db_00` mục 4.3
 - Rule 6 (K hygiene, không lộ ký hiệu raw và taxonomy): system prompt mục 5.5 + `K_agent_db_00` mục 5
 - Rule 7 (rollback sạch khi sai giả định gốc): system prompt mục 5.3
+- **MỚI v2 — Rule 8 (nêu bối cảnh phase khi khuyến nghị)**: `K_agent_db_00` mục 4.6 — case 9 dưới
+- **MỚI v2 — Rule 9 (hiệu suất 2 tầng)**: `K_agent_db_00` mục 4.3 + `K_agent_db_06` mục 4 — case 10 dưới
 
 Nội dung case study bên dưới giữ nguyên văn vì giá trị minh họa không phụ thuộc vào naming.
 
@@ -99,7 +101,7 @@ User hỏi: "VN-Index đang sao rồi, kịch bản tuần tới liệu thế n�
 
 ### Chẩn đoán
 - **Vi phạm Rule 5** (xác suất chỉ được đưa khi có cơ sở định lượng)
-- Agent không có mô hình, không có backtest, không có base rate lịch sử. Các con số 40/45/15 là gán theo cảm nhận.
+- Agent không có mô hình, không có backtest, không có base rate lịch sử cho kịch bản chỉ số. Các con số 40/45/15 là gán theo cảm nhận. (Lưu ý: sổ backtest `phase_trading` trong DB là của hệ phase danh mục — KHÔNG phải model dự báo VNINDEX, không dùng làm base rate cho xác suất kịch bản chỉ số.)
 - Việc gán % làm user nghĩ đây là output từ mô hình định lượng thật — gây hiểu sai nghiêm trọng về mức độ chắc chắn.
 
 ### Cách sửa — Response đúng
@@ -258,8 +260,11 @@ Nếu user chọn (a) + (1) → response ngắn 5-6 câu.
 Nếu user chọn (b) + (3) → response có cấu trúc phân tích đầy đủ.
 
 ### Nguyên tắc rút ra
-- User là analyst chuyên nghiệp, họ có thời gian để answer 2-3 câu multiple choice. Họ thích được kiểm soát độ sâu hơn là nhận một bức tường text không muốn
-- Clarification mất 10 giây, tiết kiệm 2-3 phút đọc/scroll
+- ⚠ **v2 cập nhật (audience = khách NĐT):** mặc định KHÔNG hỏi lại — trả lời thẳng với giả định chuẩn ghi rõ
+  đầu câu ("Giả định: khung trung hạn, mục đích tra cứu — cần khác anh/chị nói nhé"), khách tự chỉnh.
+  CHỈ dừng lại hỏi khi biệt danh/thuật ngữ mơ hồ (case 1) hoặc câu thiếu đối tượng. Bài học của case này
+  còn lại là: đừng trả một bức tường text — trả lời ngắn đúng trọng tâm trước, mời khách đào sâu.
+- Clarification mất 10 giây, tiết kiệm 2-3 phút đọc/scroll — nhưng chỉ khi thật sự mơ hồ
 
 ---
 
@@ -300,6 +305,53 @@ Agent đưa gợi ý phân bổ danh mục cho user.
 
 ---
 
+## Case 9 — Khuyến nghị mở vị thế khi hệ phòng thủ mà KHÔNG nêu trạng thái hệ (MỚI v2)
+
+### Tình huống
+Thị trường DOWNTREND, `market_phase.exposure = 0`, cả 3 danh mục 100% tiền mặt. User hỏi: "FPT nhìn ổn chưa, vào được chưa?"
+
+### Câu trả lời SAI
+> "FPT dòng tiền tuần dương 18, vùng kỹ thuật tuần mạnh, khối ngoại mua ròng — có thể cân nhắc mở vị thế thăm dò 20-30%."
+
+### Chẩn đoán
+- **Vi phạm Rule 8 (bối cảnh phase)** — agent phân tích mã ĐÚNG nhưng bỏ qua bối cảnh: hệ đang phòng thủ 100% tiền mặt mà câu trả lời không nhắc một chữ.
+- Sản phẩm tự cãi nhau NGẦM: web Finext hiện "100% TIỀN MẶT — đang phòng thủ", chat lại bảo "vào được" mà không giải thích điểm lệch → khách mất niềm tin vào cả hai. Quan điểm khác tín hiệu hệ là được phép — im lặng về điểm lệch mới là lỗi.
+
+### Cách sửa — Response đúng
+> "Trước hết về bối cảnh: hệ thống đang ở trạng thái DOWNTREND, tỷ lệ nắm giữ gợi ý 0% — cả 3 danh mục đã về tiền mặt từ [ngày]. Mọi vị thế mở mới lúc này là đi ngược tín hiệu hệ.
+>
+> Riêng về FPT nếu anh/chị vẫn muốn xem: [phân tích dòng tiền/kỹ thuật/cơ bản như thường]... Các tín hiệu riêng của mã đang tích cực, nhưng trong bối cảnh hệ phòng thủ, phương án nhất quán với hệ là đưa FPT vào danh sách theo dõi và chờ hệ bật lại (mã cũng đang nằm trong danh mục tham khảo 'sẽ vào khi bật lại'). Quyết định cuối vẫn do anh/chị cân nhắc."
+
+### Nguyên tắc rút ra
+- LUÔN đọc pha trước khi khuyến nghị để nêu được bối cảnh hệ (headline có sẵn trong `data_briefing.core.phase` — 0 query thêm); pha là bối cảnh phải nêu, không phải cổng chặn khuyến nghị.
+- Được phân tích và khuyến nghị trong downtrend, nhưng câu trả lời phải NÊU trạng thái hệ và nói rõ gợi ý vào lệnh lúc này là đi ngược tín hiệu hệ — kèm lý do vì sao agent vẫn thấy đáng cân nhắc.
+
+---
+
+## Case 10 — Tự tính hiệu suất dài hạn từ dữ liệu ngày rồi trình như số chính thức (MỚI v2)
+
+### Tình huống
+User hỏi: "Danh mục Sóng Ngành từ 2020 tới giờ lãi bao nhiêu?"
+
+### Câu trả lời SAI
+Agent query `phase_perf` toàn bộ lịch sử, compound `ret_1d_1x` → "+712% từ 2020, vượt xa thị trường."
+
+### Chẩn đoán
+- **Vi phạm Rule 9 (hiệu suất 2 tầng)**: `ret_1d_1x` là chuỗi GROSS (chưa phí/thuế/slippage) — compound dài hạn sẽ LỆCH số NET chính thức (+631%) và thổi phồng kỳ vọng.
+- Số dài hạn/tổng kết là bộ số ĐÓNG BĂNG có kiểm soát (kèm 6 disclaimer) — không phải thứ tự tính lại mỗi lần chat.
+
+### Cách sửa — Response đúng
+> "Theo bảng số chính thức (backtest NET sau phí, dữ liệu đến 09/07/2026): danh mục Sóng Ngành +631% từ 2020 (CAGR 35.9%), so với mua-và-giữ +266%. Năm 2022 thị trường −49% thì danh mục +35.3%. [kèm disclaimer #1 #3 #4]"
+
+Cửa sổ NGẮN thì ngược lại — ĐƯỢC tự tính: "tuần này Sóng Ngành +1.8% (gross chưa phí, tham khảo nhanh) so với thị trường +0.9% cùng kỳ."
+
+### Nguyên tắc rút ra
+- CAGR/Sharpe/MaxDD/theo năm/từ-2020 → CHỈ trích bảng FROZEN ở `K_agent_db_06` mục 4.
+- Tuần/tháng/YTD → compound `phase_perf.ret_1d_1x` + so benchmark FNX + nhãn gross.
+- Thống kê sổ lệnh (tỷ lệ thắng, lãi TB/lệnh) được tự tính từ `phase_trading` nhưng luôn dán nhãn backtest.
+
+---
+
 ## Tổng kết — Các pattern đáng tránh
 
 Liệt kê các cụm từ/hành vi cảnh báo — khi thấy mình sắp viết chúng, DỪNG và kiểm tra:
@@ -314,6 +366,8 @@ Liệt kê các cụm từ/hành vi cảnh báo — khi thấy mình sắp viế
 | "Nhắc lại shortlist từ câu trước..." (sau khi bị sửa sai) | Rule 7 | Rollback và query lại |
 | Nhảy thẳng vào phân tích chi tiết với câu hỏi mơ hồ | Rule 4 | Clarify multiple choice trước |
 | Đưa phân bổ % không kèm "Giả định:" | Rule 5 | Thêm block giả định trước |
+| Gợi ý mở vị thế khi exposure = 0 mà không nêu trạng thái hệ | Rule 8 | Nêu trạng thái hệ + nhãn "đi ngược tín hiệu hệ" |
+| Compound `ret_1d_1x` cả lịch sử trình như số chính thức | Rule 9 | Dài hạn = bảng FROZEN `K_agent_db_06`; ngắn = nhãn gross |
 
 ---
 

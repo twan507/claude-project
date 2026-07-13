@@ -4,6 +4,31 @@ Lịch sử thay đổi major cross-pack. Mỗi entry ghi: date + summary + file
 
 ---
 
+## 2026-07-13 (rev 6) — Port agent_db v2 (fnx05) vào cả 2 agent; phase hạ xuống tín hiệu tham chiếu
+
+### DB agent v2 (`agent_db/` — thay thế `db_agent/` cũ đã xoá)
+
+- Bộ mới do owner cung cấp (2026-07-12): pipeline fnx05 v2 chuẩn hoá đơn vị (`*_pct` = **điểm %** đọc thẳng; `rank_pct` percentile **0–100**; omit-null thay `null`/`NaN`), 31 collection (+6 phase: `market_phase`, `market_phase_history`, `phase_basket`, `phase_trading`, `phase_industry`, `phase_perf`), `data_briefing` còn 2 doc (`core` + `news_report`), `market_recent` đổi schema (`index` + 1 array `series[].price/trend`), `history_*` sort TĂNG dần (`$slice: -N` lấy mới nhất), `stock_info` rename 5 field sở hữu (`free_float_pct`...), news feed thêm field `link`, 13 workflow A-M, audience đổi sang NĐT khách Finext, master `agent_db_00` gộp vào system_prompt.
+- **v2.1 (tinh chỉnh theo quyết định owner):** hạ PHASE từ luật subordination xuống **tín hiệu tham chiếu ngang hàng** — gỡ "phase thắng"/"PHASE TRƯỚC"/"CẤM gợi ý mở vị thế" khỏi system_prompt + `agent_db_02/03/04/05/06` (22 chỗ); khuyến nghị chỉ cần NÊU bối cảnh phase/exposure, ngược tín hiệu hệ thì nói rõ điểm lệch. Case 9 đổi thành "khuyến nghị mà KHÔNG nêu trạng thái hệ". Khôi phục bảng dịch taxonomy 20 dòng (rơi mất khi gộp `agent_db_00`) vào đầu `agent_db_04`; sửa pointer chết `agent_db_01` (mục 4.5 cũ → 8.5).
+
+### analysis_agent — thay toàn bộ `K_agent_db` (6 → 7 file)
+
+- **Port `agent_db_01..06` → `K_agent_db_01..06`:** đổi cross-ref prefix, remap toàn bộ pointer "system prompt mục X" từ numbering của DB agent (5/6/7/8.x/9) sang vị trí analyst (system prompt mục 5.x + `K_agent_db_00` mục 2/4.x/5.x/6). Case 3 bổ sung note: backtest `phase_trading` là của hệ phase, không dùng làm base rate xác suất kịch bản chỉ số. `K_agent_db_06` thêm note audience (file gốc hành văn "khách" — đọc là user cuối).
+- **Viết mới `K_agent_db_00`** (thay bản cũ): giữ nguyên khung số mục cũ để 8+ pointer từ P/O không gãy (4.5 whitelist, 6 đơn vị, 5 K hygiene, 2 nguồn dữ liệu); ruột theo v2 (bảng đơn vị điểm %, bảng dịch DB raw + phase, omit-null, known gaps, luật query). Thêm **mục 4.6 MỚI** — phase là tín hiệu tham chiếu: nhãn pha chỉ trích từ `market_phase`, đánh giá độc lập được phép, lệch nêu cả hai; **P pack KHÔNG dùng tầng phase, giữ methodology regime riêng** (quyết định owner). Mục 4.3 thêm luật hiệu suất 2 tầng + khoá backtest.
+- **Giữ nguyên:** `analysis_agent/system_prompt.md` (meta-layer không đổi), `K_sector_framework`, audience analyst nội bộ, chế độ clarify 2 câu (mục 4.2).
+
+### P/O pack — sửa đồng bộ đơn vị + schema (~35 vị trí)
+
+- **Ngưỡng `rank_pct` rescale 0–100** (nếu không sửa sẽ vô hiệu thầm lặng): `P_invest_memo_03` (bảng A3 + 3 bảng template/worked example), `P_invest_memo_07` (soft exit trigger `< 0.3` → `< 30` — trigger này đã chết dưới thang mới), `P_invest_memo_09` (soft trigger + flag `pct_change ±5`).
+- **Schema mới:** `P_invest_memo_01` (query + note `market_recent` viết lại), `P_invest_memo_02/03` (NaN → field omit), `P_invest_memo_04` (`free_float_pct`, block `nn` omit), `P_weekly_overview_01/02/03/04` (`series[].price/trend`, `data_briefing` doc core, fallback NN/TD), `P_vbse_strategy_00/02`, `P_stock_report_01` (corporate actions + earnings calendar = known gap; ADV `history_stock` phải `$slice: -60` — bug cũ lấy 60 phiên CŨ nhất), `O_weekly_overview_00`, `OUTPUT_MASTER` (ví dụ field cấm), `KERNEL_SKELETON` (31 collection, K_agent_db_06 trigger, `series[].trend`).
+- **Checklist self-audit gỡ "nhân 100":** `P_weekly_overview_04`, `P_vbse_strategy_09`, `P_stock_report_04`, `P_invest_memo_02`, `P_stock_report_03` ("percentile fraction" → percentile 0-100), `P_stock_report_01`.
+
+### Rationale
+
+DB thật đã chạy pipeline fnx05 v2 — knowledge cũ mô tả DB không còn tồn tại: đọc `*_pct` kiểu cũ cho kết quả **sai 100 lần**, 4 ngưỡng screening/exit percentile vô hiệu thầm lặng, query `data_briefing`/`market_recent` kiểu cũ trả rỗng/sai. Phase để ở K làm knowledge tra cứu (hỏi đích danh + bối cảnh khuyến nghị), không ép P pack subordinate — tránh 2 mô hình regime xung đột trong cùng agent.
+
+---
+
 ## 2026-05-30 (rev 5) — Refactor Value chain framework: tham chiếu chuyên nghiệp đầy đủ (Porter + Smile Curve + GVC + Industry 4.0 + CFA Sector Analysis 2020)
 
 ### Mở rộng value chain analysis với 6 framework chuẩn quốc tế
