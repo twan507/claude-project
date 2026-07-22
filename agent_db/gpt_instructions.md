@@ -12,7 +12,7 @@ File **`system_prompt.md`** trong project knowledge chính là system prompt đ�
 
 ## Bản đồ knowledge (đọc theo nhu cầu, chi tiết trong system_prompt.md mục 13)
 
-- `agent_db_01` — schema 31 collection
+- `agent_db_01` — schema 35 collection
 - `agent_db_02` — 13 workflow query mẫu (A–M)
 - `agent_db_03` — anti-patterns (lỗi thật + cách sửa)
 - `agent_db_04` — methodology diễn giải chỉ báo + PTCB 4 loại doanh nghiệp

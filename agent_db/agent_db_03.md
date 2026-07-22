@@ -18,6 +18,7 @@ Tài liệu này chứa các case lỗi thật từ lịch sử sử dụng agen
 - Rule 7 (rollback sạch khi sai giả định gốc): system prompt mục 8.3
 - **MỚI v2 — Rule 8 (phase là tín hiệu tham chiếu, nêu khi liên quan)**: system prompt mục 5 — case 9 dưới
 - **MỚI v2 — Rule 9 (hiệu suất 2 tầng)**: system prompt mục 6 — case 10 dưới
+- **MỚI v3 — Rule 10 (đọc đúng granularity + độ trễ của chuỗi lịch sử định giá)**: system prompt mục 4 + 11, methodology `agent_db_04` mục D6 — case 11 dưới
 
 Nội dung case study bên dưới giữ nguyên văn vì giá trị minh họa không phụ thuộc vào naming.
 
@@ -352,6 +353,36 @@ Cửa sổ NGẮN thì ngược lại — ĐƯỢC tự tính: "tuần này Són
 
 ---
 
+## Case 11 — Đọc lịch sử định giá như dữ liệu phiên (MỚI v3)
+
+### Tình huống
+User hỏi "HPG đang đắt hay rẻ?". Agent query `history_finratios_stock`, thấy chuỗi `series` dài rồi phán.
+
+### Câu trả lời SAI (dạng lỗi điển hình)
+> "P/E HPG **giảm 5 phiên liên tiếp** về 8.8 — thấp nhất 2 năm, **rẻ kỷ lục**, cơ hội mua."
+> "Ngành có **665 mã** trong mẫu nên số liệu rất đáng tin."
+> "Tháng 1/2024 P/E đã về 9.0 — **lúc đó thị trường đã biết là rẻ** mà không mua."
+
+### Chẩn đoán
+- **Vi phạm Rule 10** (đọc sai granularity/độ trễ của chuỗi lịch sử) — 3 lỗi chồng nhau:
+- **"5 phiên"**: điểm dữ liệu của `history_finratios_*` là **TUẦN** (phiên đầu mỗi tuần), không phải phiên. `$slice: -5` = 5 **tuần**.
+- **"rẻ kỷ lục"**: P/E giảm 42% nhưng vốn hoá **+3%** còn EPS **+34%** → mã rẻ đi vì **lợi nhuận tăng**, không phải vì giá bị bán. Cùng lúc đó FPT cũng "phân vị 0%" nhưng vì **giá giảm 40%** — hai chuyện ngược nhau, không được gộp một nhãn "rẻ".
+- **"665 mã trong mẫu"**: `n_stocks` đếm theo phân loại ngành **hiện tại**, có survivorship bias, gần như đứng im suốt lịch sử — không phải cỡ mẫu thật.
+- **"lúc đó thị trường đã biết"**: BCTC được gán vào **ngày kết thúc kỳ**, không phải ngày công bố → look-ahead 1–2 tháng. Tại thời điểm đó thị trường **chưa có** số ấy.
+
+### Cách sửa — Response đúng
+
+> "P/E HPG hiện 8.8 lần — **phân vị 0% trong 2 năm** (tức thấp nhất chuỗi 2 năm, dữ liệu theo tuần).
+> Nhưng đây là **rẻ đi vì làm ăn tốt lên**, không phải vì bị bán tháo: cùng kỳ vốn hoá gần như đi ngang (+3%) trong khi lợi nhuận trên mỗi cổ phiếu tăng 34%.
+> So mặt bằng ngành Kim loại công nghiệp (P/E ngành 9.2 lần), HPG **không rẻ hơn ngành đáng kể** — cái rẻ nằm ở so sánh với chính quá khứ của nó."
+
+### Nguyên tắc rút ra
+- Mọi kết luận "đắt/rẻ" phải kèm **cửa sổ** ("phân vị X% trong N năm") — cùng một con số ra kết luận khác nhau tuỳ cửa sổ (P/E thị trường 13.1 = phân vị 6% nếu nhìn 1 năm, 53% nếu nhìn 2 năm).
+- Phải **phân rã** P/E thành phần giá và phần lợi nhuận trước khi gán nhãn.
+- Methodology đầy đủ: `agent_db_04` mục D6. Cảnh báo dữ liệu: `agent_db_01` khối E.
+
+---
+
 ## Tổng kết — Các pattern đáng tránh
 
 Liệt kê các cụm từ/hành vi cảnh báo — khi thấy mình sắp viết chúng, DỪNG và kiểm tra:
@@ -368,6 +399,9 @@ Liệt kê các cụm từ/hành vi cảnh báo — khi thấy mình sắp viế
 | Đưa phân bổ % không kèm "Giả định:" | Rule 5 | Thêm block giả định trước |
 | Gợi ý mở vị thế khi exposure = 0 mà không nêu trạng thái hệ | Rule 8 | Nêu trạng thái hệ + nhãn "đi ngược tín hiệu hệ" |
 | Compound `ret_1d_1x` cả lịch sử trình như số chính thức | Rule 9 | Dài hạn = bảng FROZEN `agent_db_06`; ngắn = nhãn gross |
+| "P/E giảm 5 phiên liên tiếp" (từ chuỗi `history_finratios_*`) | Rule 10 | Điểm dữ liệu là TUẦN — đổi sang "5 tuần" |
+| "Rẻ kỷ lục" mà không phân rã giá vs lợi nhuận | Rule 10 | So `marketcap` và `eps` hai đầu cửa sổ trước khi gán nhãn |
+| Dùng phân vị lịch sử để nói "lúc đó đã rẻ rồi" / backtest | Rule 10 | BCTC gán vào ngày kết thúc kỳ → look-ahead 1–2 tháng |
 
 ---
 

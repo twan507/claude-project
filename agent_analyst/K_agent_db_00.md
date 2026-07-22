@@ -1,5 +1,7 @@
 # K_agent_db_00 — Master file
 
+> **⚑ v3 (2026-07-21):** DB lên **35 collection** — thêm khối lịch sử ĐỊNH GIÁ (`history_finratios_stock` / `_industry`, điểm dữ liệu theo **TUẦN**) và khối lịch sử KHỐI NGOẠI / TỰ DOANH (`history_nntd_stock` / `_index`, điểm **mỗi phiên** từ 2020). Kèm theo: methodology định giá tương đối theo lịch sử (`K_agent_db_04` mục D6) + Rule 10 & case 11 (`K_agent_db_03`); `corr60` được định nghĩa lại (đồng pha xu hướng–thanh khoản, KHÔNG phải lan toả dòng tiền); TRANSITION hạ sàn `exposure` xuống **0.50**; thêm cờ nội bộ `suppressed` (`K_agent_db_06` mục 2). Đơn vị mới: mục 6.
+
 > **v2 (2026-07-13):** đồng bộ với pipeline fnx05 v2. Thay đổi lớn: (1) đơn vị `*_pct` chuyển sang **điểm phần trăm** đọc thẳng, `rank_pct` thang **0–100** (mục 6 + 5.2); (2) DB từ 25 lên **31 collection** — thêm khối phase & danh mục (`K_agent_db_06`, mục 4.6); (3) `data_briefing` chỉ còn 2 doc (`core` + `news_report`); (4) field thiếu dữ liệu bị **omit** khỏi doc, không còn `null`/`NaN` (mục 9); (5) query patterns 13 workflow A–M.
 
 ## 1. Mục đích & scope
@@ -38,7 +40,7 @@ Pack dùng 2 nguồn song song:
 Pack có 6 file con reference (số hiệu là reference index, không phải thứ tự thực thi):
 
 **`K_agent_db_01` — Collections schema**
-31 collection trong `agent_db` (8 khối cũ + Section I khối phase & danh mục) + công thức chỉ báo gốc + URL pattern finext.vn. Tra khi cần hiểu cấu trúc document trước khi query.
+35 collection trong `agent_db` (8 khối cũ + Section I khối phase & danh mục; khối E gồm 3 nhóm lịch sử: GIÁ mỗi phiên, ĐỊNH GIÁ mỗi tuần, KHỐI NGOẠI/TỰ DOANH mỗi phiên) + công thức chỉ báo gốc + URL pattern finext.vn. Tra khi cần hiểu cấu trúc document trước khi query.
 
 **`K_agent_db_02` — Query patterns**
 13 workflow pipeline (ký hiệu A đến M; M = phase & danh mục). Dùng làm template, thay placeholder. Không tự sáng chế pipeline phức tạp khi đã có template phù hợp.
@@ -47,7 +49,7 @@ Pack có 6 file con reference (số hiệu là reference index, không phải th
 Gallery 10 case lỗi thật gặp trong quá khứ + cách sửa. Đọc khi nghi vấn, đặc biệt trước câu hỏi phân tích phức tạp lần đầu trong session.
 
 **`K_agent_db_04` — Interpretation & methodology**
-Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone), phương pháp PTCB riêng cho 4 type doanh nghiệp (SXKD, NGANHANG, CHUNGKHOAN, BAOHIEM), kịch bản ticker, pitfalls. **Đầu file có bảng dịch taxonomy nội bộ** (tham chiếu từ mục 5.3). Đọc đầu session khi có câu hỏi phân tích chi tiết hoặc gặp chỉ báo chưa chắc cách đọc.
+Methodology diễn giải chỉ báo (dòng tiền, trend đa khung, technical zone), phương pháp PTCB riêng cho 4 type doanh nghiệp (SXKD, NGANHANG, CHUNGKHOAN, BAOHIEM), **định giá tương đối theo lịch sử (mục D6 — canonical cho mọi câu hỏi đắt/rẻ)**, kịch bản ticker, pitfalls. **Đầu file có bảng dịch taxonomy nội bộ** (tham chiếu từ mục 5.3). Đọc đầu session khi có câu hỏi phân tích chi tiết hoặc gặp chỉ báo chưa chắc cách đọc.
 
 **`K_agent_db_05` — News methodology**
 Methodology phân tích 4 loại tin (`doanh_nghiep`, `quoc_te`, `trong_nuoc`, `thong_cao`), framework chấm điểm impact nội bộ, case study thị trường VN, workflow đa tin, bảng dịch thuật ngữ tiếng Anh (phần 9). Đọc đầu session khi câu hỏi liên quan tin tức, chính sách vĩ mô, hoặc yêu cầu bối cảnh sự kiện.
@@ -137,7 +139,7 @@ Rule K hygiene ở system prompt mục 5.5 bắt buộc dịch ký hiệu raw v�
 ### 5.1. Ba nhóm ký hiệu
 
 **Nhóm 1 — Ký hiệu DB raw:**
-`vsi`, `VSI`, `day_score`, `week_score`, `zone` với giá trị `A/AA/AAA/B/C`, `f382`/`f500`/`f618`, `poc`/`val`/`vah`, `r1`/`s1`, `period: "2025_4"`, `m_pct`/`w_pct`/`q_pct`/`y_pct`, `w_trend`/`m_trend`/`q_trend`/`y_trend`, `rank_pct`, `industry_rank_pct`, `market_rank_pct`, các key phase (`breadth_slow`, `breadth_blend`, `breadth_aux`, `conf_dir`, `conf_flat`, `corr60`, `px_ret20_pct`, `exposure`, `held`, `book`), status rank (`trong_ro`/`vung_buffer`/`ung_vien`/`cho_tin_hieu`/`ngoai`), `exit_reason` (`HOLDING`/`DOWNTREND`/`ROTATION`/`REBALANCE`).
+`vsi`, `VSI`, `day_score`, `week_score`, `zone` với giá trị `A/AA/AAA/B/C`, `f382`/`f500`/`f618`, `poc`/`val`/`vah`, `r1`/`s1`, `period: "2025_4"`, `m_pct`/`w_pct`/`q_pct`/`y_pct`, `w_trend`/`m_trend`/`q_trend`/`y_trend`, `rank_pct`, `industry_rank_pct`, `market_rank_pct`, các key phase (`breadth_slow`, `breadth_blend`, `breadth_aux`, `conf_dir`, `conf_flat`, `corr60`, `px_ret20_pct`, `exposure`, `market_exposure`, `suppressed`, `held`, `book`), status rank (`trong_ro`/`vung_buffer`/`ung_vien`/`cho_tin_hieu`/`ngoai`), `exit_reason` (`HOLDING`/`DOWNTREND`/`ROTATION`/`REBALANCE`).
 
 **Nhóm 2 — Taxonomy nội bộ methodology (từ file 04, 05):**
 - Tên kịch bản trend đa khung: "Kịch bản A/B/C/D/E/F/G"
@@ -190,10 +192,11 @@ Viết tắt thông dụng có thể giữ nguyên: Fed, FOMC, CPI, NFP, PCE, PM
 | **Phase:** `breadth_slow` | Cấu trúc xu hướng tăng (vượt +0.30 mới đủ điều kiện TĂNG) |
 | `breadth_blend` / `breadth_aux` | Cấu trúc xu hướng giảm (dưới −0.30 → GIẢM) / Tín hiệu xu hướng suy yếu |
 | `conf_dir` / `conf_flat` | Độ tin cậy xu hướng / Độ tin cậy Sideway |
-| `corr60` | Mức độ lan tỏa dòng tiền (dưới 0.35 = dòng dẫn dắt hẹp) |
+| `corr60` | **Đồng pha xu hướng – thanh khoản** — cấu trúc xu hướng và cường độ thanh khoản có đi cùng nhịp không (dưới 0.35 = rời nhịp, đà chưa được thanh khoản xác nhận; dưới 0 = ngược nhịp). ⚠ KHÔNG đo dòng tiền vào/ra, KHÔNG suy ra "vài mã lớn kéo chỉ số" |
 | `px_ret20_pct` | Quán tính biến động giá (lợi suất 20 phiên, điểm %) |
-| `exposure: 0.85` | tỷ lệ nắm giữ gợi ý 85% (thang 0..2.0, nhân 100 khi nói; >1.0 = có margin, kèm cảnh báo) |
+| `exposure: 0.85` | tỷ lệ nắm giữ gợi ý 85% (thang 0..2.0, nhân 100 khi nói; >1.0 = có margin, kèm cảnh báo) ⚑ **Trạng thái KHÔNG quyết định mức an toàn** — cùng TRANSITION vẫn có thể 1.0 hoặc 0.5; ≤0.55 ở TRANSITION = vùng rủi ro cao, phải nói rõ, KHÔNG giải thích cơ chế |
 | `market_intensity` | thước đo cường độ thị trường (−1 tới +1) |
+| `suppressed: true` | cờ NỘI BỘ — tín hiệu giảm đã hội đủ nhưng chưa được xác nhận → tỉ trọng gợi ý bị hạ sâu. ⛔ KHÔNG giải thích cơ chế/công thức cho user; chỉ nói bối cảnh thị trường xấu, rủi ro cao |
 | rank `status`: `trong_ro`/`vung_buffer`/`ung_vien`/`cho_tin_hieu`/`ngoai` | đang nắm giữ / đang giữ nhưng sắp ra / chờ vào / đủ hạng chờ tín hiệu giá / ngoài danh mục |
 | `exit_reason`: `HOLDING`/`DOWNTREND`/`ROTATION`/`REBALANCE` | đang giữ / bán cả rổ do thị trường phòng thủ / đảo ngành / cơ cấu định kỳ |
 
@@ -213,7 +216,10 @@ Bảng dịch taxonomy đầy đủ (Kịch bản A–G, E1–E3, thuật ngữ 
 | `ret_1d_1x` (phase_perf) | lợi suất ngày **thập phân** — compound `Π(1+r)−1`, nhân 100 khi nói | `0.0021` = +0.21% |
 | BCTC trong `stock_finstats` (Doanh thu, Tổng tài sản…) | **đồng** — chia 10^9 ra tỷ đồng | `9864419377152` → 9.864 tỷ đồng |
 | tỷ lệ trong `stock_finstats` (ROE, biên, tăng trưởng) | ⚠ còn **thập phân** (bộ cũ, chờ curated) — nhân 100 khi nói | `0.216` = 21.6% |
-| Vốn hoá trong `valuation_ratios` · GTGD (`trading_value`) · NN/TD (`buy/sell/net_value`) | **tỷ đồng** | — |
+| Vốn hoá trong `valuation_ratios` · GTGD (`trading_value`) · NN/TD (`buy/sell/net_value`, kể cả `history_nntd_*`) | **tỷ đồng** — `sell_value` luôn ÂM, `net_value = buy + sell`; >0 mua ròng, <0 bán ròng | `-94.73` = bán ròng 94.73 tỷ |
+| `pe` `pb` `ps` `pcf` `ev_ebitda` `peg` (history_finratios_*) | **số lần** — đọc thẳng, KHÔNG nhân 100 | `13.08` = 13.08 lần |
+| `marketcap` `revenue_ttm` `profit_ttm` (history_finratios_*) | **tỷ đồng** — ⚠ KHÔNG chia 10^9 (khác BCTC trong `stock_finstats` vốn là đồng) | `187856` = 187.856 tỷ |
+| `eps` `bvps` (history_finratios_*) | **đồng / cổ phiếu** | `2499` = 2.499 đ/cp |
 | `volume`, share counts, `foreignerRoom`, breadth | số nguyên (cổ phiếu / số mã) | — |
 | `vsi` / `volume_strength_index` | lần so trung bình 5 phiên | `2.1` = gấp 2.1 lần |
 | `other_data.value` | đọc kèm `unit`; lãi suất unit `%` là thập phân (`0.045` = 4.5%) — riêng các field `*_pct` cùng doc ĐÃ là điểm % | — |
@@ -227,6 +233,8 @@ Field không có trong doc = không có dữ liệu (pipeline omit null) — nó
 - `market_phase.as_of` (EOD đã chốt) có thể trễ hơn `core.as_of` (realtime) 1 phiên trong giờ giao dịch — lệch thì nêu cả hai mốc; lệch >1 phiên thì cảnh báo dữ liệu phase cũ
 - `other_data.update_date`: chỉ số vĩ mô tháng (CPI, XNK, PMI) có thể cũ 2-3 tuần, luôn ghi chú ngày cập nhật
 - BCTC công bố trễ 1-2 tháng sau quý — check `period` mới nhất, ghi rõ "số cơ bản đến Qx/YYYY"
+- ⚠ `history_finratios_*`: BCTC được gán vào **ngày kết thúc kỳ** (31/12, 31/03…) chứ không phải ngày công bố → chuỗi có **look-ahead 1–2 tháng**. Mô tả/so sánh thì được; CẤM nói "lúc đó P/E đã rẻ rồi" hay dùng làm tín hiệu backtest. Điểm dữ liệu là **TUẦN**, không phải phiên (methodology: `K_agent_db_04` mục D6)
+- ⚠ `history_nntd_*` (lịch sử khối ngoại/tự doanh) có thể **trễ vài phiên** so với `stock_nntd`/`market_nntd`. Cần số MỚI NHẤT → dùng bản snapshot; cần CHUỖI dài → dùng bản history. Luôn đọc `date` của điểm cuối trước khi gọi nó là "phiên hôm nay"
 - Tin từ DB: rolling 30 ngày, luôn đối chiếu web search để lấy tin mới hơn nếu có
 
 ## 8. Lăng kính phân tích cốt lõi

@@ -12,7 +12,7 @@ File **`system_prompt.md`** trong project knowledge chính là system prompt đ�
 
 ## Kiến trúc pack (chi tiết + trigger ở KERNEL_SKELETON.md)
 
-- **K_agent_db** (7 file, master `K_agent_db_00`): schema 31 collection, query patterns A–M, anti-patterns, methodology chỉ báo + tin tức, phase & danh mục hệ (`_06`).
+- **K_agent_db** (7 file, master `K_agent_db_00`): schema 35 collection, query patterns A–M, anti-patterns, methodology chỉ báo + tin tức, phase & danh mục hệ (`_06`).
 - **K_sector_framework**: khung phân tích ngành chuẩn CFA.
 - **P packs**: `P_invest_memo` (workflow đầu tư 5 giai đoạn), `P_weekly_overview` (báo cáo tuần), `P_vbse_strategy` (chiến lược tháng/tuần), `P_stock_report` (phân tích sâu 1 mã).
 - **O packs**: render spec tương ứng từng P pack.

@@ -20,7 +20,7 @@ gán 1 trong 4 trạng thái + tỷ lệ nắm giữ gợi ý:
 | Trạng thái | Đèn | `exposure` gợi ý | Nghĩa với NĐT |
 |---|---|---|---|
 | **UPTREND** | 🟩 | **1.0 → 2.0** (theo độ tin cậy) | Thị trường tăng có nền — nắm giữ đủ, hệ có thể gợi ý vượt 100% (margin — LUÔN kèm cảnh báo) |
-| **TRANSITION** | 🟧 | **0.70 → 1.0** (theo cường độ thị trường) | Vùng chuyển tiếp/thiếu bằng chứng — nắm giữ cao nhưng không tối đa |
+| **TRANSITION** | 🟧 | **0.50 → 1.0** (theo cường độ thị trường) | Vùng chuyển tiếp/thiếu bằng chứng. ⚑ **KHÔNG đồng nghĩa an toàn** — bối cảnh càng xấu mức càng thấp, có thể chỉ **0.5** (bằng SIDEWAY). Phải đọc `exposure` thực tế của phiên, đừng mặc định "transition = nắm giữ cao" |
 | **SIDEWAY** | ⬜ | **0.5** | Đi ngang có bằng chứng — nắm một nửa |
 | **DOWNTREND** | 🟥 | **0** | Phòng thủ — hệ thống về 100% TIỀN MẶT, cả 3 danh mục bán sạch |
 
@@ -53,9 +53,11 @@ lên/xuống. **CẤM:** công thức tính, trọng số, cách kết hợp ra 
 | `breadth_aux` | Tín hiệu xu hướng suy yếu | trigger giảm độc lập thứ hai | dưới **−0.30** |
 | `conf_dir` | Độ tin cậy xu hướng | mức tin cậy của tín hiệu hướng (0..1) | ≥**0.30** đủ cho TĂNG · ≥**0.20** đủ cho GIẢM (giảm cố ý dễ kích hoạt hơn — thiên về bảo vệ) |
 | `conf_flat` | Độ tin cậy Sideway | mức tin cậy trạng thái đi ngang (0..1) | ≥**0.45** mới xác nhận SIDEWAY |
-| `corr60` | Mức độ lan tỏa dòng tiền | thị trường tăng/giảm có đồng thuận thanh khoản không | dưới **0.35** = dòng dẫn dắt hẹp → hệ vào chế độ thận trọng với tín hiệu giảm (chống báo động giả khi chỉ vài trụ kéo) |
+| `corr60` | Đồng pha xu hướng – thanh khoản | tương quan 60 phiên giữa **cấu trúc xu hướng** (`breadth_slow`) và **cường độ thanh khoản** (thanh khoản gần đây so nền 3 tháng): hai lớp có đi cùng nhịp không. ⚠ **KHÔNG đo dòng tiền vào/ra** | cao = cùng nhịp, thanh khoản XÁC NHẬN diễn biến cấu trúc · dưới **0.35** = rời nhịp → hệ vào chế độ thận trọng với tín hiệu giảm · dưới **0** = ngược nhịp. ⛔ Giá trị thấp KHÔNG suy ra được nguyên nhân: có thể do dẫn dắt hẹp (vài trụ kéo), do suy yếu chậm thanh khoản cạn dần, hoặc do nhịp tăng êm thanh khoản thấp — chỉ mô tả QUAN HỆ, cấm kết luận "dòng tiền tập trung ở nhóm trụ" |
 | `px_ret20_pct` | Quán tính biến động giá | lợi suất 20 phiên gần nhất (điểm %) | trên **−10** = chưa rơi vào nhịp sập nhanh; dưới −10 thì chế độ thận trọng TẮT để bảo vệ kịp |
 | *(kèm)* `market_intensity` | Cường độ thị trường | gauge −1..+1 "đang lên/xuống sâu tới đâu"; điều tiết mức nắm giữ trong TRANSITION | không có ngưỡng công bố |
+| *(kèm)* `market_exposure` | Mức tham gia gợi ý | % vốn gợi ý tham gia thị trường (thang 0..2.0) | ⚑ **TRẠNG THÁI KHÔNG QUYẾT ĐỊNH MỨC AN TOÀN**: cùng nhãn TRANSITION vẫn có thể là 1.0 (bối cảnh nhẹ) hoặc 0.5 (bối cảnh xấu). Khi ≤0.55 ở TRANSITION → phải nói rõ với khách đây là **vùng rủi ro cao, không phải trạng thái chờ an toàn**. ⛔ KHÔNG giải thích cơ chế tính |
+| *(kèm)* `suppressed` | — (KHÔNG có tên hiển thị) | cờ nội bộ: phiên mà tín hiệu giảm đã hội đủ nhưng chưa được xác nhận → mức nắm giữ gợi ý bị hạ SÂU | ⛔ **KHÔNG giải thích cơ chế cho khách**: cấm nhắc "chế độ thận trọng"/"gate"/công thức/lý do kỹ thuật khiến tỉ trọng thấp. Khi cờ này bật, chỉ được diễn đạt ở mức **bối cảnh thị trường đang xấu / rủi ro cao nên tỉ trọng gợi ý thấp**. Dùng để hiểu đúng vì sao `exposure` thấp, KHÔNG dùng làm nội dung |
 
 Mạch kể gợi ý (khớp bố cục web, không bắt buộc): kết luận pha (từ `comments.market`) → điều kiện đổi trạng thái
 (`comments.condition`) → cấu trúc đồng thuận/mâu thuẫn (`comments.structure`) → rủi ro & watch-item

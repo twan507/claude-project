@@ -53,6 +53,8 @@ Cập nhật liên tục trong phiên + EOD. **Web search** — cho tin tức m�
 | `group_snapshot` / `group_recent` | 6 nhóm vốn hoá + dòng tiền | `group_name` | — |
 | `market_snapshot` / `market_recent` / `market_nntd` / `market_itd` | VNINDEX + breadth/trend (tính trên rổ FNXINDEX) + NN/TD toàn thị trường | — | breadth/trend KHÔNG phải toàn sàn HOSE |
 | `history_stock` / `history_industry` / `history_index` | lịch sử giá dài hạn | `ticker`/`industry_name` | **Luôn filter khoá + `$slice`/date-range trên `series`** — doc rất lớn |
+| `history_finratios_stock` / `history_finratios_industry` | lịch sử ĐỊNH GIÁ (P/E, P/B, EPS, vốn hoá, sở hữu) — điểm **theo TUẦN**, có doc `"Toàn bộ thị trường"` | `ticker`/`industry_name` | Dùng khi cần so định giá với quá khứ · P/E ngành là cap-weighted · **`$slice` bắt buộc** |
+| `history_nntd_stock` / `history_nntd_index` | lịch sử **KHỐI NGOẠI + TỰ DOANH** mua/bán ròng — điểm **mỗi phiên** từ 2020 (`nn`/`td` × buy/sell/net, tỷ VND) | `ticker` / `index` (1 doc `"MARKET"`) | Chuỗi dài của `stock_nntd`/`market_nntd`. `MARKET` = tổng 3 sàn (≠ `history_index` chỉ VNINDEX) · **`$slice` bắt buộc** · ⚠ có thể trễ vài phiên so với `stock_nntd` — cần số mới nhất thì dùng bản snapshot |
 | `news_today_feed` / `news_today_content` / `news_history_feed` / `news_history_content` | tin hôm nay + 30 ngày (feed → content qua slug) | `article_slug`/`report_slug` | feed lịch sử trộn tin + báo cáo — filter `type` |
 | `other_data` | 70 chỉ số vĩ mô / hàng hoá / quốc tế | `name`, `group`+`category` | `value` đọc kèm `unit` |
 
@@ -72,7 +74,10 @@ không `$lookup`/`$out`/`$merge`/`$where` · kết quả ước quá ~50KB thì 
 | `ret_1d_1x` (phase_perf) | lợi suất ngày dạng **thập phân** — để compound `Π(1+r)−1`, kết quả nhân 100 khi nói | `0.0021` = +0.21% |
 | BCTC trong `stock_finstats` (Doanh thu, Tổng tài sản…) | **đồng** — chia 10⁹ ra tỷ đồng | `9864419377152` → 9.864 tỷ |
 | tỷ lệ trong `stock_finstats` (ROE, biên, tăng trưởng) | ⚠ còn **thập phân** (bộ cũ, chờ curated) — nhân 100 khi nói | `0.216` = 21.6% |
-| Vốn hoá trong `valuation_ratios` · GTGD (`trading_value`) · NN/TD (`buy/sell/net_value`) | **tỷ đồng** | — |
+| Vốn hoá trong `valuation_ratios` · GTGD (`trading_value`) · NN/TD (`buy/sell/net_value`, kể cả `history_nntd_*`) | **tỷ đồng** — `sell_value` luôn ÂM, `net_value = buy + sell`; >0 mua ròng, <0 bán ròng | `-94.73` = bán ròng 94.73 tỷ |
+| `pe` `pb` `ps` `pcf` `ev_ebitda` `peg` (history_finratios_*) | **số lần** — đọc thẳng, KHÔNG nhân 100 | `13.08` = 13.08 lần |
+| `marketcap` `revenue_ttm` `profit_ttm` (history_finratios_*) | **tỷ đồng** — ⚠ KHÔNG chia 10^9 (khác BCTC trong `stock_finstats` vốn là đồng) | `187856` = 187.856 tỷ |
+| `eps` `bvps` (history_finratios_*) | **đồng / cổ phiếu** | `2499` = 2.499 đ/cp |
 | `volume`, share counts, `foreignerRoom`, breadth | số nguyên (cổ phiếu / số mã) | — |
 | `vsi` / `volume_strength_index` | lần so trung bình 5 phiên | `2.1` = gấp 2.1 lần |
 | `other_data.value` | đọc kèm `unit`; lãi suất unit `%` là thập phân (`0.045` = 4.5%) | — |
@@ -172,10 +177,11 @@ UPTREND/DOWNTREND/SIDEWAY/TRANSITION là tên hiển thị chính thức — đ�
 | **Phase:** `breadth_slow` | **Cấu trúc xu hướng tăng** (trục chậm giữ xu hướng; vượt +0.30 mới đủ điều kiện TĂNG) |
 | `breadth_blend` / `breadth_aux` | **Cấu trúc xu hướng giảm** (dưới −0.30 → GIẢM) / **Tín hiệu xu hướng suy yếu** (trigger giảm độc lập) |
 | `conf_dir` / `conf_flat` | **Độ tin cậy xu hướng** / **Độ tin cậy Sideway** |
-| `corr60` | **Mức độ lan tỏa dòng tiền** (dưới 0.35 = dòng dẫn dắt hẹp) |
+| `corr60` | **Đồng pha xu hướng – thanh khoản** — cấu trúc xu hướng và cường độ thanh khoản có đi cùng nhịp không (dưới 0.35 = rời nhịp, đà chưa được thanh khoản xác nhận; dưới 0 = ngược nhịp). ⚠ KHÔNG đo dòng tiền vào/ra, KHÔNG suy ra "vài mã lớn kéo chỉ số" |
 | `px_ret20_pct` | **Quán tính biến động giá** (lợi suất 20 phiên; trên −10% = chưa sập nhanh) |
-| `exposure: 0.85` | tỷ lệ nắm giữ gợi ý 85% (nếu >1.0: có dùng margin — kèm cảnh báo) |
+| `exposure: 0.85` | tỷ lệ nắm giữ gợi ý 85% (nếu >1.0: có dùng margin — kèm cảnh báo) ⚑ **Trạng thái KHÔNG quyết định mức an toàn** — cùng TRANSITION vẫn có thể 1.0 hoặc 0.5; ≤0.55 ở TRANSITION = vùng rủi ro cao, phải nói rõ, KHÔNG giải thích cơ chế |
 | `market_intensity` | thước đo cường độ thị trường (−1 tới +1) |
+| `suppressed: true` | cờ NỘI BỘ — tín hiệu giảm đã hội đủ nhưng chưa được xác nhận → tỉ trọng gợi ý bị hạ sâu. ⛔ KHÔNG giải thích cơ chế/công thức cho khách; chỉ nói bối cảnh thị trường xấu, rủi ro cao |
 | rank `status`: `trong_ro`/`vung_buffer`/`ung_vien`/`cho_tin_hieu`/`ngoai` | đang nắm giữ / cân nhắc–sắp ra / chờ vào / chờ tín hiệu giá / ngoài danh mục |
 | `exit_reason`: `HOLDING`/`DOWNTREND`/`ROTATION`/`REBALANCE` | đang giữ / thị trường phòng thủ (bán cả rổ) / đảo ngành / cơ cấu định kỳ |
 
@@ -207,6 +213,8 @@ cho phân tích tổng hợp/khuyến nghị — trích làm bối cảnh theo m
 - `market_phase.as_of` lệch `core.as_of` ≤1 phiên là bình thường trong giờ giao dịch (mục 5.3).
 - `other_data.update_date`: chỉ số vĩ mô tháng (CPI, PMI, XNK) có thể cũ 2–3 tuần — luôn ghi ngày cập nhật.
 - BCTC công bố trễ 1–2 tháng sau quý — check `period` mới nhất, ghi rõ "số cơ bản đến Qx/YYYY".
+- ⚠ `history_finratios_*`: BCTC được gán vào **ngày kết thúc kỳ** (31/12, 31/03…) chứ không phải ngày công bố → chuỗi có **look-ahead 1–2 tháng**. Mô tả/so sánh thì được; CẤM nói "lúc đó P/E đã rẻ rồi" hay dùng làm tín hiệu backtest. Điểm dữ liệu là **TUẦN**, không phải phiên (methodology: `agent_db_04` mục D6).
+- ⚠ `history_nntd_*` (lịch sử khối ngoại/tự doanh) có thể **trễ vài phiên** so với `stock_nntd`/`market_nntd`. Cần số MỚI NHẤT → dùng bản snapshot; cần CHUỖI dài → dùng bản history. Luôn đọc `date` của điểm cuối trước khi gọi nó là "phiên hôm nay".
 - Tin DB rolling 30 ngày — có web search thì đối chiếu tin mới hơn.
 
 ## 12. Error handling & known gaps
@@ -226,7 +234,7 @@ cho phân tích tổng hợp/khuyến nghị — trích làm bối cảnh theo m
 | `agent_db_01` | Schema 30+ collection + công thức chỉ báo gốc + URL pattern finext.vn | cần cấu trúc doc trước khi query |
 | `agent_db_02` | Query patterns — 13 workflow (A–M) | làm template query, không tự sáng chế pipeline phức tạp |
 | `agent_db_03` | Anti-patterns — case lỗi thật + cách sửa | trước câu phân tích phức tạp đầu tiên trong phiên |
-| `agent_db_04` | Methodology diễn giải: dòng tiền, trend đa khung, technical zone, PTCB 4 type doanh nghiệp | câu phân tích chi tiết / chỉ báo chưa chắc cách đọc |
+| `agent_db_04` | Methodology diễn giải: dòng tiền, trend đa khung, technical zone, PTCB 4 type doanh nghiệp, **định giá tương đối theo lịch sử (D6)** | câu phân tích chi tiết / chỉ báo chưa chắc cách đọc / hỏi đắt-rẻ |
 | `agent_db_05` | News methodology: 4 loại tin, framework impact (nội bộ), case study, bảng dịch news | câu liên quan tin tức/chính sách/sự kiện |
 | `agent_db_06` | **Phase & 3 danh mục**: 4 trạng thái, exposure, 7 chỉ số, cơ chế cơ cấu, bộ số chính thức FROZEN + disclaimer, known gaps | MỌI câu về pha thị trường / danh mục hệ thống / hiệu suất |
 

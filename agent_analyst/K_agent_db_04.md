@@ -661,7 +661,11 @@ Không có bộ chỉ tiêu chung cho mọi cổ phiếu. `stock_finstats` có 4
 2. Query industry_finstats với industry_name tương ứng
 3. Kiểm tra type khớp (SXKD so với SXKD, NGANHANG so với NGANHANG)
 4. Đọc giá trị benchmark theo method phù hợp
+5. TRỤC THỜI GIAN — query history_finratios_industry (+ history_finratios_stock cho
+   chính mã) để biết hiện đang ở phân vị nào của lịch sử (xem D6)
 ```
+
+Bước 5 là bắt buộc: benchmark ngành hiện tại chỉ cho biết mã đắt/rẻ **so với hàng xóm**, không cho biết cả xóm có đang đắt hay không.
 
 **4 method tính benchmark ngành** (quan trọng khi diễn giải):
 
@@ -713,7 +717,7 @@ Không có bộ chỉ tiêu chung cho mọi cổ phiếu. `stock_finstats` có 4
 | P/B | min 0.84 (Thi công Xây dựng) — median ~1.46 — max 4.3 (Công nghệ Viễn thông) |
 | P/S | min 0.17 (Kim loại CN) — median ~0.62 — max 3.83 (BĐS Dân dụng) |
 
-**Không có ngưỡng tuyệt đối "rẻ/đắt"** — luôn so với benchmark ngành cụ thể từ `industry_finstats`. VN-Index trailing P/E ~14.75x (Nov 2025), 5Y avg 15.52x — dùng làm tham chiếu toàn thị trường.
+**Không có ngưỡng tuyệt đối "rẻ/đắt"** — luôn so 2 mốc: benchmark ngành (`industry_finstats`) VÀ lịch sử của chính nó (D6). Tham chiếu toàn thị trường **KHÔNG hardcode**: query `history_finratios_industry` doc `"Toàn bộ thị trường"` để lấy P/E thị trường hiện tại + phân vị lịch sử của nó.
 
 **4 kịch bản đọc SXKD:**
 
@@ -913,6 +917,67 @@ Q cùng kỳ năm trước có sự kiện bất thường (Covid lockdown, M&A 
 - **Bảo hiểm**: Q1 tăng phí theo chu kỳ ký hợp đồng
 
 Hiểu seasonality giúp đọc đúng QoQ: Q4 xây dựng giảm so với Q3 có thể là mùa vụ thôi, không phải cảnh báo.
+
+---
+
+### D6. Định giá tương đối theo lịch sử
+
+Câu "P/E 8.9 — đắt hay rẻ?" **không có đáp án tuyệt đối**. Chỉ trả lời được khi có mốc so sánh. Hai mốc, phải dùng CẢ HAI:
+
+- **Trục dọc (lịch sử)** — mã/ngành đang ở đâu so với **chính nó** trong quá khứ → `history_finratios_stock` · `history_finratios_industry` (schema: `K_agent_db_01` khối E).
+- **Trục ngang (mặt bằng)** — mã đang ở đâu so với **ngành**, tại cùng thời điểm → `industry_finstats` (hiện tại) hoặc `history_finratios_industry` (quá khứ).
+
+Query mẫu: `K_agent_db_02` mục 1.6 (mã) và 1.7 (ngành + toàn thị trường). **Không lặp lại query ở nơi khác — trỏ về đó.**
+
+#### Bước 1 — Chọn cửa sổ, và LUÔN nói rõ đã chọn cửa sổ nào
+
+Điểm dữ liệu theo **TUẦN**: `$slice: -52` = 1 năm · `-156` = **3 năm (mặc định)** · `-260` = 5 năm.
+
+Đổi cửa sổ là đổi kết luận. Ví dụ thật (14/07/2026): P/E toàn thị trường **13.1** = phân vị **6% nếu nhìn 1 năm** nhưng **53% nếu nhìn 2 năm**. Nói "rẻ" mà không kèm cửa sổ là câu vô nghĩa. Luôn viết dạng: *"phân vị X% trong N năm (n = số điểm)"*.
+
+**Fail-soft khi thiếu điểm:** cửa sổ 5 năm chỉ đủ ở cấp ngành / toàn thị trường; ở cấp mã chỉ ~558/679 mã đủ 3 năm. Nếu chuỗi có **< 52 điểm** (dưới 1 năm) → **KHÔNG kết luận phân vị**, chỉ nêu giá trị tuyệt đối + so ngành, ghi rõ "chưa đủ lịch sử".
+
+#### Bước 2 — Thang phân vị (một thang duy nhất cho toàn hệ)
+
+phân vị = % số điểm trong cửa sổ **thấp hơn** giá trị hiện tại. Bỏ qua điểm thiếu `pe`/`pb`.
+
+| Phân vị | Nhãn |
+|---|---|
+| < 30% | rẻ tương đối (re-rating opportunity) |
+| 30–70% | trung tính |
+| > 70% | đắt tương đối (de-rating risk) |
+
+Các ngưỡng SÀNG LỌC riêng của từng pack (vd "< 40% mới vào danh sách earnings-beat", "> 75% cảnh báo quá mua") là **cutoff sàng lọc**, không phải nhãn — không mâu thuẫn với thang trên.
+
+#### Bước 3 — BẮT BUỘC phân rã: rẻ đi vì GIÁ giảm hay vì LỢI NHUẬN tăng?
+
+`P/E = vốn hoá / lợi nhuận`. Mỗi điểm trong `series` có **sẵn cả `marketcap` lẫn `eps`** → so hai đầu cửa sổ là ra ngay:
+
+| Ví dụ thật (07/2024 → 07/2026) | P/E | vốn hoá (GIÁ) | EPS (LỢI NHUẬN) | Bản chất |
+|---|---|---|---|---|
+| HPG | −42% | **+3%** | **+34%** | Rẻ đi vì **làm ăn tốt lên** — lành mạnh |
+| FPT | −55% | **−40%** | +15% | Rẻ đi vì **thị trường bán tháo** — phải truy vì sao |
+
+Hai mã cùng "phân vị ~0%, rẻ nhất 2 năm" nhưng **bản chất ngược hẳn nhau**. Kết luận "rẻ" mà không phân rã = lỗi phân tích.
+
+⚠ Chiều ngược lại: EPS tăng vọt do **lợi nhuận đột biến / đỉnh chu kỳ** cũng kéo P/E xuống thấp giả tạo (cyclical trap). Mã chu kỳ (thép, hoá chất, vận tải biển, BĐS) → đọc **P/B** thay vì chỉ P/E.
+
+#### Bước 4 — Rẻ so với CHÍNH NÓ ≠ rẻ so với NGÀNH
+
+Mã ở phân vị 10% của chính nó nhưng P/E vẫn gấp đôi ngành → không "rẻ", chỉ là "bớt đắt". Phải nói cả hai trục.
+
+⚠ P/E ngành trong `history_finratios_industry` là **cap-weighted** (∑vốn hoá ÷ ∑lợi nhuận). KHÔNG so nó với trung bình cộng P/E các mã — hai đại lượng khác nhau.
+
+#### Bước 5 — Đọc bối cảnh chung trước khi phán từng mã
+
+Ví dụ thật 14/07/2026: **5/24 ngành cùng ở phân vị 0%** (Dệt may P/E 5.9 · Thi công Xây dựng 9.1 · Kim loại 9.2 · Nông nghiệp 9.9 · Bán lẻ 11.9). Đây KHÔNG phải "cả thị trường rẻ" mà là **lợi nhuận tăng nhanh hơn giá trên diện rộng**. Khi nhiều ngành cùng chạm đáy phân vị, phải nêu hiện tượng chung thay vì kể lể từng mã "rẻ kỷ lục".
+
+#### 4 cái bẫy của chính bộ dữ liệu này
+
+1. **Điểm dữ liệu là TUẦN, không phải phiên.** `$slice: -20` = 20 **tuần**. Cấm viết "P/E giảm 5 phiên liên tiếp" từ chuỗi này.
+2. **Look-ahead 1–2 tháng.** BCTC được gán vào **ngày kết thúc kỳ** (31/12, 31/03…) chứ không phải ngày công bố → tại tuần đó thị trường **chưa biết** số ấy. Mô tả/so sánh thì được; **cấm** dùng làm tín hiệu backtest hay nói "lúc đó P/E đã rẻ rồi".
+3. **`n_stocks` có survivorship bias** (đếm theo phân loại ngành hiện tại, gần như đứng im suốt lịch sử) → đừng suy ra độ tin cậy mẫu từ nó. Tín hiệu thiếu dữ liệu đúng là **sự VẮNG MẶT của `pe`/`pb`** (năm 2020 chỉ có `marketcap`).
+4. **2021–2023 chỉ có BCTC NĂM** → `eps`/`bvps` đứng yên cả năm, chỉ giá đổi. EPS "phẳng" ở đoạn đó là **đúng**, không phải lỗi.
 
 ---
 

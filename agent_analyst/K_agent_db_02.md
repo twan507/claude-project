@@ -132,7 +132,76 @@ filter: { "ticker": "<ticker>" }
 projection: { "_id": 0 }
 ```
 
+Bản này chỉ có **3 mốc tổng hợp** (`latest`/`week`/`month`). Cần CHUỖI theo phiên → `history_nntd_stock` (1.5b).
+
+### 1.5b. Khối ngoại / Tự doanh — chuỗi LỊCH SỬ
+
+Dùng khi hỏi: "khối ngoại bán ròng mấy phiên liên tiếp rồi?", "3 tháng qua khối ngoại gom hay xả mã này?",
+"giai đoạn nào khối ngoại rút mạnh nhất?", "khối ngoại toàn thị trường xu hướng thế nào từ đầu năm?".
+
+```javascript
+// 1 mã, 60 phiên gần nhất
+db.history_nntd_stock.find(
+  { ticker: "FPT" },
+  { _id: 0, ticker: 1, series: { $slice: -60 } }
+)
+
+// Toàn thị trường (1 doc duy nhất, index = "MARKET" = tổng VNINDEX+HNXINDEX+UPINDEX)
+db.history_nntd_index.find(
+  { index: "MARKET" },
+  { _id: 0, series: { $slice: -120 } }
+)
+```
+
+Mỗi điểm: `{date, nn:{buy_value, sell_value, net_value}, td:{...}}` — **tỷ VND**, `sell_value` ÂM,
+`net_value > 0` = mua ròng. `series` sort **cũ → mới** nên `$slice: -N` = N phiên mới nhất.
+
+**Cách dùng đúng:**
+- Cộng dồn `net_value` để ra luỹ kế kỳ (tuần/tháng/YTD) — đừng lấy trung bình.
+- Đếm chuỗi mua/bán ròng liên tiếp: duyệt ngược từ cuối, đếm tới khi `net_value` đổi dấu.
+- Ghép với `history_stock` cùng `date` để đối chiếu dòng tiền ngoại với diễn biến giá.
+- ⚠ `td` = 0 ở nhiều phiên là bình thường (tự doanh không giao dịch mã đó), KHÔNG phải thiếu dữ liệu.
+- ⚠ Chuỗi này có thể **trễ vài phiên** so với `stock_nntd`. Muốn nói "phiên hôm nay" → lấy từ `stock_nntd`;
+  luôn đọc `date` điểm cuối trước khi mô tả thời điểm.
+- ⚠ `history_nntd_index` là **3 sàn gộp**, khác `history_index` (chỉ VNINDEX) — đừng ghép cặp nhầm khi so với giá.
+
 ---
+
+
+### 1.6. Định giá lịch sử — P/E hôm nay đắt hay rẻ so với chính nó?
+
+Câu hỏi kiểu "HPG đang đắt hay rẻ?" chỉ trả lời được khi có **mốc so sánh lịch sử**. `stock_finstats` chỉ có P/E hôm nay; lịch sử nằm ở `history_finratios_stock` (điểm dữ liệu theo **TUẦN**).
+
+```javascript
+// 104 điểm cuối ≈ 2 năm gần nhất (52 tuần/năm)
+db.history_finratios_stock.find(
+  { ticker: "HPG" },
+  { _id: 0, ticker: 1, type: 1, series: { $slice: -104 } }
+)
+```
+
+Rồi tự tính **phân vị** của `pe` hiện tại trong chuỗi. **Cách đọc + thang phân vị + luật phân rã giá-vs-lợi-nhuận + fail-soft: `K_agent_db_04` mục D6** (canonical — đừng tự chế ngưỡng ở đây).
+
+⚠ `eps` nhảy bậc thang theo kỳ BCTC (`period`) là bình thường — chỉ `marketcap`/`pe`/`pb` biến động theo giá tuần.
+
+### 1.7. Định giá ngành và toàn thị trường qua nhiều năm
+
+```javascript
+// P/E toàn thị trường 3 năm gần nhất
+db.history_finratios_industry.find(
+  { industry_name: "Toàn bộ thị trường" },
+  { _id: 0, series: { $slice: -156 } }
+)
+
+// So sánh mặt bằng P/E các ngành tại 1 thời điểm quá khứ:
+// lấy 24 doc + $slice rồi tự lọc theo date ở tầng ứng dụng
+db.history_finratios_industry.find(
+  { industry_name: { $in: ["Tài chính ngân hàng", "Bất động sản Dân dụng"] } },
+  { _id: 0, industry_name: 1, series: { $slice: -52 } }
+)
+```
+
+P/E ngành là **cap-weighted**, không phải trung bình P/E các mã. NH/BH thiếu `pcf`/`ev_ebitda` là có chủ đích.
 
 ## 2. Tra cứu 1 ngành, 1 nhóm, thị trường
 

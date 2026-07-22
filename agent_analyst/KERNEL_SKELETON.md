@@ -33,7 +33,7 @@ File index của project knowledge. Agent đọc file này đầu session để 
 
 ### K_agent_db
 
-**Mục đích:** Knowledge base về dữ liệu chứng khoán Việt Nam trong MongoDB `agent_db` (pipeline fnx05 v2). Bao gồm schema 31 collection (gồm khối phase & danh mục hệ thống), query patterns 13 workflow A-M, anti-patterns, methodology diễn giải chỉ báo (dòng tiền, technical zone, trend đa khung, PTCB theo 4 type doanh nghiệp), methodology phân tích tin tức 4 loại (doanh nghiệp, quốc tế, trong nước, thông cáo), và tầng phase & 3 danh mục hệ thống.
+**Mục đích:** Knowledge base về dữ liệu chứng khoán Việt Nam trong MongoDB `agent_db` (pipeline fnx05 v2). Bao gồm schema 35 collection (gồm khối phase & danh mục hệ thống, khối lịch sử định giá và lịch sử khối ngoại/tự doanh), query patterns 13 workflow A-M, anti-patterns, methodology diễn giải chỉ báo (dòng tiền, technical zone, trend đa khung, PTCB theo 4 type doanh nghiệp, định giá tương đối theo lịch sử), methodology phân tích tin tức 4 loại (doanh nghiệp, quốc tế, trong nước, thông cáo), và tầng phase & 3 danh mục hệ thống.
 
 **Master:** `K_agent_db_00` (7 file: master + `_01` đến `_06`)
 

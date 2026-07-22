@@ -1,6 +1,11 @@
 # agent_db_01 — Collections Schema
 
-Tài liệu mô tả schema đầy đủ của **31 collection** trong `agent_db`. Mỗi mục có: cấu trúc doc, giải nghĩa field, cách agent nên dùng, và cảnh báo nếu có.
+Tài liệu mô tả schema đầy đủ của **35 collection** trong `agent_db`. Mỗi mục có: cấu trúc doc, giải nghĩa field, cách agent nên dùng, và cảnh báo nếu có.
+
+> **⚑ 2026-07-21 — THÊM 2 collection lịch sử khối ngoại / tự doanh** (33 → 35): `history_nntd_stock` (679 doc,
+> 1/mã) + `history_nntd_index` (1 doc, toàn thị trường 3 sàn). Chuỗi **mỗi phiên** từ 2020, schema `nn`/`td` ×
+> `buy_value`/`sell_value`/`net_value` — **cùng quy ước với `stock_nntd`/`market_nntd`**, chỉ khác snapshot là 3 mốc
+> tổng hợp còn đây là chuỗi lịch sử. Chi tiết: Khối E cuối mục.
 
 > **v2 (2026-07-12) — pipeline fnx05 đã chuẩn hoá dữ liệu, 3 thay đổi lớn so với v1:**
 > 1. **Đơn vị điểm phần trăm:** mọi field `*_pct`/`pct_change` đã là **điểm %** (`w_pct: -1.06` = giảm 1.06%) — ĐỌC THẲNG, không nhân 100. `industry_rank_pct`/`market_rank_pct` = percentile **0–100**. Ngoại lệ giữ nguyên: `*_trend` (0..1), `exposure` (0..2), tỷ trọng `held`/`book` (0..1), tỷ lệ trong `stock_finstats` (thập phân, chờ curated), `other_data.value` (đọc kèm `unit`). Bảng đầy đủ: system prompt mục 4.
@@ -683,7 +688,12 @@ Giá trị `group_type`: `"Nhóm vốn hoá"` hoặc `"Nhóm dòng tiền"`.
 
 Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho query on-demand khi cần chart dài hạn, phân tích cycle, backtest, hoặc so sánh giai đoạn — KHÔNG dùng cho phân tích realtime/EOD ngắn hạn (các collection `*_recent` đã cover 20 phiên gần nhất).
 
-**Schema item chung** (áp dụng cho cả 3 collection history):
+Khối này có **3 nhóm khác nhau**, đừng lẫn:
+- **Lịch sử GIÁ** — `history_index`, `history_industry`, `history_stock`: 1 điểm **mỗi phiên**.
+- **Lịch sử ĐỊNH GIÁ** — `history_finratios_stock`, `history_finratios_industry`: 1 điểm **mỗi TUẦN**, schema riêng (P/E, P/B, EPS, vốn hoá, sở hữu…). Xem cuối mục.
+- **Lịch sử KHỐI NGOẠI / TỰ DOANH** — `history_nntd_stock`, `history_nntd_index`: 1 điểm **mỗi phiên**, schema riêng (`nn`/`td` × buy/sell/net). Xem cuối mục.
+
+**Schema item chung** (chỉ áp dụng cho 3 collection lịch sử GIÁ):
 
 ```json
 {
@@ -759,6 +769,127 @@ Toàn bộ chuỗi giá lịch sử dài hạn (index / ngành / mã). Dùng cho
 - Tổng dung lượng collection lớn (~500 mã × vài trăm phiên/mã). KHÔNG `find({})` không projection.
 - Luôn filter theo `ticker` cụ thể.
 - Khi query nhiều mã song song, dùng `$in` + projection + `$slice` để giới hạn output.
+
+---
+
+### `history_finratios_stock` — Lịch sử định giá theo mã
+
+**Số lượng:** ~680 doc (1 doc / mã)
+**Cập nhật:** EOD
+**Tần suất điểm dữ liệu:** ⚠ **TUẦN** (phiên đầu mỗi tuần ISO) + phiên hôm nay — KHÔNG phải mỗi phiên như `history_stock`. Chuỗi ~340 điểm từ 2020.
+**Dùng khi:** nghiên cứu định giá dài hạn — P/E hôm nay so với chính nó 3 năm trước, vùng P/B lịch sử, EPS/BVPS qua các kỳ BCTC, xu hướng sở hữu nước ngoài.
+
+```json
+{
+  "ticker": "HPG",
+  "ticker_name": "CTCP Tập đoàn Hòa Phát",
+  "industry": "Kim loại công nghiệp",
+  "type": "SXKD",
+  "series": [
+    {
+      "date": "2022-03-07",
+      "period": "2021_5",         // kỳ BCTC làm mẫu số cho ratio tại điểm này
+      "marketcap": 220839.2,      // tỷ VND
+      "pe": 6.41, "pb": 2.43, "ps": 1.49, "pcf": 8.12, "ev_ebitda": 7.24,
+      "eps": 5929.39, "bvps": 15600.1, "peg": 1.1,
+      "revenue_ttm": 149679.8,    // tỷ VND
+      "profit_ttm": 34520.9,      // tỷ VND
+      "outstandingShare": 5820000000,
+      "free_float_pct": 55, "state_pct": 0, "foreign_pct": 21.61,
+      "foreignerRoom": 2102140000, "max_foreign_pct": 49, "major_holdings_pct": 32.68
+    }
+  ]
+}
+```
+
+**Đơn vị:** `marketcap` / `revenue_ttm` / `profit_ttm` = **tỷ VND** (KHÁC `stock_finstats.financial_statements` — bộ đó là VND gốc, phải chia 10^9). `eps` / `bvps` = VND/cp. `*_pct` = điểm % đọc thẳng. P/E, P/B, P/S, P/CF, EV/EBITDA, PEG = lần.
+
+**Cảnh báo khi nghiên cứu:**
+- Ratio tại mỗi điểm = **giá của tuần đó ÷ BCTC gần nhất đã có** (trường `period` cho biết là kỳ nào). Giá đổi mỗi tuần, mẫu số chỉ đổi khi có BCTC mới → P/E chạy theo giá còn EPS nhảy bậc thang là **đúng**, không phải lỗi.
+- Giai đoạn **2021–2023 chỉ có BCTC NĂM** (`period` dạng `_5`) → EPS/BVPS đứng yên suốt cả năm. Từ 2024 mới có BCTC quý (TTM).
+- **Năm 2020 chỉ có `marketcap`** — thiếu BCTC 2019 làm mẫu số nên mọi ratio bị omit.
+- BCTC được gán vào **ngày kết thúc kỳ** (31/12, 31/03…) chứ không phải ngày công bố → có **look-ahead ~1–2 tháng**. KHÔNG dùng thẳng làm tín hiệu backtest nếu chưa dịch kỳ.
+- Doc lớn (~340 điểm/mã): luôn filter `ticker` + projection / `$slice`.
+
+---
+
+### `history_finratios_industry` — Lịch sử định giá ngành + toàn thị trường
+
+**Số lượng:** 25 doc — 24 ngành + 1 doc `"Toàn bộ thị trường"`
+**Cập nhật:** EOD · **Tần suất: TUẦN** (như trên)
+**Dùng khi:** P/E–P/B của một ngành so với lịch sử chính nó (đắt/rẻ tương đối); **định giá toàn thị trường qua nhiều năm** (doc `Toàn bộ thị trường`); so sánh mặt bằng định giá giữa các ngành tại một thời điểm quá khứ.
+
+```json
+{
+  "industry_name": "Tài chính ngân hàng",
+  "type": "NGANHANG",
+  "series": [
+    { "date": "2022-03-07",
+      "n_stocks": 27,             // số mã của ngành theo phân loại HIỆN TẠI (xem cảnh báo)
+      "marketcap": 1250000,       // tỷ VND
+      "pe": 11.4, "pb": 1.8, "ps": 2.1,
+      "eps": 3200, "bvps": 21000, "peg": 0.9,
+      "revenue_ttm": 180000, "profit_ttm": 95000 }
+  ]
+}
+```
+
+**Cách tính:** **cap-weighted** (∑vốn hoá ÷ ∑lợi nhuận…), KHÔNG phải trung bình cộng P/E từng mã — đúng chuẩn định giá một rổ.
+**Không có `period`** (mỗi mã trong ngành một kỳ BCTC nên số tổng hợp không gắn với 1 kỳ).
+**`n_stocks`** = số mã thuộc ngành **theo phân loại hiện tại**, KHÔNG phải cỡ rổ tại thời điểm đó. `history_stock` đã backfill giá về 2020 cho cả mã niêm yết sau, nên DB không phân biệt được mã nào thực sự đang giao dịch ở quá khứ → `n_stocks` gần như đứng im suốt lịch sử (**có survivorship bias**). Đừng dùng nó để suy ra độ tin cậy của ratio ở giai đoạn cũ; hãy dùng chính sự VẮNG MẶT của ratio (2020 không có `pe`/`pb`) làm tín hiệu thiếu dữ liệu.
+**NH/BH không có `pcf`, `ev_ebitda`; CTCK không có `ev_ebitda`** — khái niệm nợ vay / dòng tiền của các ngành này khác hẳn → field bị **omit có chủ đích**, không phải thiếu dữ liệu.
+**P/S ngành ngân hàng** lấy thu nhập lãi thuần (NII) làm mẫu số → KHÔNG so trực tiếp với P/S ngành SXKD.
+
+---
+
+### `history_nntd_stock` — Lịch sử khối ngoại + tự doanh theo mã
+
+**Số lượng:** 679 doc (1 doc / mã) · **Cập nhật:** EOD · **Tần suất: MỖI PHIÊN** · Chuỗi ~1.630 phiên từ 2020-01-02.
+**Dùng khi:** khối ngoại/tự doanh mua–bán ròng một mã qua nhiều tháng/năm; đếm chuỗi phiên mua/bán ròng liên tiếp; đối chiếu dòng tiền khối ngoại với diễn biến giá (ghép `history_stock` cùng `date`); tìm giai đoạn khối ngoại gom/xả mạnh nhất lịch sử.
+
+```json
+{
+  "ticker": "FPT",
+  "series": [
+    {
+      "date": "2026-07-16",
+      "nn": {"buy_value": 137.67, "sell_value": -232.4, "net_value": -94.73},   // khối NGOẠI
+      "td": {"buy_value": 0, "sell_value": 0, "net_value": 0}                    // TỰ DOANH
+    }
+  ]
+}
+```
+
+**Đơn vị & quy ước:** tất cả = **tỷ VND**. `sell_value` luôn **ÂM**, `buy_value` dương → `net_value = buy + sell`.
+`net_value > 0` = mua ròng · `< 0` = bán ròng. **Giống hệt quy ước `stock_nntd`** (chỉ khác: `stock_nntd` là 3 mốc tổng hợp `latest`/`week`/`month`, còn đây là chuỗi theo phiên).
+
+**Cảnh báo:**
+- `series` sort **TĂNG dần** (cũ → mới) — `$slice: -N` lấy N phiên mới nhất.
+- Doc lớn (~1.630 điểm/mã) → **luôn** filter `ticker` + projection/`$slice`, đừng `find({})`.
+- Khối `nn` hoặc `td` có thể **omit** ở phiên không có dữ liệu. `td` bằng 0 ở nhiều phiên/nhiều mã là **bình thường** (tự doanh không giao dịch mã đó), không phải thiếu dữ liệu.
+- ⚠ **Có thể trễ hơn `stock_nntd` vài phiên** (nguồn lịch sử cập nhật chậm hơn bản snapshot). Cần số MỚI NHẤT → dùng `stock_nntd`; cần CHUỖI dài → dùng collection này. Luôn đọc `date` của điểm cuối trước khi gọi nó là "hôm nay".
+
+---
+
+### `history_nntd_index` — Lịch sử khối ngoại + tự doanh toàn thị trường
+
+**Số lượng:** 1 doc · **Cập nhật:** EOD · **Tần suất: MỖI PHIÊN** · ~1.630 phiên từ 2020-01-02.
+**Dùng khi:** xu hướng dòng tiền khối ngoại toàn thị trường qua nhiều năm; giai đoạn rút ròng/mua ròng kéo dài; đối chiếu với `history_index` (VNINDEX) xem khối ngoại dẫn hay theo thị trường.
+
+```json
+{
+  "index": "MARKET",
+  "series": [
+    { "date": "2026-07-16",
+      "nn": {"buy_value": 2767.17, "sell_value": -2753.75, "net_value": 13.42},
+      "td": {"buy_value": 0, "sell_value": 0, "net_value": 0} }
+  ]
+}
+```
+
+**Phạm vi:** `"MARKET"` = **tổng 3 sàn** VNINDEX + HNXINDEX + UPINDEX — **đúng phạm vi `market_nntd`** (bản snapshot), nên hai collection nhất quán với nhau. ⚠ KHÁC `history_index` (chỉ VNINDEX) — đừng nhầm khi ghép cặp.
+**Không bao gồm phái sinh** (VN30F1M, VN100F1Q…) dù nguồn có — agent_db không phục vụ phái sinh.
+Đơn vị/quy ước dấu + cảnh báo độ trễ: **giống `history_nntd_stock`** ở trên.
 
 ---
 
@@ -1135,9 +1266,12 @@ Market-level:
   market_itd (standalone)
 
 History (lịch sử dài hạn — query on-demand):
-  history_index    (VNINDEX toàn bộ lịch sử)
-  history_industry (24 ngành lịch sử)
-  history_stock    (~500 mã lịch sử)
+  history_index      (VNINDEX toàn bộ lịch sử)
+  history_industry   (24 ngành lịch sử)
+  history_stock      (~500 mã lịch sử)
+  history_finratios_stock / _industry   (định giá, tần suất TUẦN)
+  history_nntd_stock (679 mã — NN/TD mỗi phiên)   ←─ chuỗi dài của  stock_nntd
+  history_nntd_index (1 doc MARKET = 3 sàn)       ←─ chuỗi dài của  market_nntd
 
 Phase & danh mục (Section I — chi tiết agent_db_06):
   market_phase          (1 doc: pha + 7 chỉ số + comment + 60 phiên)
